@@ -82,8 +82,10 @@ window.AG = window.AG || {};
           this.ejeTactil = { x: 0, y: 0 };
           return;
         }
-        this.ejeTactil =
-          Math.abs(dx) > Math.abs(dy) ? { x: Math.sign(dx), y: 0 } : { x: 0, y: Math.sign(dy) };
+        // Ocho sectores: los diagonales se toman cuando ningún eje manda con claridad.
+        const ejeX = Math.abs(dx) > Math.abs(dy) * 0.45 ? Math.sign(dx) : 0;
+        const ejeY = Math.abs(dy) > Math.abs(dx) * 0.45 ? Math.sign(dy) : 0;
+        this.ejeTactil = { x: ejeX, y: ejeY };
         return;
       }
       if (pointer.x > AG.CFG.VIEW_W - 96 && pointer.y > AG.CFG.VIEW_H - 96) {
@@ -112,7 +114,7 @@ window.AG = window.AG || {};
       this.botonA = false;
     }
 
-    /** Dirección de movimiento en 4 sentidos, ya combinando teclado y táctil. */
+    /** Dirección de movimiento en 8 sentidos, ya combinando teclado y táctil. */
     direccion() {
       const t = this.teclas;
       let x = 0;
@@ -124,10 +126,6 @@ window.AG = window.AG || {};
       if (!x && !y) {
         x = this.ejeTactil.x;
         y = this.ejeTactil.y;
-      }
-      if (x && y) {
-        if (Math.abs(x) >= Math.abs(y)) y = 0;
-        else x = 0;
       }
       return { x, y };
     }

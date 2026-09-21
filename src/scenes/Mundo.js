@@ -26,7 +26,8 @@ window.AG = window.AG || {};
     preload() {
       const mapa = AG.MAPAS[this.claveMapa];
       if (mapa && AG.hayMapa(this.claveMapa) && !this.textures.exists(this.texturaMapa())) {
-        this.load.image(this.texturaMapa(), mapa.imagen);
+        // Por AG.ASSETS, no por la ruta cruda: en el build de un archivo el mapa es un data URI.
+        this.load.image(this.texturaMapa(), AG.ASSETS.mapa(this.claveMapa));
       }
     }
 
@@ -99,20 +100,7 @@ window.AG = window.AG || {};
     }
 
     crearAnimaciones() {
-      if (!AG.hayAtlas()) return;
-      ['abajo', 'arriba', 'izquierda', 'derecha'].forEach((dir) => {
-        const clave = `liss_camina_${dir}`;
-        if (this.anims.exists(clave)) return;
-        this.anims.create({
-          key: clave,
-          frames: [
-            { key: 'arte', frame: `liss_camina_${dir}_0` },
-            { key: 'arte', frame: `liss_camina_${dir}_1` }
-          ],
-          frameRate: 7,
-          repeat: -1
-        });
-      });
+      AG.crearAnimacionesDeLiss(this);
     }
 
     crearObjetos() {
@@ -231,15 +219,15 @@ window.AG = window.AG || {};
 
     animarCaminando() {
       if (!AG.hayAtlas() || !this.jugador.play) return;
-      const dir = this.dir.y < 0 ? 'arriba' : this.dir.y > 0 ? 'abajo' : this.dir.x < 0 ? 'izquierda' : 'derecha';
-      this.jugador.play(`liss_camina_${dir}`, true);
+      const dir = AG.direccionDibujable(this, this.dir);
+      if (this.anims.exists(`liss_camina_${dir}`)) this.jugador.play(`liss_camina_${dir}`, true);
     }
 
     animarQuieto() {
       if (!AG.hayAtlas() || !this.jugador.setFrame) return;
-      const dir = this.dir.y < 0 ? 'arriba' : this.dir.y > 0 ? 'abajo' : this.dir.x < 0 ? 'izquierda' : 'derecha';
-      this.jugador.stop();
-      this.jugador.setFrame(`liss_idle_${dir}_0`);
+      const dir = AG.direccionDibujable(this, this.dir);
+      if (this.anims.exists(`liss_idle_${dir}`)) this.jugador.play(`liss_idle_${dir}`, true);
+      else this.jugador.setFrame(`liss_idle_${dir}_0`);
     }
 
     /* --------------------------------------------------------------- update */
@@ -272,7 +260,9 @@ window.AG = window.AG || {};
     mover(delta) {
       const dir = this.entrada.direccion();
       const segundos = delta / 1000;
-      const paso = AG.CFG.VELOCIDAD * segundos;
+      // En diagonal se reparte el paso entre los dos ejes: si no, Liss corre más al sesgo.
+      const diagonal = dir.x && dir.y ? Math.SQRT1_2 : 1;
+      const paso = AG.CFG.VELOCIDAD * segundos * diagonal;
       let anduvo = false;
 
       if (dir.x || dir.y) {
@@ -291,6 +281,7 @@ window.AG = window.AG || {};
       }
 
       if (anduvo) {
+        this.andando = true;
         this.animarCaminando();
         this.contadorPasos = (this.contadorPasos || 0) + delta;
         if (this.contadorPasos > 340) {

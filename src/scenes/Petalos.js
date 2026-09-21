@@ -44,6 +44,7 @@ AG.Petalos = class Petalos extends Phaser.Scene {
 
     if (AG.hayAtlas()) {
       this.jugador = this.add.sprite(VIEW_W / 2, VIEW_H - 12, 'arte', 'liss_idle_abajo_0').setOrigin(0.5, 1);
+      AG.crearAnimacionesDeLiss(this);
     } else {
       this.jugador = this.add.rectangle(VIEW_W / 2, VIEW_H - 12, 14, 22, c(COLORES.rosa)).setOrigin(0.5, 1);
     }
@@ -77,9 +78,10 @@ AG.Petalos = class Petalos extends Phaser.Scene {
     if (this.fase !== 'juego') return;
 
     const dir = this.entrada.direccion();
-    const paso = 98 * (delta / 1000);
+    const paso = 98 * (delta / 1000) * (dir.x && dir.y ? Math.SQRT1_2 : 1);
     this.jugador.x = Phaser.Math.Clamp(this.jugador.x + dir.x * paso, 12, AG.CFG.VIEW_W - 12);
     this.jugador.y = Phaser.Math.Clamp(this.jugador.y + dir.y * paso, AG.CFG.VIEW_H * 0.45, AG.CFG.VIEW_H - 4);
+    this.animarJugador(dir);
 
     this.acumulador += delta;
     while (this.acumulador >= this.reglas.intervalo) {
@@ -94,6 +96,14 @@ AG.Petalos = class Petalos extends Phaser.Scene {
     this.actualizarHud();
     if (this.atrapados >= this.reglas.meta) this.terminar(true);
     else if (this.restante <= 0) this.terminar(false);
+  }
+
+  /** Liss camina mientras atrapa pétalos; quieta, respira mirando hacia abajo. */
+  animarJugador(dir) {
+    if (!AG.hayAtlas() || !this.jugador.play) return;
+    const nombre = dir.x || dir.y ? AG.direccionDibujable(this, dir) : 'abajo';
+    const clave = `liss_${dir.x || dir.y ? 'camina' : 'idle'}_${nombre}`;
+    if (this.anims.exists(clave)) this.jugador.play(clave, true);
   }
 
   crearPetalo() {

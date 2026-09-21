@@ -14,11 +14,14 @@ Python. Todo el texto está en español (El Salvador), tuteando.
 ## Estado actual
 
 - **F0 ✅** repo, scaffold, Phaser 4.2.1 vendorizado, docs, esqueleto ejecutable.
-- **F1 ⏳** esperando `assets/source/liss-sheet.png` (hoja de sprites de Liss, la aporta Alex).
-- F2–F7 pendientes (ver `docs/plan-implementacion.md`).
+- **F1 ✅** la hoja de Liss llegó, está normalizada y Liss camina en 8 direcciones (ver
+  `docs/arte.md § La hoja de Liss manda`).
+- **F2 🟡** falta el arte de los demás: NPCs, objetos, tiles e iconos (hoy los pinta el mapa).
+- F3, F6 ✅ · F4, F5, F7 🟡 (faltan fotos, la 2ª escena de pétalos y publicar en Pages).
 
-Mientras `AG.ASSETS_READY === false` (lo pone `assets/manifest.js`, generado por `tools/`), el juego
-arranca en modo esqueleto: sin atlas, sin fuente bitmap, usando la fuente del sistema.
+El manifiesto (`assets/manifest.js`, generado por `tools/actualizar_manifest.py`) dice qué arte
+existe y el juego se adapta: sin atlas dibuja formas, sin fuente bitmap usa la del sistema, sin
+fotos muestra el marco con "foto pendiente".
 
 ## Cómo correr
 
@@ -49,8 +52,9 @@ vendor/phaser.min.js → assets/manifest.js → src/config.js → src/assets.js
   escenas de pétalos).
 - `src/systems/*.js` — `input`, `dialog`, `memories`, `save`, `fx`.
 - `src/data/*.js` — contenido: `dialogos`, `recuerdos`, `personajes`, `mapas` (este último generado).
-- `tools/*.py` — pipeline de arte y build. `tools/build_single.py` inlinea todo en un solo HTML
-  (lee los `<script src>` de `index.html` en orden y los reemplaza por su contenido).
+- `tools/*.py` — pipeline de arte y build. `tools/generate_sprites.py` convierte la hoja de Liss
+  en el atlas; `tools/build_single.py` inlinea todo en un solo HTML (lee los `<script src>` de
+  `index.html` en orden y los reemplaza por su contenido).
 
 ## Contratos de datos
 
@@ -131,8 +135,14 @@ AG.MAPAS = {
 
 ### Frames del atlas
 
-Nombres exactos en `docs/arte.md` § Nombres de frames. Regla: `{personaje}_{accion}_{direccion}_{n}`
-y `{accion}_{direccion}_{n}`; direcciones en español (`abajo`, `arriba`, `izquierda`, `derecha`).
+Nombres exactos en `docs/arte.md` § Nombres de frames. Regla: `{personaje}_{accion}_{direccion}_{n}`;
+direcciones en español y en ocho sentidos (`abajo`, `abajo_derecha`, `derecha`, `arriba_derecha`,
+`arriba`, `arriba_izquierda`, `izquierda`, `abajo_izquierda`).
+
+Hoy el atlas es solo de Liss: `liss_idle_<dir>_0/_1`, `liss_camina_<dir>_0..3`,
+`retrato_liss_normal` y `retrato_liss_feliz` (50 frames, 16×34 px el sprite y 48×48 el retrato).
+El código pide los frames que faltan con guardas (`AG.tieneFrame`), así que agregar personajes es
+agregar frames, sin tocar escenas.
 
 ## Reglas de ingeniería
 
@@ -168,7 +178,9 @@ y `{accion}_{direccion}_{n}`; direcciones en español (`abajo`, `arriba`, `izqui
 
 ## Riesgos conocidos
 
-- **Hoja de Liss**: si su grilla no es 16×24, se reajusta `AG.CFG` y `docs/arte.md` (protoloco en F1).
+- ~~**Hoja de Liss**~~: resuelto en F1. Vino en 8 direcciones y con render suave (no pixel art
+  puro): el pipeline la recorta, le quita fondo y sombra, la baja a 32 px de alto y la cuantiza a
+  una paleta común. Si la hoja se reemplaza, se vuelve a correr `tools/generate_sprites.py`.
 - **Acentos**: la fuente bitmap se genera desde Press Start 2P (OFL, latin-ext). Verificar
   `á é í ó ú ü ñ ¿ ¡` en pantalla antes de escribir el guion final.
 - **iOS**: audio necesita gesto del usuario (pantalla de título) y `touch-action: none` (ya está).

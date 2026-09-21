@@ -9,7 +9,8 @@ Liss despierta, encuentra una nota y el pueblo entero la espera con flores amari
 **Jugar:** https://alex-alas.github.io/un-jardin-para-liss/
 
 - Celular: táctil (D-pad y botón A en pantalla).
-- Compu: flechas o WASD para moverte, `Z` / `Enter` para hablar y confirmar, `Esc` para el menú.
+- Compu: flechas o WASD para moverte (también en diagonal), `Z` / `Enter` para hablar y confirmar,
+  `Esc` para el menú.
 - El audio arranca cuando tocas la pantalla por primera vez (culpa de los navegadores, no nuestra).
 
 ## Estado
@@ -17,8 +18,8 @@ Liss despierta, encuentra una nota y el pueblo entero la espera con flores amari
 | Fase | Qué | Estado |
 |---|---|---|
 | F0 | Repo, scaffold, docs | ✅ |
-| F1 | Hoja de sprites de Liss → sprite jugable | ⏳ (hoy el juego corre con rectángulos de color) |
-| F2 | Pipeline de arte (`tools/`, Python + Pillow) | ✅ |
+| F1 | Hoja de sprites de Liss → sprite jugable | ✅ (camina en 8 direcciones) |
+| F2 | Pipeline de arte (`tools/`, Python + Pillow) | 🟡 (falta el arte de NPCs, objetos y tiles) |
 | F3 | Núcleo jugable (movimiento, colisión, guardado) | ✅ |
 | F4 | Diálogos, recuerdos con fotos, música chiptune | 🟡 (faltan las fotos y los `.wav`; hoy hay melodías sintetizadas) |
 | F5 | Las escenas de pétalos | 🟡 (la del pueblo está; falta la segunda variante) |
@@ -39,8 +40,9 @@ tools/qa_navegador.sh     # juega la partida completa y guarda capturas
 
 ### Qué falta
 
-1. La hoja de sprites de Liss, Alex y Doña Flora (los placeholders están en `src/assets.js`).
-2. Las fotos de verdad en `fotos/` y la música en `musica/`.
+1. El arte de los demás: Alex, Doña Flora y el resto de NPCs, los objetos del pueblo y los tiles
+   (hoy son bloques de color pintados dentro del mapa). Liss ya está, y su hoja manda el estilo.
+2. Las fotos de verdad en `assets/fotos/` (hoy el marco dice "foto pendiente").
 3. La segunda escena de pétalos y publicar en GitHub Pages.
 
 
@@ -57,9 +59,11 @@ tools/qa_navegador.sh     # juega la partida completa y guarda capturas
 ```bash
 python3 -m http.server 8000     # servir el juego en http://localhost:8000
 python3 -m venv .venv && .venv/bin/pip install -r tools/requirements.txt
+.venv/bin/python tools/generate_sprites.py # hoja de Liss -> assets/atlas.png + atlas.json
 .venv/bin/python tools/render_maps.py      # mapas ASCII -> PNG + colisiones
 .venv/bin/python tools/generate_font.py    # fuente bitmap desde Press Start 2P (OFL)
 .venv/bin/python tools/build_single.py     # dist/un-jardin-para-liss.html (un solo archivo)
+.venv/bin/python tools/actualizar_manifest.py  # qué arte existe (lo lee el juego al arrancar)
 .venv/bin/python tools/qa_assets.py        # reporte de QA de assets
 ```
 

@@ -46,20 +46,20 @@ window.AG = window.AG || {};
           .setScrollFactor(0)
       );
 
-      if (escena.textures.exists('arte')) {
-        this.retrato = escena.add
-          .image(this.x + 8, this.y + 8, 'arte', 'retrato_liss_normal')
-          .setOrigin(0)
-          .setScale(1.75)
-          .setDepth(702)
-          .setScrollFactor(0);
-      } else {
-        this.retrato = escena.add
-          .rectangle(this.x + 8, this.y + 8, 84, 84, c(COLORES.tintaSuave))
-          .setOrigin(0)
-          .setDepth(702)
-          .setScrollFactor(0);
-      }
+      // Placa de fondo: sostiene la inicial de quien todavía no tiene retrato dibujado.
+      this.placa = escena.add
+        .rectangle(this.x + 8, this.y + 8, 84, 84, c(COLORES.tintaSuave))
+        .setOrigin(0)
+        .setDepth(702)
+        .setScrollFactor(0);
+      this.retrato = AG.tieneFrame(escena, 'retrato_liss_normal')
+        ? escena.add
+            .image(this.x + 8, this.y + 8, 'arte', 'retrato_liss_normal')
+            .setOrigin(0)
+            .setScale(1.75)
+            .setDepth(703)
+            .setScrollFactor(0)
+        : null;
       this.retratoInicial = AG.UI.texto(escena, this.x + 32, this.y + 52, 'L', {
         color: COLORES.amarillo,
         escala: 4
@@ -98,7 +98,8 @@ window.AG = window.AG || {};
 
     ocultar() {
       this.grupo.forEach((g) => g.setVisible(false));
-      this.retrato.setVisible(false);
+      this.placa.setVisible(false);
+      if (this.retrato) this.retrato.setVisible(false);
       this.retratoInicial.setVisible(false);
       this.nombre.setVisible(false);
       this.texto.setVisible(false);
@@ -111,8 +112,10 @@ window.AG = window.AG || {};
       this.nombre.setVisible(true);
       this.texto.setVisible(true);
       this.indicador.setVisible(true);
-      this.retrato.setVisible(conRetrato && this.scene.textures.exists('arte'));
-      this.retratoInicial.setVisible(conRetrato && !this.scene.textures.exists('arte'));
+      const conImagen = Boolean(conRetrato && this.retrato && this.hayRetrato);
+      this.placa.setVisible(Boolean(conRetrato) && !conImagen);
+      if (this.retrato) this.retrato.setVisible(conImagen);
+      this.retratoInicial.setVisible(Boolean(conRetrato) && !conImagen);
     }
 
     activo() {
@@ -165,9 +168,10 @@ window.AG = window.AG || {};
       if (personaje) {
         this.nombre.setText(personaje.nombre);
         this.nombre.setVisible(true);
-        if (this.retrato.setFrame && this.scene.textures.exists('arte')) {
-          this.retrato.setFrame(`retrato_${personaje.sprite || quien}_normal`);
-        }
+        // Mientras un personaje no tenga retrato en el atlas, se muestra su inicial.
+        const marco = `retrato_${personaje.sprite || quien}_normal`;
+        this.hayRetrato = AG.tieneFrame(this.scene, marco);
+        if (this.hayRetrato && this.retrato) this.retrato.setFrame(marco);
         this.retratoInicial.setText(personaje.nombre.charAt(0));
       } else {
         this.nombre.setText('');

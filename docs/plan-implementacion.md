@@ -102,12 +102,12 @@ un-jardin-para-liss/
 - [ ] Commit inicial: `feat: scaffold del proyecto y docs base`.
 - **Gate:** el repo existe, el plan y el handoff están dentro (listos para que Claude los revise), y Alex puede colocar su hoja de sprites.
 
-### F1 — Inspeccionar la hoja de Liss y fijar el marco técnico
-- [ ] Con Pillow: reportar tamaño, grilla de frames, direcciones, paleta y conteo de colores de `liss-sheet.png`.
-- [ ] Decidir con datos: tamaño de frame de personaje (probable 16x24 / 32x32), tamaño de tile (igual o la mitad), resolución interna del canvas (16:9, ~28–32 tiles de ancho) y zoom entero.
-- [ ] Generar `assets/atlas.png` recortando y normalizando la hoja de Liss (idle + caminata 4 direcciones; si solo hay una dirección, plan B: espejar L/R y ciclo simple para ↑↓, documentado en `docs/arte.md`).
-- [ ] Congelar paleta maestra + reglas de estilo (outline, iluminación, densidad) en `docs/arte.md`.
-- **Gate:** hoja de Liss normalizada, preview en contact sheet sobre fondo de juego.
+### F1 — Inspeccionar la hoja de Liss y fijar el marco técnico ✅
+- [x] Con Pillow: reportar tamaño, grilla de frames, direcciones, paleta y conteo de colores de `liss-sheet.png` (`tools/generate_sprites.py --inspeccionar`; reporte pegado en `docs/arte.md`).
+- [x] Decidir con datos: sprite de 16×34 con Liss de 32 px (2 tiles), tile de 16 y canvas de 480×270 sin cambios. La hoja trajo las 8 direcciones, así que el juego pasó a 8 (diagonales en teclado y en el D-pad).
+- [x] Generar `assets/atlas.png` recortando y normalizando la hoja: 8 direcciones × (idle + respiración + ciclo de caminata de 4) y 2 retratos = 50 frames, 23 colores.
+- [x] Congelar paleta de Liss + decisiones de escala y animación en `docs/arte.md`.
+- **Gate:** ✅ hoja normalizada, hoja de contacto (`--contacto`) y partida completa revisada en navegador.
 
 ### F2 — Pipeline de arte completo
 - [ ] `tools/generate_sprites.py`: Alex, Doña Flora, kiosquero, niña, gato, Liss con ramo — mismo marco, misma paleta y estilo que la hoja de Liss.
