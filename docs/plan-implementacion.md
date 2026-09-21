@@ -109,13 +109,17 @@ un-jardin-para-liss/
 - [x] Congelar paleta de Liss + decisiones de escala y animación en `docs/arte.md`.
 - **Gate:** ✅ hoja normalizada, hoja de contacto (`--contacto`) y partida completa revisada en navegador.
 
-### F2 — Pipeline de arte completo
-- [ ] `tools/generate_sprites.py`: Alex, Doña Flora, kiosquero, niña, gato, Liss con ramo — mismo marco, misma paleta y estilo que la hoja de Liss.
-- [ ] `tools/generate_font.py`: fuente bitmap 8px (diálogo) y 16px (títulos) desde Press Start 2P; **probar `á é í ó ú ñ ¿ ¡`** y parchar si falta algún glifo.
-- [ ] `tools/render_maps.py`: PNG de cada mapa desde `maps/*.txt` + export de colisiones/objetos a `src/data/mapas.js`.
-- [ ] `tools/prepare_photos.py`: recorte cuadrado, máx 720px, JPEG q82, tinte cálido opcional → `assets/fotos/`.
-- [ ] `tools/qa_assets.py` + `tools/contact_sheet.py`: reporte de tamaños/alpha/paleta y hoja de contacto para inspección visual.
-- **Gate:** reporte QA en verde y contacto visual aprobado.
+### F2 — Pipeline de arte completo ✅
+- [x] `tools/arte_extra.py`: Alex, Doña Flora, Don Beto, Sofi, Michi y el ramo — dibujados por código con la paleta maestra y las proporciones de la hoja de Liss. `generate_sprites.py` los empaca en el mismo atlas.
+- [x] `tools/generate_font.py`: fuente bitmap 8px (diálogo) y 16px (títulos) desde Press Start 2P; los 122 glifos incluyen `á é í ó ú ñ ¿ ¡ « »`.
+- [x] `tools/tiles.py` + `tools/render_maps.py`: terreno con textura, quince objetos dibujados y PNG de cada mapa desde `maps/*.txt`, con colisiones/objetos exportados a `src/data/mapas.js`.
+- [x] `tools/prepare_photos.py`: recorte cuadrado corrido hacia arriba, 720px, calidad automática bajo 300 KB → `assets/fotos/`.
+- [x] `tools/qa_assets.py`: tamaños, alpha y colores **por frame del atlas** (el tope de docs/arte.md es por asset), más fuente, mapas y fotos. `--contacto` de cada script de arte hace la hoja de inspección.
+- **Gate:** ✅ 19 assets revisados, 0 avisos, 0 errores.
+
+Lo que quedó fuera a propósito: los NPCs tienen una sola dirección (`abajo`) más su frame de
+respiración, porque en el juego nunca caminan. El día que uno tenga que moverse, el contrato de
+nombres de `docs/arte.md` ya prevé las ocho.
 
 ### F3 — Núcleo jugable
 - [ ] `config.js` + `main.js`: canvas, `pixelArt: true`, escalado FIT, input teclado (flechas/WASD + Z/Enter/Esc) y táctil (D-pad + A).
@@ -132,12 +136,12 @@ un-jardin-para-liss/
 - [ ] `chiptune.js`: 3 temas + SFX (blip de texto, pasos, puerta, flor obtenida, recuerdo, pétalo, corazón).
 - **Gate:** un recorrido de prueba muestra diálogos, un recuerdo y música sin errores en consola.
 
-### F5 — Las 2 escenas de pétalos
-- [ ] `Petalos.js` escena reutilizable parametrizada (meta, tiempo, viento, obstáculos, recompensa).
-- [ ] Escena 1 (plaza): pétalos que caen, meta blanda, sin castigo → flor 1 + recuerdo.
-- [ ] Escena 2 (parque): viento lateral y hojas secas que restan → flor 3 + abre la colina.
-- [ ] Feedback juicy: escala/brillo al atrapar, combo, sonido ascendente, "¡Bien!" en pixel font.
-- **Gate:** ambas escenas se completan en celular con el D-pad táctil sin frustración.
+### F5 — Las 2 escenas de pétalos ✅
+- [x] `Petalos.js` escena reutilizable parametrizada (meta, tiempo, viento, obstáculos, recompensa).
+- [x] Escena 1 (patio de la florería, de día): pétalos que caen, meta blanda, sin castigo → flor 1.
+- [x] Escena 2 (parque al atardecer): fondo propio —cielo en bandas, cerros, línea de árboles— con **ráfagas de viento avisadas** y hojas secas que restan → flor 3 + abre la colina.
+- [x] Feedback: combo en pantalla, sonido ascendente, temblor al agarrar una hoja seca, rayitas cruzando en cada ráfaga.
+- **Gate:** ✅ ronda completa en navegador: ráfaga, derrota, reintento y victoria.
 
 ### F6 — Contenido completo y final
 - [ ] Mapas definitivos: casa, pueblo (plaza/kiosco/florería/parque), colina al atardecer.
@@ -150,7 +154,7 @@ un-jardin-para-liss/
 - [ ] QA de assets (`qa_assets.py` + hoja de contacto) y smoke test en navegador real con el skill **agent-browser**: título → casa → diálogo → recuerdo → pétalos 1 → pueblo → parque → pétalos 2 → final; screenshots de cada etapa en desktop y en viewport 390x844 (móvil).
 - [ ] `build_single.py` → abrir `dist/…html` con `file://` y confirmar que funciona sin servidor ni red.
 - [ ] Playtest manual de Alex con `docs/handoff.md` como checklist.
-- [ ] `gh repo create un-jardin-para-liss --public --source=. --push` y activar Pages (`gh api -X POST repos/Alex-Alas/un-jardin-para-liss/pages -f source[branch]=main -f source[path]=/`).
+- [x] Publicación en Pages por workflow: `.github/workflows/pages.yml` despliega la raíz del repo en cada push a `main`. La primera vez hay que poner **Settings → Pages → Source: GitHub Actions** (el paso `configure-pages` lo intenta solo, pero si el repo no lo permite, falla ahí).
 - [ ] Compartir el repo con Claude (rama lista + `docs/plan-implementacion.md` y `docs/handoff.md` al día) para su revisión y co-implementación.
 - [ ] Verificar el link en celular con agent-browser (viewport móvil) y pasárselo a Liss con una nota sugerida.
 - [ ] Commits convencionales en español durante todo el proceso (`feat:`, `docs:`, `fix:`, `art:`, `chore:`).

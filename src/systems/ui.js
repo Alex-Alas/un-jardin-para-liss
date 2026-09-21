@@ -15,6 +15,9 @@ window.AG = window.AG || {};
       const escala = opciones.escala || 1;
       if (AG.hayFuente()) {
         const t = scene.add.bitmapText(x, y, tamano, cadena, 8);
+        // La fuente se dibuja en blanco (`#fff8ec`) y se tiñe. Sin esto, `opciones.color` solo
+        // valía en el fallback del sistema, y el pie del polaroid salía blanco sobre crema.
+        t.setTint(color(opciones.color || COLORES.blanco));
         return t.setScale(escala).setScrollFactor(opciones.fijo ? 0 : 1).setDepth(opciones.profundidad || 0);
       }
       const t = scene.add.text(x, y, cadena, {

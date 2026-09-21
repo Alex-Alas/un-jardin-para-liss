@@ -20,23 +20,14 @@ AG.Petalos = class Petalos extends Phaser.Scene {
     this.petalos = [];
     this.acumulador = 0;
     this.combo = 0;
+    this.rafaga = { fuerza: 0, restante: 0, proxima: 3200 };
   }
 
   create() {
+    this.fondo();
+
     const { VIEW_W, VIEW_H, COLORES } = AG.CFG;
     const c = (v) => AG.UI.color(v);
-
-    this.add.rectangle(0, 0, VIEW_W, VIEW_H * 0.62, c(COLORES.cielo)).setOrigin(0);
-    this.add.rectangle(0, VIEW_H * 0.62, VIEW_W, VIEW_H * 0.38, c(COLORES.verde)).setOrigin(0);
-    this.add.rectangle(0, VIEW_H * 0.62 - 3, VIEW_W, 3, c(COLORES.verdeOscuro)).setOrigin(0);
-    if (this.tipo === 'petalos2') {
-      for (let i = 0; i < 6; i += 1) {
-        this.add
-          .rectangle(40 + i * 78, VIEW_H * 0.62 - 22 - (i % 2) * 6, 6, 26, c(COLORES.marron))
-          .setOrigin(0.5, 0);
-        this.add.circle(40 + i * 78, VIEW_H * 0.62 - 26 - (i % 2) * 6, 18, c(COLORES.verdeOscuro), 0.9);
-      }
-    }
 
     this.entrada = new AG.Entrada(this);
     this.dialogo = new AG.Dialogo(this, this.entrada);
@@ -60,6 +51,70 @@ AG.Petalos = class Petalos extends Phaser.Scene {
     this.actualizarHud();
 
     this.dialogo.abrir(`${this.tipo}.intro`, { alCerrar: () => this.empezarJuego() });
+  }
+
+  /** Cada ronda tiene su lugar y su hora: el patio de la florería de día, el parque al atardecer. */
+  fondo() {
+    const { VIEW_W, VIEW_H, COLORES } = AG.CFG;
+    const c = (v) => AG.UI.color(v);
+    const horizonte = Math.round(VIEW_H * 0.62);
+    const parque = this.tipo === 'petalos2';
+
+    if (parque) {
+      // Cielo en bandas, de morado arriba a ámbar en el horizonte. Sin degradado real: son
+      // cuatro franjas planas, que es como se hace en pixel art.
+      const bandas = [COLORES.morado, COLORES.cieloOscuro, COLORES.atardecer, COLORES.ambar];
+      bandas.forEach((color, i) => {
+        const alto = Math.ceil(horizonte / bandas.length);
+        this.add.rectangle(0, i * alto, VIEW_W, alto, c(color)).setOrigin(0);
+      });
+      this.add.circle(VIEW_W - 76, horizonte - 26, 17, c(COLORES.amarilloClaro));
+      this.add.circle(VIEW_W - 76, horizonte - 26, 22, c(COLORES.amarillo), 0.25);
+      // Cerros lejanos: dos hileras de siluetas planas, la de atrás más alta y más fría.
+      [[46, COLORES.morado, 96, 40], [30, COLORES.tintaSuave, 78, 0]].forEach(([alto, color, paso, desfase]) => {
+        for (let i = -1; i < 8; i += 1) {
+          this.add
+            .triangle(i * paso + desfase, horizonte, -64, 0, 0, -alto, 64, 0, c(color))
+            .setOrigin(0, 1);
+        }
+      });
+    } else {
+      this.add.rectangle(0, 0, VIEW_W, horizonte, c(COLORES.cielo)).setOrigin(0);
+      for (let i = 0; i < 4; i += 1) {
+        this.add.circle(50 + i * 130, 30 + (i % 2) * 22, 14, c(COLORES.blanco), 0.75);
+        this.add.circle(64 + i * 130, 32 + (i % 2) * 22, 10, c(COLORES.blanco), 0.75);
+      }
+    }
+
+    const pasto = parque ? COLORES.verdeOscuro : COLORES.verde;
+    this.add.rectangle(0, horizonte, VIEW_W, VIEW_H - horizonte, c(pasto)).setOrigin(0);
+    this.add.rectangle(0, horizonte - 3, VIEW_W, 3, c(COLORES.verdeOscuro)).setOrigin(0);
+    for (let i = 0; i < 40; i += 1) {
+      const x = (i * 71) % VIEW_W;
+      const y = horizonte + 6 + ((i * 37) % (VIEW_H - horizonte - 8));
+      this.add.rectangle(x, y, 2, 2, c(i % 3 ? COLORES.verde : COLORES.amarillo), 0.7).setOrigin(0);
+    }
+
+    // Árboles: tronco y tres bolas de copa, como los del mapa pero en silueta de fondo.
+    const arboles = parque ? 6 : 3;
+    for (let i = 0; i < arboles; i += 1) {
+      const x = 40 + i * Math.round(VIEW_W / arboles);
+      const base = horizonte + 2 + (i % 2) * 5;
+      this.add.rectangle(x, base, 6, 26, c(COLORES.marron)).setOrigin(0.5, 1);
+      [[0, -30, 19], [-11, -24, 13], [11, -25, 12]].forEach(([dx, dy, r]) => {
+        this.add.circle(x + dx, base + dy, r, c(parque ? COLORES.verdeOscuro : COLORES.verde));
+      });
+      this.add.circle(x - 7, base - 36, 7, c(parque ? COLORES.verde : COLORES.verdeClaro));
+    }
+
+    if (parque) {
+      // Velo cálido encima de todo: el parque es la ronda de las seis de la tarde.
+      this.add
+        .rectangle(0, 0, VIEW_W, VIEW_H, c(COLORES.atardecer), 0.14)
+        .setOrigin(0)
+        .setDepth(40)
+        .setBlendMode('MULTIPLY');
+    }
   }
 
   empezarJuego() {
@@ -89,6 +144,7 @@ AG.Petalos = class Petalos extends Phaser.Scene {
       this.crearPetalo();
     }
 
+    this.actualizarRafaga(delta);
     this.moverPetalos(delta);
     this.recolectar();
 
@@ -113,7 +169,7 @@ AG.Petalos = class Petalos extends Phaser.Scene {
     const imagen = this.add
       .image(x, -8, esHoja ? 'hoja_seca' : 'petalo')
       .setDepth(10)
-      .setScale(esHoja ? 2.2 : 1.8);
+      .setScale(esHoja ? 1.5 : 1.3);   // las texturas de fx.js ya son más grandes
     imagen.esHoja = esHoja;
     imagen.vel = {
       x: (Math.random() * 2 - 1) * this.reglas.viento,
@@ -122,14 +178,65 @@ AG.Petalos = class Petalos extends Phaser.Scene {
     this.petalos.push(imagen);
   }
 
+  /**
+   * El viento del parque no sopla parejo: sopla a ráfagas.
+   *
+   * Un viento constante solo desplaza todo un poco y se compensa caminando; una ráfaga avisada
+   * obliga a decidir a dónde correr, que es de lo que habla Sofi antes de empezar. Solo existe
+   * en las rondas con `viento`: la de Doña Flora se queda tranquila.
+   */
+  actualizarRafaga(delta) {
+    if (!this.reglas.viento) return;
+
+    if (this.rafaga.restante > 0) {
+      this.rafaga.restante -= delta;
+      if (this.rafaga.restante <= 0) this.textoAviso.setText('');
+      return;
+    }
+
+    this.rafaga.proxima -= delta;
+    if (this.rafaga.proxima > 0) return;
+
+    const haciaLaDerecha = Math.random() < 0.5;
+    this.rafaga.fuerza = (haciaLaDerecha ? 1 : -1) * this.reglas.viento * Phaser.Math.FloatBetween(1.6, 2.6);
+    this.rafaga.restante = Phaser.Math.Between(900, 1500);
+    this.rafaga.proxima = Phaser.Math.Between(2600, 4200);
+    this.textoAviso.setText(haciaLaDerecha ? 'viento >>>' : '<<< viento');
+    AG.Musica.sfx('paso');
+    this.dibujarRafaga(haciaLaDerecha);
+  }
+
+  /** Rayitas horizontales que cruzan la pantalla: el aviso visual de la ráfaga. */
+  dibujarRafaga(haciaLaDerecha) {
+    const { VIEW_W, VIEW_H, COLORES } = AG.CFG;
+    for (let i = 0; i < 7; i += 1) {
+      const y = Phaser.Math.Between(40, VIEW_H - 30);
+      const largo = Phaser.Math.Between(16, 40);
+      const desde = haciaLaDerecha ? -largo : VIEW_W + largo;
+      const raya = this.add
+        .rectangle(desde, y, largo, 1, AG.UI.color(COLORES.blanco), 0.5)
+        .setOrigin(0, 0.5)
+        .setDepth(30);
+      this.tweens.add({
+        targets: raya,
+        x: haciaLaDerecha ? VIEW_W + largo : -largo,
+        duration: Phaser.Math.Between(420, 700),
+        delay: i * 55,
+        onComplete: () => raya.destroy()
+      });
+    }
+  }
+
   moverPetalos(delta) {
     const dt = delta / 1000;
     for (let i = this.petalos.length - 1; i >= 0; i -= 1) {
       const p = this.petalos[i];
-      p.x += p.vel.x * dt;
+      const empuje = this.rafaga.restante > 0 ? this.rafaga.fuerza : 0;
+      p.x += (p.vel.x + empuje) * dt;
       p.y += p.vel.y * dt;
       p.setAngle(p.esHoja ? (p.x + p.y) * 0.2 : p.x * 2);
-      if (p.y > AG.CFG.VIEW_H + 10) {
+      // La ráfaga puede sacar un pétalo de pantalla por el costado: ahí también se perdió.
+      if (p.y > AG.CFG.VIEW_H + 10 || p.x < -14 || p.x > AG.CFG.VIEW_W + 14) {
         p.destroy();
         this.petalos.splice(i, 1);
       }

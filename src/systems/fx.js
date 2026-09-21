@@ -20,16 +20,25 @@ window.AG = window.AG || {};
         g.generateTexture('corazon', 8, 7);
         g.clear();
 
+        // Pétalo: gota de 5x6 con el canto claro arriba-izquierda, como el resto del arte.
         const petalo = AG.CFG.COLORES.amarillo;
-        px(1, 0, 1, 1, petalo);
-        px(0, 1, 3, 2, petalo);
-        px(1, 3, 1, 1, petalo);
-        g.generateTexture('petalo', 3, 4);
+        px(2, 0, 1, 1, petalo);
+        px(1, 1, 3, 1, petalo);
+        px(0, 2, 5, 2, petalo);
+        px(1, 4, 3, 1, petalo);
+        px(2, 5, 1, 1, AG.CFG.COLORES.ambar);
+        px(1, 1, 2, 2, AG.CFG.COLORES.amarilloClaro);
+        g.generateTexture('petalo', 5, 6);
         g.clear();
 
-        px(0, 0, 3, 3, AG.CFG.COLORES.marron);
-        px(0, 2, 1, 1, AG.CFG.COLORES.tinta);
-        g.generateTexture('hoja_seca', 3, 3);
+        // Hoja seca: la trampa. Ancha y marrón, para que de un vistazo no se confunda con un
+        // pétalo. La nervadura es corta a propósito: larga, la hoja parecía un palito.
+        px(1, 0, 4, 1, AG.CFG.COLORES.marron);
+        px(0, 1, 6, 3, AG.CFG.COLORES.marron);
+        px(1, 4, 4, 1, AG.CFG.COLORES.marron);
+        px(1, 1, 2, 1, AG.CFG.COLORES.marronClaro);
+        px(2, 2, 2, 1, AG.CFG.COLORES.tinta);
+        g.generateTexture('hoja_seca', 6, 5);
         g.clear();
 
         px(0, 0, 2, 2, AG.CFG.COLORES.blanco);
@@ -99,9 +108,11 @@ window.AG = window.AG || {};
       scene.time.delayedCall(2200, () => emisor.destroy());
     },
 
+    /** Velo cálido de las seis de la tarde. Suave a propósito: el mapa de la colina ya viene
+     *  teñido desde el PNG (tools/tiles.py § atardecer) y con los dos al full quemaba la escena. */
     washAtardecer(scene) {
       const capa = scene.add
-        .rectangle(0, 0, AG.CFG.VIEW_W, AG.CFG.VIEW_H, c(AG.CFG.COLORES.atardecer), 0.22)
+        .rectangle(0, 0, AG.CFG.VIEW_W, AG.CFG.VIEW_H, c(AG.CFG.COLORES.atardecer), 0.12)
         .setOrigin(0)
         .setScrollFactor(0)
         .setDepth(600)

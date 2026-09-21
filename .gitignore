@@ -1,6 +1,11 @@
 # Referencias locales — NUNCA se suben
 _referencias/
 
+# Las fotos originales del celular se quedan en la compu: al repo público solo suben los
+# recortes de 720 px que usa el juego (assets/fotos/). Para regenerarlos hay que volver a
+# poner los originales acá y correr tools/prepare_photos.py.
+assets/source/fotos/
+
 # Builds y artefactos
 dist/
 __pycache__/

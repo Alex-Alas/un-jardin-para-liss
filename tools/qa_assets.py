@@ -22,6 +22,7 @@ RAIZ = Path(__file__).resolve().parent.parent
 ASSETS = RAIZ / "assets"
 TILE = 16
 MAX_COLORES = 32
+MAX_COLORES_FRAME = 24      # el tope por asset de docs/arte.md, contando la transparencia
 ANCHO_MIN_FOTO = 480
 PESO_MAX_FOTO = 320 * 1024
 ACENTOS = "áéíóúüñÁÉÍÓÚÜÑ¿¡«»"
@@ -42,6 +43,36 @@ def revisar_png(ruta: Path, informe: list, avisos: list, max_colores: int = MAX_
         if sucio:
             avisos.append(f"{ruta.name}: alpha con valores intermedios ({sucio[:4]})")
         return None
+
+
+def revisar_atlas(informe: list, avisos: list, errores: list) -> None:
+    """El atlas se revisa frame por frame, no como un PNG suelto.
+
+    El tope de colores de docs/arte.md es POR ASSET: un atlas con Liss, cinco NPCs, los retratos
+    y los iconos suma de sobra más de 32 colores sin que ninguno de ellos incumpla la regla.
+    """
+    png, datos = ASSETS / "atlas.png", ASSETS / "atlas.json"
+    if not png.exists() or not datos.exists():
+        errores.append("falta el atlas (png + json)")
+        return
+    frames = json.loads(datos.read_text(encoding="utf-8")).get("frames", {})
+    with Image.open(png) as hoja:
+        atlas = hoja.convert("RGBA")
+    peores = []
+    for nombre, dato in sorted(frames.items()):
+        caja = dato["frame"]
+        recorte = atlas.crop((caja["x"], caja["y"], caja["x"] + caja["w"], caja["y"] + caja["h"]))
+        colores = recorte.getcolors(maxcolors=200000) or []
+        sucio = sorted({valor[3] for _, valor in colores} - {0, 255})
+        if len(colores) > MAX_COLORES_FRAME:
+            avisos.append(f"atlas/{nombre}: {len(colores)} colores (máximo {MAX_COLORES_FRAME})")
+        if sucio:
+            avisos.append(f"atlas/{nombre}: alpha con valores intermedios ({sucio[:4]})")
+        peores.append((len(colores), nombre))
+    peores.sort(reverse=True)
+    informe.append({"atlas": str(png.relative_to(RAIZ)), "frames": len(frames),
+                    "coloresMax": peores[0][0] if peores else 0,
+                    "frameMasCargado": peores[0][1] if peores else None})
 
 
 def revisar_fuente(informe: list, avisos: list, errores: list) -> None:
@@ -100,10 +131,11 @@ def main() -> int:
     errores: list = []
 
     for png in sorted(ASSETS.glob("*.png")):
-        if png.name.startswith("fuente_prueba"):
+        if png.name.startswith("fuente_prueba") or png.name == "atlas.png":
             continue
         revisar_png(png, informe, avisos)
 
+    revisar_atlas(informe, avisos, errores)
     revisar_fuente(informe, avisos, errores)
     revisar_mapas(informe, avisos, errores)
     revisar_fotos(informe, avisos, errores)

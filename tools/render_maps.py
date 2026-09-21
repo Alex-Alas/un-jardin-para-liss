@@ -14,12 +14,14 @@ import argparse
 import json
 import re
 import sys
+from collections import Counter
 from pathlib import Path
 
 from PIL import Image, ImageDraw
 
 sys.path.insert(0, str(Path(__file__).parent))
-from paleta import rgb, rgba  # noqa: E402
+import tiles  # noqa: E402
+from paleta import rgb  # noqa: E402
 
 RAIZ = Path(__file__).resolve().parent.parent
 ORIGEN = RAIZ / "maps"
@@ -28,7 +30,9 @@ SALIDA_JS = RAIZ / "src" / "data" / "mapas.js"
 TILE = 16
 
 BLOQUEAN = set("#~T")
-TERRENO_PASTO = {".": "pasto", "f": "pasto"}
+# Las letras que son piso. Todo lo demás (objetos, puertas, NPCs, árboles) se apoya encima de
+# alguna de ellas, nunca en el vacío.
+TERRENOS = set(".f,=wb~")
 META_RE = re.compile(r"^#!\s*(\w+)\s*(.*)$")
 
 
@@ -64,170 +68,116 @@ def leer_mapa(ruta: Path) -> dict:
     return {"nombre": ruta.stem, "ancho": ancho, "alto": len(filas), "filas": filas, "meta": meta}
 
 
-def ruido(x: int, y: int, sal: int = 0) -> float:
-    """Ruido determinista y barato: siempre el mismo mapa al regenerarlo."""
-    h = (x * 374761393 + y * 668265263 + sal * 1442695040888963407) & 0xFFFFFFFF
-    h = (h ^ (h >> 13)) * 1274126177 & 0xFFFFFFFF
-    return ((h ^ (h >> 16)) & 0xFFFF) / 0xFFFF
+def npcs_con_sprite() -> set[str]:
+    """Qué NPCs ya tienen sprite en el atlas: esos los dibuja el motor, no el PNG del mapa.
 
-
-def pinta_pasto(dib: ImageDraw.ImageDraw, px: int, py: int, x: int, y: int) -> None:
-    dib.rectangle([px, py, px + TILE - 1, py + TILE - 1], fill=rgb("verde"))
-    if ruido(x, y, 1) > 0.72:
-        dib.rectangle([px + 3, py + 5, px + 4, py + 6], fill=rgb("verdeOscuro"))
-        dib.rectangle([px + 10, py + 4, px + 11, py + 5], fill=rgb("verdeOscuro"))
-    if ruido(x, y, 2) > 0.86:
-        dib.rectangle([px + 6, py + 10, px + 8, py + 11], fill=rgb("verdeClaro"))
-
-
-def pinta_camino(dib, px, py, x, y, es_camino) -> None:
-    dib.rectangle([px, py, px + TILE - 1, py + TILE - 1], fill=rgb("marronClaro"))
-    if ruido(x, y, 3) > 0.6:
-        dib.rectangle([px + 4, py + 6, px + 5, py + 7], fill=rgb("marron"))
-    if ruido(x, y, 4) > 0.85:
-        dib.rectangle([px + 9, py + 10, px + 11, py + 11], fill=rgb("crema"))
-    borde = rgb("marron")
-    if not es_camino(x, y - 1):
-        dib.rectangle([px, py, px + TILE - 1, py + 1], fill=borde)
-    if not es_camino(x, y + 1):
-        dib.rectangle([px, py + TILE - 2, px + TILE - 1, py + TILE - 1], fill=borde)
-    if not es_camino(x - 1, y):
-        dib.rectangle([px, py, px + 1, py + TILE - 1], fill=borde)
-    if not es_camino(x + 1, y):
-        dib.rectangle([px + TILE - 2, py, px + TILE - 1, py + TILE - 1], fill=borde)
-
-
-def pinta_baldosa(dib, px, py, x, y) -> None:
-    dib.rectangle([px, py, px + TILE - 1, py + TILE - 1], fill=rgb("gris"))
-    dib.rectangle([px, py, px + TILE - 1, py], fill=rgb("grisOscuro"))
-    dib.rectangle([px, py, px, py + TILE - 1], fill=rgb("grisOscuro"))
-
-
-def pinta_madera(dib, px, py, x, y) -> None:
-    dib.rectangle([px, py, px + TILE - 1, py + TILE - 1], fill=rgb("marronClaro"))
-    dib.rectangle([px, py + 7, px + TILE - 1, py + 8], fill=rgb("marron"))
-    if ruido(x, y, 5) > 0.8:
-        dib.rectangle([px + 2, py + 3, px + 5, py + 4], fill=rgb("marron"))
-
-
-def pinta_pared(dib, px, py, tipo: str = "interior") -> None:
-    if tipo == "exterior":
-        dib.rectangle([px, py, px + TILE - 1, py + TILE - 1], fill=rgb("rojo"))
-        dib.rectangle([px, py, px + TILE - 1, py + 2], fill=rgb("naranja"))
-        dib.rectangle([px, py + 12, px + TILE - 1, py + TILE - 1], fill=rgb("crema"))
-    else:
-        dib.rectangle([px, py, px + TILE - 1, py + TILE - 1], fill=rgb("tintaSuave"))
-        dib.rectangle([px, py, px + TILE - 1, py + 3], fill=rgb("tinta"))
-        dib.rectangle([px, py + 13, px + TILE - 1, py + TILE - 1], fill=rgb("tinta"))
-
-
-def pinta_agua(dib, px, py, x, y) -> None:
-    dib.rectangle([px, py, px + TILE - 1, py + TILE - 1], fill=rgb("cieloOscuro"))
-    offset = int(ruido(x, y, 6) * 8)
-    dib.rectangle([px + offset, py + 4, px + offset + 5, py + 5], fill=rgb("cielo"))
-    dib.rectangle([px + ((offset + 5) % 8), py + 11, px + ((offset + 5) % 8) + 3, py + 12], fill=rgb("cielo"))
-
-
-def pinta_arbol(dib, px, py) -> None:
-    copa_y = py - TILE
-    dib.rectangle([px + 6, py + 8, px + 9, py + TILE - 1], fill=rgb("marron"))
-    dib.rectangle([px - 3, copa_y + 3, px + TILE + 2, py + 3], fill=rgb("verdeOscuro"))
-    dib.rectangle([px - 1, copa_y - 3, px + TILE, py + 1], fill=rgb("verde"))
-    dib.rectangle([px + 2, copa_y - 1, px + 7, copa_y + 2], fill=rgb("verdeClaro"))
-
-
-def pinta_flor(dib, px, py, x, y) -> None:
-    pinta_pasto(dib, px, py, x, y)
-    desplazamientos = [(3, 4), (9, 6), (5, 10)]
-    for i, (dx, dy) in enumerate(desplazamientos):
-        dib.rectangle([px + dx, py + dy, px + dx + 1, py + dy + 1], fill=rgb("amarillo"))
-        dib.rectangle([px + dx, py + dy + 2, px + dx, py + dy + 3], fill=rgb("verdeOscuro"))
-
-
-def pinta_detalle_objeto(dib, px, py, tipo: str) -> None:
-    """Bloques de gris para que el greybox sea legible: el sprite real lo pone el motor."""
-    formas = {
-        "cama": [(1, 2, 14, 13), (1, 1, 14, 3)],
-        "escritorio": [(1, 4, 14, 12)],
-        "espejo": [(4, 1, 11, 14)],
-        "cuadro": [(2, 3, 13, 11)],
-        "planta": [(4, 4, 11, 14)],
-        "nota": [(6, 7, 9, 9)],
-        "mostrador": [(0, 4, 15, 12)],
-        "estante": [(1, 2, 14, 13)],
-        "banco": [(0, 6, 15, 10)],
-        "buzon": [(5, 3, 10, 14)],
-        "lampara": [(7, 0, 8, 15)],
-        "cartel": [(2, 4, 13, 12)],
-        "arbol_tallado": [(6, 6, 9, 9)],
-        "kiosco": [(0, 2, 15, 14)],
-        "fuente": [(0, 0, 15, 15)]
-    }
-    for i, (x0, y0, x1, y1) in enumerate(formas.get(tipo, [(3, 3, 12, 12)])):
-        tono = "gris" if i == 0 else "blanco"
-        dib.rectangle([px + x0, py + y0, px + x1, py + y1], fill=rgba(tono, 210))
-
-
-def atlas_dibuja_objetos() -> bool:
-    """¿El atlas ya trae sprites de objetos y NPCs? Si no, el mapa los sigue pintando.
-
-    El atlas de F1 es solo de Liss: si bastara con que el archivo existiera, los bancos, el kiosco
-    y los NPCs desaparecerían del pueblo.
+    Es por personaje y no todo-o-nada: si bastara con que el atlas existiera, el primer NPC
+    dibujado borraría del mapa a los que todavía no tienen arte.
     """
     datos = DESTINO / "atlas.json"
     if not (DESTINO / "atlas.png").exists() or not datos.exists():
-        return False
+        return set()
     frames = json.loads(datos.read_text(encoding="utf-8")).get("frames", {})
-    return any(nombre.startswith(("npc_", "objeto_")) for nombre in frames)
+    return {n[len("npc_"):-len("_abajo_0")] for n in frames if n.startswith("npc_") and n.endswith("_abajo_0")}
 
 
 def render(mapa: dict, salida: Path) -> dict:
-    sin_objetos = atlas_dibuja_objetos()
+    del_motor = npcs_con_sprite()
     ancho, alto = mapa["ancho"], mapa["alto"]
+    filas = mapa["filas"]
+    objetos_meta = mapa["meta"]["objetos"]
+    exterior = mapa["meta"].get("tipo", "interior") == "exterior"
+
+    def letra(cx: int, cy: int) -> str:
+        return filas[cy][cx] if 0 <= cy < alto and 0 <= cx < ancho else " "
+
     def es_camino(cx: int, cy: int) -> bool:
-        return 0 <= cy < alto and 0 <= cx < ancho and mapa["filas"][cy][cx] == ","
+        return letra(cx, cy) == ","
+
+    def es_muro(cx: int, cy: int) -> bool:
+        """La puerta es parte de la fachada: sin esto, el tile de arriba se pinta de ladrillo
+        en medio del tejado y parece una chimenea torcida."""
+        ch = letra(cx, cy)
+        if ch == "#" or ch in mapa["meta"]["puertas"]:
+            return True
+        # Un objeto o un NPC metido en un hueco del muro (el kiosco de Don Beto) sigue siendo
+        # fachada: si no, el tile de arriba se pinta de pared en medio del tejado.
+        return ch in objetos_meta and letra(cx - 1, cy) == "#" and letra(cx + 1, cy) == "#"
+
+    # Suelo por defecto: el terreno más repetido del mapa. Los tiles que no son terreno (un
+    # objeto, una puerta, un árbol) igual necesitan piso debajo; sin esto, la cama de Liss
+    # flotaba sobre un parche de pasto dentro de su propia casa.
+    conteo = Counter(ch for fila in filas for ch in fila if ch in TERRENOS)
+    suelo = conteo.most_common(1)[0][0] if conteo else "."
+
+    def terreno_de(cx: int, cy: int) -> str:
+        """Qué piso va debajo de este tile: el suyo si es terreno, si no el del vecino que mande."""
+        ch = letra(cx, cy)
+        if ch in TERRENOS:
+            return ch
+        vecinos = Counter(
+            letra(cx + dx, cy + dy)
+            for dx, dy in ((0, -1), (0, 1), (-1, 0), (1, 0), (-1, -1), (1, -1), (-1, 1), (1, 1))
+            if letra(cx + dx, cy + dy) in TERRENOS
+        )
+        return vecinos.most_common(1)[0][0] if vecinos else suelo
 
     imagen = Image.new("RGBA", (ancho * TILE, alto * TILE), rgb("verde") + (255,))
     dib = ImageDraw.Draw(imagen)
 
-    for y, fila in enumerate(mapa["filas"]):
-        for x, ch in enumerate(fila):
+    # --- primera pasada: el suelo y los muros
+    for y, fila in enumerate(filas):
+        for x, bruto in enumerate(fila):
             px, py = x * TILE, y * TILE
-            if ch in TERRENO_PASTO:
-                pinta_pasto(dib, px, py, x, y)
-            elif ch == ",":
-                pinta_camino(dib, px, py, x, y, es_camino)
+            ch = bruto if bruto == "#" else terreno_de(x, y)
+            if ch == ",":
+                tiles.camino(dib, px, py, x, y, es_camino)
             elif ch == "=":
-                pinta_baldosa(dib, px, py, x, y)
+                tiles.baldosa(dib, px, py)
             elif ch == "w":
-                pinta_madera(dib, px, py, x, y)
+                tiles.madera(dib, px, py)
             elif ch == "b":
-                pinta_baldosa(dib, px, py, x, y)
+                tiles.baldosa(dib, px, py)
             elif ch == "#":
-                pinta_pared(dib, px, py, mapa["meta"].get("tipo", "interior"))
+                # Desde arriba una casa es techo salvo su última fila, que es la fachada.
+                if exterior and es_muro(x, y + 1):
+                    tiles.techo(
+                        dib, px, py,
+                        cumbrera=not es_muro(x, y - 1),
+                        alero=not es_muro(x, y + 2),
+                    )
+                else:
+                    tiles.pared(dib, px, py, x, y, mapa["meta"].get("tipo", "interior"))
             elif ch == "~":
-                pinta_agua(dib, px, py, x, y)
-            elif ch == "T":
-                pinta_pasto(dib, px, py, x, y)
+                tiles.agua(dib, px, py,
+                           vecino_agua=lambda dx, dy, _x=x, _y=y: letra(_x + dx, _y + dy) == "~")
             elif ch == "f":
-                pinta_flor(dib, px, py, x, y)
+                tiles.flores(dib, px, py)
+            else:
+                tiles.pasto(dib, px, py)
 
-    for y, fila in enumerate(mapa["filas"]):
+    # --- segunda pasada: lo que se apoya encima del suelo
+    for y, fila in enumerate(filas):
         for x, ch in enumerate(fila):
             px, py = x * TILE, y * TILE
             if ch == "T":
-                pinta_arbol(dib, px, py)
+                tiles.arbol(dib, px, py, x, y)
             elif ch in mapa["meta"]["puertas"]:
-                dib.rectangle([px + 2, py + 2, px + 13, py + 15], fill=rgb("marron"))
-                dib.rectangle([px + 3, py + 3, px + 12, py + 9], fill=rgb("ambar"))
-                dib.rectangle([px + 11, py + 10, px + 12, py + 12], fill=rgb("crema"))
+                tiles.puerta(dib, px, py)
             elif ch == "S":
-                dib.rectangle([px + 4, py + 6, px + 11, py + 10], fill=rgb("amarillo"))
-                dib.rectangle([px + 5, py + 5, px + 6, py + 7], fill=rgb("amarillo"))
-                dib.rectangle([px + 9, py + 5, px + 10, py + 7], fill=rgb("amarillo"))
-                dib.rectangle([px + 6, py + 11, px + 9, py + 12], fill=rgb("amarillo"))
-            elif ch in mapa["meta"]["objetos"] and not sin_objetos:
-                pinta_detalle_objeto(dib, px, py, mapa["meta"]["objetos"][ch]["tipo"])
+                tiles.punto_guardado(dib, px, py)
+            elif ch in objetos_meta:
+                dato = objetos_meta[ch]
+                # Los NPCs con sprite los dibuja el motor: si además los pintara el mapa, cada
+                # uno quedaría con un doble pegado al piso.
+                if dato["tipo"] == "npc":
+                    if dato["id"] not in del_motor:
+                        tiles.objeto(dib, px, py, "npc")
+                    continue
+                tiles.objeto(dib, px, py, dato["tipo"], vecino=lambda dx, _x=x, _y=y: letra(_x + dx, _y) == ch)
+
+    if mapa["meta"].get("luz") == "atardecer":
+        tiles.atardecer(imagen)
 
     imagen.save(salida)
 

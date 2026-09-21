@@ -17,10 +17,14 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from collections import deque
 from pathlib import Path
 
 from PIL import Image
+
+sys.path.insert(0, str(Path(__file__).parent))
+import arte_extra  # noqa: E402
 
 RAIZ = Path(__file__).resolve().parent.parent
 HOJA = RAIZ / "assets" / "source" / "liss-sheet.png"
@@ -520,6 +524,11 @@ def generar(contacto: bool) -> int:
     paleta = paleta_comun(list(piezas.values()))
     piezas = {nombre: aplicar_paleta(imagen, paleta) for nombre, imagen in piezas.items()}
 
+    # El arte dibujado por código (NPCs, retratos, ramo, iconos) entra después de cuantizar: ya
+    # nace con los colores de la paleta maestra y pasarlo por la de Liss lo teñiría de rosa.
+    extra = arte_extra.piezas()
+    piezas.update(extra)
+
     atlas, datos = empacar(piezas)
     ASSETS.mkdir(parents=True, exist_ok=True)
     atlas.save(ASSETS / "atlas.png")
@@ -529,6 +538,7 @@ def generar(contacto: bool) -> int:
 
     usados = set(pixeles(atlas))
     print(f"  · atlas.png  {atlas.width}×{atlas.height}, {len(piezas)} frames, {len(usados)} colores")
+    print(f"  · arte dibujado por código: {len(extra)} frames (NPCs, retratos, ramo, iconos)")
     print(f"  · sprite de juego: {ancho_destino}×{alto_destino} px (alto objetivo {ALTO_OBJETIVO})")
     print(f"  · retratos: {ALTO_RETRATO}×{ALTO_RETRATO} px ({', '.join(sorted(RETRATOS))})")
     if contacto:

@@ -145,7 +145,12 @@ AG.DIALOGOS = {
   ],
 
   'petalos2.intro': [
-    { quien: 'sofi', texto: '¡Ahí van! ¡Y el viento sopla fuerte, corre!' }
+    { quien: 'sofi', texto: '¡Ahí van! ¡Y el viento sopla fuerte, corre!' },
+    { quien: 'sofi', texto: 'Cuando yo grite «viento», mírate el lado al que se van.' }
+  ],
+  'petalos2.reintento': [
+    { quien: 'sofi', texto: 'Uy. Ese viento es tramposo, ¿verdad?' },
+    { quien: 'sofi', texto: 'Igual el parque está lleno. ¿Otra vez?' }
   ],
   'petalos2.victoria': [
     { quien: 'sofi', texto: '¡Lo lograste!' },

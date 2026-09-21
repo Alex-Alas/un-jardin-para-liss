@@ -45,7 +45,8 @@ sección: 6 poses quietas y 6 caminando por dirección. **E mira a la derecha de
 - **Caminata**: ciclo de 4 a 8 fps armado midiendo cuánto se separan los pies —paso abierto, paso
   junto, el otro paso abierto, paso junto—, porque la hoja no garantiza un orden de animación.
 - **Retratos**: 48 × 48, recortados de dos poses de frente elegidas a mano (una neutra y una
-  sonriendo). Los demás personajes todavía muestran su inicial en la caja de diálogo.
+  sonriendo). Los de los NPCs no se recortan de su sprite: a 16 px de ancho la cara no tiene
+  lugar para la expresión, así que se dibujan aparte a 24 × 24 y se duplican (`arte_extra.py`).
 - **La sombra del piso no se importa**: el juego pone la suya; la de la hoja se descarta por color.
 
 ## Paleta
@@ -87,17 +88,20 @@ Reglas:
 
 | Asset | Tamaño | Cantidad | Uso | Origen |
 |---|---|---|---|---|
-| `atlas.png` / `atlas.json` | 256×153 hoy | 1 | sprites, iconos, retratos | `tools/generate_sprites.py` |
+| `atlas.png` / `atlas.json` | 256×237 hoy, 68 frames | 1 | sprites, iconos, retratos | `tools/generate_sprites.py` |
 | `font_pixel.png` / `.xml` | variable | 2 (8 px y 16 px) | todo el texto | `tools/generate_font.py` |
 | `mapa_casa.png` | 20×14 tiles | 1 | interior | `tools/render_maps.py` |
 | `mapa_pueblo.png` | 48×32 tiles | 1 | exterior principal | `tools/render_maps.py` |
 | `mapa_floreria.png` | 16×12 tiles | 1 | interior | `tools/render_maps.py` |
 | `mapa_colina.png` | 32×20 tiles | 1 | final, paleta de atardecer | `tools/render_maps.py` |
-| `recuerdo_01..06.jpg` | 720 px lado mayor | 6 | polaroids | `tools/prepare_photos.py` |
+| `recuerdo_r1..r6.jpg` | 720×720 | 6 | polaroids | `tools/prepare_photos.py` (✅) |
 | sprites de Liss | 16×34 | 8 direcciones × (2 idle + 4 caminata) | protagonista | `tools/generate_sprites.py` (✅ F1) |
-| sprites de los demás | 16×34 | Alex, Flora, Beto, Sofi, Michi | NPCs | pendiente: hoy los pinta el mapa |
-| retratos | 48×48 | Liss × 2 emociones (✅); el resto pendiente | diálogos | `tools/generate_sprites.py` |
-| iconos UI | 16×16 | corazón, flor, pétalo, hoja seca | HUD y escenas | `tools/generate_sprites.py` |
+| sprites de los demás | 16×34 | Alex, Flora, Beto, Sofi, Michi × (1 quieto + 1 respiración) | NPCs | `tools/arte_extra.py` (✅ F2) |
+| retratos | 48×48 | Liss × 2 emociones + los 5 NPCs | diálogos | Liss: `generate_sprites.py`; el resto: `arte_extra.py` (✅) |
+| iconos UI | 16×16 | `ui_corazon`, `ui_flor` | HUD y punto de guardado | `tools/arte_extra.py` (✅) |
+| `ramo_0` | 16×24 | 1 | el ramo de la colina | `tools/arte_extra.py` (✅) |
+| pétalo y hoja seca | 5×6 y 6×5 | 2 | partículas del minijuego | `src/systems/fx.js` (por código, no atlas) |
+| terreno y objetos | 16×16 | 7 terrenos + 15 objetos | pintados dentro del PNG del mapa | `tools/tiles.py` (✅ F2) |
 
 ## Nombres de frames (contrato con el código)
 
@@ -111,16 +115,22 @@ liss_camina_<dirección>_0 .. _3       # ciclo de caminata            (32 frames
 retrato_liss_normal   retrato_liss_feliz                             ( 2 frames)
 ```
 
-Lo que el código busca y todavía no existe (cae con elegancia a formas o a la inicial del nombre):
+Lo que aporta `tools/arte_extra.py` (F2), con el mismo contrato:
 
 ```
-npc_<id>_abajo_0   retrato_<id>_normal      # Alex, Flora, Beto, Sofi, Michi
-ui_corazon   ui_flor   ui_petalo   ui_hoja_seca      ramo_0
-tile_pasto_0..2   tile_camino_0..2   tile_agua_0..1   tile_arbol_0..1
+npc_<id>_abajo_0 / _1       # Alex, Flora, Beto, Sofi, Michi: quieto + respiración
+retrato_<id>_normal         # los cinco, 48×48
+ui_corazon   ui_flor   ramo_0
 ```
 
-Mientras el atlas no traiga frames `npc_`/`objeto_`, `tools/render_maps.py` sigue pintando los
-objetos dentro del PNG del mapa (si no, los bancos y los NPCs desaparecerían del pueblo).
+Los NPCs traen una sola dirección porque en el juego nunca caminan. Si algún día uno se mueve,
+se agregan las ocho con estos mismos nombres y `AG.direccionDibujable()` las toma sola.
+
+**Los objetos no están en el atlas, y es a propósito.** El mostrador de la florería mide ocho
+tiles y un sprite de 16 px no lo cubre; pintarlos dentro del PNG del mapa (`tools/tiles.py`) los
+resuelve de cualquier tamaño. Los NPCs sí son sprites, porque respiran y se les habla:
+`render_maps.py` deja de pintar en el mapa a cada NPC que ya tenga su frame —por personaje, no
+todo o nada, para que el primero con arte no borre a los que aún no lo tienen.
 
 ## Mapas
 
@@ -131,15 +141,22 @@ script pinta el pasto con variación determinista, bordes de camino, sombras de 
 - Los caminos siempre conectan con algo: nunca un camino que no lleve a ningún lado.
 - Las zonas de interés tienen un color distinto en el piso (más claro) para guiar la vista.
 - El mapa del pueblo es el más denso: NPCs a la vista desde lejos, nada escondido tras árboles.
-- La colina usa la variante de atardecer: cielo naranja, sombras largas hacia la derecha.
+- La colina usa la variante de atardecer: `#! luz: atardecer` en `maps/colina.txt` remapea los
+  colores del PNG hacia el naranja. Es un remapeo y no una capa encima, así el mapa ya llega
+  teñido; el velo del motor (`AG.FX.washAtardecer`) queda suave, solo para teñir a los sprites.
 
 ## QA de arte (puertas de calidad)
 
 ```bash
 .venv/bin/python tools/generate_sprites.py --inspeccionar   # cómo se lee la hoja
 .venv/bin/python tools/generate_sprites.py --contacto       # atlas + hoja de contacto en dist/
+.venv/bin/python tools/arte_extra.py --contacto             # solo los NPCs, ampliados ×6
 .venv/bin/python tools/qa_assets.py --json                  # tamaños, alpha, cantidad de colores
 ```
+
+`qa_assets.py` cuenta los colores **por frame del atlas**, no del PNG entero: el tope de 24 es
+por asset, y un atlas con Liss, cinco NPCs, siete retratos y los iconos suma 47 sin que ninguno
+de ellos incumpla la regla.
 
 Requisitos: cada sprite con su tamaño exacto, alpha de 0/255 (sin semitransparencias), ≤24 colores,
 sin bordes recortados y legible sobre el pasto del pueblo. Un asset no está listo hasta verse a

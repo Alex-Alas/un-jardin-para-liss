@@ -115,11 +115,15 @@ window.AG = window.AG || {};
         const esGuardado = dato.tipo === 'guardado';
         let visual = null;
 
-        if (AG.hayAtlas()) {
-          const frame = esGuardado ? 'ui_corazon' : `npc_${dato.id || dato.tipo}_abajo_0`;
+        // Los NPCs son sprites del atlas; los objetos ya vienen pintados en el PNG del mapa
+        // (así el mostrador de ocho tiles se ve como un mueble y no como ocho).
+        if (AG.hayAtlas() && (esNpc || esGuardado)) {
+          const frame = esGuardado ? 'ui_corazon' : `npc_${dato.id}_abajo_0`;
           if (this.textures.get('arte').has(frame)) {
             visual = this.add.sprite(x, y, 'arte', frame).setOrigin(0.5, 1).setDepth(y);
-            if (esNpc && this.anims.exists(`caminar_${dato.id}`)) visual.play(`caminar_${dato.id}`);
+            if (esGuardado) visual.y -= 6;
+            const respira = esNpc && AG.crearAnimacionDeNpc(this, dato.id);
+            if (respira) visual.play(respira);
           }
         }
         if (!visual && esGuardado) {
