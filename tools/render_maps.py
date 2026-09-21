@@ -168,8 +168,21 @@ def pinta_detalle_objeto(dib, px, py, tipo: str) -> None:
         dib.rectangle([px + x0, py + y0, px + x1, py + y1], fill=rgba(tono, 210))
 
 
+def atlas_dibuja_objetos() -> bool:
+    """¿El atlas ya trae sprites de objetos y NPCs? Si no, el mapa los sigue pintando.
+
+    El atlas de F1 es solo de Liss: si bastara con que el archivo existiera, los bancos, el kiosco
+    y los NPCs desaparecerían del pueblo.
+    """
+    datos = DESTINO / "atlas.json"
+    if not (DESTINO / "atlas.png").exists() or not datos.exists():
+        return False
+    frames = json.loads(datos.read_text(encoding="utf-8")).get("frames", {})
+    return any(nombre.startswith(("npc_", "objeto_")) for nombre in frames)
+
+
 def render(mapa: dict, salida: Path) -> dict:
-    sin_objetos = (DESTINO / "atlas.png").exists()
+    sin_objetos = atlas_dibuja_objetos()
     ancho, alto = mapa["ancho"], mapa["alto"]
     def es_camino(cx: int, cy: int) -> bool:
         return 0 <= cy < alto and 0 <= cx < ancho and mapa["filas"][cy][cx] == ","

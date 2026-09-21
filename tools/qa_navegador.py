@@ -27,9 +27,16 @@ async def captura(pagina, nombre: str) -> None:
     print(f"  · {nombre}.png")
 
 
+async def tocar_tecla(pagina, tecla: str, ms: int = 90) -> None:
+    """Pulsación sostenida: Phaser lee el teclado por frame y un press instantáneo se le escapa."""
+    await pagina.keyboard.down(tecla)
+    await pagina.wait_for_timeout(ms)
+    await pagina.keyboard.up(tecla)
+
+
 async def pasar_dialogo(pagina, veces: int = 1, pausa: int = 260) -> None:
     for _ in range(veces):
-        await pagina.keyboard.press("z")
+        await tocar_tecla(pagina, "z")
         await pagina.wait_for_timeout(pausa)
 
 
@@ -42,7 +49,7 @@ async def cerrar_dialogo(pagina, maximo: int = 60, pausa: int = 220) -> None:
         )
         if not activo:
             return
-        await pagina.keyboard.press("z")
+        await tocar_tecla(pagina, "z")
         await pagina.wait_for_timeout(pausa)
 
 
@@ -134,11 +141,11 @@ async def main() -> None:
         await pagina.wait_for_timeout(2000)
         await captura(pagina, "01-titulo")
 
-        await pagina.keyboard.press("z")
+        await tocar_tecla(pagina, "z")
         await pagina.wait_for_timeout(600)
         await captura(pagina, "02-menu")
 
-        await pagina.keyboard.press("z")
+        await tocar_tecla(pagina, "z")
         await pagina.wait_for_timeout(1400)
         await captura(pagina, "03-casa-despertar")
         await cerrar_dialogo(pagina)

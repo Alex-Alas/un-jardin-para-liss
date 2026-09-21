@@ -6,7 +6,7 @@ AG.CFG = {
   VIEW_H: 270,
   TILE: 16,
   SPRITE_W: 16,
-  SPRITE_H: 24,
+  SPRITE_H: 34,   // la hoja de Liss manda: 2 tiles de alto, con aire arriba (ver docs/arte.md)
   VELOCIDAD: 62,
   SAVE_KEY: 'un-jardin-para-liss:v1',
   FUENTE_CHICA: 'pixel8',

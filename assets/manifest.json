@@ -4,7 +4,7 @@
     "pixel16",
     "pixel8"
   ],
-  "atlas": false,
+  "atlas": true,
   "mapas": [
     "casa",
     "pueblo",
