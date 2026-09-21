@@ -1,0 +1,12 @@
+# Referencias locales — NUNCA se suben
+_referencias/
+
+# Builds y artefactos
+dist/
+__pycache__/
+*.pyc
+.venv/
+
+# Sistema
+.DS_Store
+Thumbs.db

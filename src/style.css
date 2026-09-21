@@ -1,0 +1,66 @@
+:root {
+  color-scheme: dark;
+  --fondo: #0b0a10;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: var(--fondo);
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+#juego canvas {
+  display: block;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+#aviso-girar {
+  display: none;
+  position: fixed;
+  top: max(0.6rem, env(safe-area-inset-top));
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 0.4rem 0.9rem;
+  border-radius: 999px;
+  background: rgba(255, 214, 102, 0.92);
+  color: #2a1f05;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  pointer-events: none;
+  z-index: 10;
+}
+
+@media (orientation: portrait) and (max-width: 900px) {
+  #aviso-girar {
+    display: block;
+  }
+}
+
+#sin-js {
+  color: #ffd666;
+  font-size: 1rem;
+  text-align: center;
+  padding: 2rem;
+}
