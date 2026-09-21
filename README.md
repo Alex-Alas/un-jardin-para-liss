@@ -17,15 +17,32 @@ Liss despierta, encuentra una nota y el pueblo entero la espera con flores amari
 | Fase | Qué | Estado |
 |---|---|---|
 | F0 | Repo, scaffold, docs | ✅ |
-| F1 | Marco técnico a partir de la hoja de sprites de Liss | ⏳ |
-| F2 | Pipeline de arte (`tools/`, Python + Pillow) | ⏳ |
-| F3 | Núcleo jugable (movimiento, colisión, guardado) | ⏳ |
-| F4 | Diálogos, recuerdos con fotos, música chiptune | ⏳ |
-| F5 | Las 2 escenas de pétalos | ⏳ |
-| F6 | Contenido completo y final | ⏳ |
-| F7 | QA, build de un archivo, GitHub Pages | ⏳ |
+| F1 | Hoja de sprites de Liss → sprite jugable | ⏳ (hoy el juego corre con rectángulos de color) |
+| F2 | Pipeline de arte (`tools/`, Python + Pillow) | ✅ |
+| F3 | Núcleo jugable (movimiento, colisión, guardado) | ✅ |
+| F4 | Diálogos, recuerdos con fotos, música chiptune | 🟡 (faltan las fotos y los `.wav`; hoy hay melodías sintetizadas) |
+| F5 | Las escenas de pétalos | 🟡 (la del pueblo está; falta la segunda variante) |
+| F6 | Contenido completo y final | ✅ |
+| F7 | QA, build de un archivo, GitHub Pages | 🟡 (QA y build listos; falta publicar en Pages) |
 
 Detalle completo en [`docs/plan-implementacion.md`](docs/plan-implementacion.md).
+
+### Qué se puede jugar hoy
+
+La partida está completa de punta a punta: despertar en la casa, el pueblo, la florería, el
+minijuego de pétalos, el álbum y la escena final en la colina con su mensaje y los créditos.
+Se verificó con un QA automático en un navegador real, en escritorio y en celular:
+
+```bash
+tools/qa_navegador.sh     # juega la partida completa y guarda capturas
+```
+
+### Qué falta
+
+1. La hoja de sprites de Liss, Alex y Doña Flora (los placeholders están en `src/assets.js`).
+2. Las fotos de verdad en `fotos/` y la música en `musica/`.
+3. La segunda escena de pétalos y publicar en GitHub Pages.
+
 
 ## Para co-crear con Claude
 
