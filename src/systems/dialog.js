@@ -126,7 +126,11 @@ window.AG = window.AG || {};
     abrir(clave, opciones = {}) {
       const dato = AG.DIALOGOS[clave];
       if (!dato) {
+        // El `alCerrar` corre igual: quien abre un diálogo suele estar encadenando la partida
+        // con él (volver de un minijuego, arrancar la siguiente escena). Si una clave falta y
+        // el callback se pierde, el juego se queda trabado sin nada en pantalla.
         console.warn('[Dialogo] No existe el diálogo:', clave);
+        if (opciones.alCerrar) opciones.alCerrar();
         return false;
       }
       let lineas = dato;
