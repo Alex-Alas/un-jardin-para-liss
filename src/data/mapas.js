@@ -27,8 +27,8 @@ AG.MAPAS = {
         "x": 2,
         "y": 2,
         "letra": "1",
-        "tipo": "npc",
-        "id": "liss_cama",
+        "tipo": "cama",
+        "id": "cama",
         "dialogo": "casa.despertar"
       },
       {
@@ -121,6 +121,14 @@ AG.MAPAS = {
         "tipo": "npc",
         "id": "alex",
         "dialogo": "colina.alex.1"
+      },
+      {
+        "x": 14,
+        "y": 18,
+        "letra": "S",
+        "tipo": "guardado",
+        "id": "guardado",
+        "dialogo": "sistema.guardado"
       }
     ],
     "puertas": [
@@ -269,12 +277,28 @@ AG.MAPAS = {
         "dialogo": "pueblo.lampara"
       },
       {
+        "x": 13,
+        "y": 15,
+        "letra": "S",
+        "tipo": "guardado",
+        "id": "guardado",
+        "dialogo": "sistema.guardado"
+      },
+      {
         "x": 35,
         "y": 16,
         "letra": "2",
         "tipo": "npc",
         "id": "beto",
         "dialogo": "pueblo.beto.saludo"
+      },
+      {
+        "x": 32,
+        "y": 18,
+        "letra": "S",
+        "tipo": "guardado",
+        "id": "guardado",
+        "dialogo": "sistema.guardado"
       },
       {
         "x": 29,

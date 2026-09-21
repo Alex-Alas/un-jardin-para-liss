@@ -3,7 +3,7 @@
 
 #! titulo: Casa de Liss
 
-#! objeto 1 npc liss_cama casa.despertar
+#! objeto 1 cama cama casa.despertar
 
 #! objeto 2 escritorio escritorio casa.escritorio
 

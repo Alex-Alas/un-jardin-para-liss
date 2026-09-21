@@ -21,9 +21,9 @@ window.AG = window.AG || {};
       antialias: false
     },
     input: {
-      activePointers: 2
+      activePointers: 3
     },
-    scene: [AG.Boot, AG.Title]
+    scene: [AG.Boot, AG.Title, AG.Casa, AG.Pueblo, AG.Floreria, AG.Colina, AG.Petalos, AG.Album, AG.Creditos]
   };
 
   AG.juego = new Phaser.Game(config);
@@ -31,7 +31,16 @@ window.AG = window.AG || {};
   AG.debug = {
     escenas: () => AG.juego.scene.scenes.map((e) => e.scene.key),
     ir: (clave, datos) => AG.juego.scene.start(clave, datos),
-    saltar: (clave) => AG.juego.scene.start(clave)
+    saltar: (clave) => AG.juego.scene.start(clave),
+    flores: (n) => {
+      AG.Guardado.datos.flores = n;
+      AG.Guardado.guardar();
+      return n;
+    },
+    olvidar: () => {
+      AG.Guardado.reiniciar();
+      return 'guardado borrado';
+    }
   };
 
   window.addEventListener('error', (e) => {

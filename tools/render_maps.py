@@ -169,6 +169,7 @@ def pinta_detalle_objeto(dib, px, py, tipo: str) -> None:
 
 
 def render(mapa: dict, salida: Path) -> dict:
+    sin_objetos = (DESTINO / "atlas.png").exists()
     ancho, alto = mapa["ancho"], mapa["alto"]
     def es_camino(cx: int, cy: int) -> bool:
         return 0 <= cy < alto and 0 <= cx < ancho and mapa["filas"][cy][cx] == ","
@@ -212,7 +213,7 @@ def render(mapa: dict, salida: Path) -> dict:
                 dib.rectangle([px + 5, py + 5, px + 6, py + 7], fill=rgb("amarillo"))
                 dib.rectangle([px + 9, py + 5, px + 10, py + 7], fill=rgb("amarillo"))
                 dib.rectangle([px + 6, py + 11, px + 9, py + 12], fill=rgb("amarillo"))
-            elif ch in mapa["meta"]["objetos"]:
+            elif ch in mapa["meta"]["objetos"] and not sin_objetos:
                 pinta_detalle_objeto(dib, px, py, mapa["meta"]["objetos"][ch]["tipo"])
 
     imagen.save(salida)
@@ -226,6 +227,9 @@ def render(mapa: dict, salida: Path) -> dict:
         linea = []
         for x, ch in enumerate(fila):
             linea.append("1" if ch in BLOQUEAN else "0")
+            if ch == "S":
+                objetos.append({"x": x, "y": y, "letra": "S", "tipo": "guardado",
+                                "id": "guardado", "dialogo": "sistema.guardado"})
             if ch in mapa["meta"]["objetos"] and ch not in letras_usadas:
                 dato = dict(mapa["meta"]["objetos"][ch])
                 objetos.append({"x": x, "y": y, "letra": ch, **dato})
