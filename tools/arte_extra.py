@@ -261,7 +261,8 @@ def retrato(
         lz.rect(5, 2, 18, 8, pelo_c)
         for x in range(4, 20, 3):
             lz.rect(x, 0, x + 2, 3, pelo_c)
-            lz.px(x, 1, pelo_l)
+            if x < 11:       # la luz viene de arriba-izquierda: brillan los rulos de ese lado,
+                lz.px(x, 1, pelo_l)   # no todos, que si no parece una tiara de puntitos
         lz.rect(4, 4, 5, 13, pelo_c)
         lz.rect(18, 4, 19, 13, pelo_c)
     elif peinado == "chongo":
