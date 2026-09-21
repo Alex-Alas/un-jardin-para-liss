@@ -58,7 +58,6 @@ protagonista (`#ffd23f`) y su claro (`#ffe98a`). Reglas:
 | `mapa_casa.png` | 20×14 tiles | 1 | interior | `tools/render_maps.py` |
 | `mapa_pueblo.png` | 48×32 tiles | 1 | exterior principal | `tools/render_maps.py` |
 | `mapa_floreria.png` | 16×12 tiles | 1 | interior | `tools/render_maps.py` |
-| `mapa_parque.png` | 32×24 tiles | 1 | pétalos 2 | `tools/render_maps.py` |
 | `mapa_colina.png` | 32×20 tiles | 1 | final, paleta de atardecer | `tools/render_maps.py` |
 | `recuerdo_01..06.jpg` | 720 px lado mayor | 6 | polaroids | `tools/prepare_photos.py` |
 | sprites de personajes | 16×24 | 6 personajes | Liss, Alex, Flora, Beto, Sofi, Michi | `tools/generate_sprites.py` |

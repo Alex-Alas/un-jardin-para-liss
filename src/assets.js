@@ -1,20 +1,20 @@
 window.AG = window.AG || {};
 
+AG.MANIFIESTO = AG.MANIFIESTO || { fuente: false, atlas: false, mapas: [], fotos: [] };
+
 AG.ASSETS = {
   atlas: 'assets/atlas.png',
   atlasDatos: 'assets/atlas.json',
-  fuentePng: 'assets/font_pixel.png',
-  fuenteDatos: 'assets/font_pixel.xml',
-  mapas: {
-    casa: 'assets/mapa_casa.png',
-    pueblo: 'assets/mapa_pueblo.png',
-    floreria: 'assets/mapa_floreria.png',
-    parque: 'assets/mapa_parque.png',
-    colina: 'assets/mapa_colina.png'
+  fuentes: {
+    pixel8: { png: 'assets/font_pixel8.png', xml: 'assets/font_pixel8.xml' },
+    pixel16: { png: 'assets/font_pixel16.png', xml: 'assets/font_pixel16.xml' }
   },
-  fotos: {}
+  mapa: (clave) => `assets/mapa_${clave}.png`,
+  foto: (id) => `assets/fotos/recuerdo_${id}.jpg`
 };
 
-AG.requiereAssets = function () {
-  return AG.ASSETS_READY === true;
-};
+AG.hayFuente = () => AG.MANIFIESTO.fuente === true;
+AG.hayAtlas = () => AG.MANIFIESTO.atlas === true;
+AG.hayMapa = (clave) => (AG.MANIFIESTO.mapas || []).indexOf(clave) !== -1;
+AG.hayFoto = (id) => (AG.MANIFIESTO.fotos || []).indexOf(id) !== -1;
+AG.hayArte = () => AG.hayFuente() && AG.hayAtlas();

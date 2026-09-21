@@ -1,0 +1,25 @@
+#! nombre: floreria
+#! tipo: interior
+
+#! titulo: Florería de Doña Flora
+
+#! objeto 1 npc flora pueblo.flora.saludo
+
+#! objeto 2 mostrador mostrador pueblo.floreria.mostrador
+
+#! objeto 3 estante estante pueblo.floreria.estante
+
+#! puerta D pueblo 41 10
+
+################
+#bbbbbbbbbbbbbb#
+#bb1bbbbbbb3bbb#
+#bbbbbbbbbbbbbb#
+#bbb22222222bbb#
+#bbbbbbbbbbbbbb#
+#bbbbbbbbbbbbbb#
+#bbbbbbbbbbbbbb#
+#bbbbbbbbbbbbbb#
+#bbbbbbbbbbbbbb#
+#bbbbbbbbbbbbbb#
+#######D########

@@ -1,0 +1,33 @@
+#! nombre: casa
+#! tipo: interior
+
+#! titulo: Casa de Liss
+
+#! objeto 1 npc liss_cama casa.despertar
+
+#! objeto 2 escritorio escritorio casa.escritorio
+
+#! objeto 3 espejo espejo casa.espejo
+
+#! objeto 4 cuadro calendario casa.calendario
+
+#! objeto 5 planta planta casa.planta
+
+#! objeto 6 nota nota casa.nota
+
+#! puerta D pueblo 6 8
+
+####################
+#wwwwwwwwwwwwwwwwww#
+#w1wwwwwwwwwwwww2ww#
+#wwwwwwwwwwwwwwwwww#
+#wwwwwwwwwwwwwwwwww#
+#w3wwwwwwwwwwwwwwww#
+#wwwwwwwwwwwwwww4ww#
+#wwwwwwwwwwwwwwwwww#
+#wwwwwwwwwwwwwwwwww#
+#w5wwwwwwwwwwwwwwww#
+#wwwwwwwwwwwwwwwwww#
+#wwwwwwwwwwwwwwwwww#
+#wwwwwwww6wwwwwwwww#
+#########D##########

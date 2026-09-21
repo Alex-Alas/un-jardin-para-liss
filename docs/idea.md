@@ -18,8 +18,8 @@ cursilería.
 
 ## Lo que hace el juego (sistemas)
 
-1. **Exploración top-down** en mapas pintados a mano (generados por script): casa, pueblo, florería,
-   parque y colina.
+1. **Exploración top-down** en mapas pintados a mano (generados por script): casa, pueblo (con plaza, kiosco, florería y parque),
+   florería y colina.
 2. **Diálogos** como vehículo principal: cada NPC suelta algo que Alex escribió para ella.
 3. **Recuerdos** (6): objetos interactuables abren un polaroid con una foto real de los dos, un pie de
    foto y un mensajito. Quedan guardados en un **álbum** que puede revisar cuando quiera.

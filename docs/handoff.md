@@ -105,11 +105,16 @@ AG.PERSONAJES = {
 Una letra por tile. Leyenda:
 
 ```
-#  pared / bloquea          ~  agua (bloquea)          S  punto de guardado (corazón)
-.  pasto                   T  árbol (bloquea)          P  zona de pétalos (trigger)
-,  camino de tierra        f  flores decorativas       C  trigger del final
-=  baldosa / acera         D  puerta                   1-9  NPCs y objetos (se definen en el mapa)
+#  pared / bloquea          T  árbol (bloquea)          S  punto de guardado (corazón)
+.  pasto                   f  flores decorativas       D  puerta
+,  camino de tierra        w  piso de madera           1-9  NPCs y objetos (se definen en el mapa)
+=  baldosa / acera         b  azulejo de interior
+~  agua (bloquea)          // comentario (se ignora)
 ```
+
+Líneas de metadatos: `#! objeto 3 banco banco pueblo.banco` (letra, tipo, sprite/id, diálogo) y
+`#! puerta D casa 9 12` (letra, mapa destino, x, y). Los mapas son cuatro: `casa`, `pueblo`
+(incluye plaza, kiosco, florería por dentro y parque), `floreria` y `colina`.
 
 `tools/render_maps.py` produce `assets/mapa_<nombre>.png` **y** `src/data/mapas.js`:
 

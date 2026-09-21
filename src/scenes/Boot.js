@@ -10,17 +10,23 @@ AG.Boot = class Boot extends Phaser.Scene {
       console.warn('[Boot] No se pudo cargar:', archivo && archivo.key);
     });
 
-    if (!AG.requiereAssets()) {
-      console.info('[Boot] Sin arte generado todavía: arrancando en modo esqueleto.');
-      return;
+    if (AG.hayFuente()) {
+      Object.entries(AG.ASSETS.fuentes).forEach(([clave, rutas]) => {
+        this.load.bitmapFont(clave, rutas.png, rutas.xml);
+      });
+    } else {
+      console.info('[Boot] Sin fuente bitmap todavía: se usa la fuente del sistema.');
     }
 
-    this.load.atlas('arte', AG.ASSETS.atlas, AG.ASSETS.atlasDatos);
-    this.load.bitmapFont(AG.CFG.FUENTE_CHICA, AG.ASSETS.fuentePng, AG.ASSETS.fuenteDatos);
+    if (AG.hayAtlas()) {
+      this.load.atlas('arte', AG.ASSETS.atlas, AG.ASSETS.atlasDatos);
+    } else {
+      console.info('[Boot] Sin atlas todavía: se dibuja con formas.');
+    }
   }
 
   create() {
-    AG.arte = { listo: this.textures.exists('arte') };
+    AG.arte = { fuente: AG.hayFuente(), atlas: AG.hayAtlas() };
     this.scene.start('Title');
   }
 };

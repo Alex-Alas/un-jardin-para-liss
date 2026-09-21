@@ -1,5 +1,4 @@
-// Generado por tools/ (render_maps.py / generate_font.py).
-// Mientras no exista arte generado, el juego arranca en modo esqueleto.
+// Generado por tools/actualizar_manifest.py — no editar a mano.
 window.AG = window.AG || {};
-AG.ASSETS_READY = false;
-AG.ASSETS_FOTOS = [];
+AG.MANIFIESTO = {"fuente": true, "fuentes": ["pixel16", "pixel8"], "atlas": false, "mapas": ["casa", "pueblo", "floreria", "colina"], "fotos": [], "fotosPendientes": ["r1", "r2", "r3", "r4", "r5", "r6"]}
+;
