@@ -77,7 +77,7 @@ AG.MAPAS = {
         "x": 9,
         "y": 13,
         "letra": "D",
-        "a": "pueblo",
+        "a": "Pueblo",
         "destino": {
           "x": 6,
           "y": 8
@@ -136,7 +136,7 @@ AG.MAPAS = {
         "x": 16,
         "y": 19,
         "letra": "D",
-        "a": "pueblo",
+        "a": "Pueblo",
         "destino": {
           "x": 45,
           "y": 4
@@ -195,7 +195,7 @@ AG.MAPAS = {
         "x": 7,
         "y": 11,
         "letra": "D",
-        "a": "pueblo",
+        "a": "Pueblo",
         "destino": {
           "x": 41,
           "y": 10
@@ -329,31 +329,31 @@ AG.MAPAS = {
       {
         "x": 45,
         "y": 3,
-        "letra": "D",
-        "a": "casa",
+        "letra": "F",
+        "a": "Colina",
         "destino": {
-          "x": 9,
-          "y": 12
+          "x": 16,
+          "y": 18
         }
       },
       {
         "x": 6,
         "y": 7,
         "letra": "D",
-        "a": "casa",
+        "a": "Casa",
         "destino": {
           "x": 9,
-          "y": 12
+          "y": 11
         }
       },
       {
         "x": 41,
         "y": 9,
-        "letra": "D",
-        "a": "casa",
+        "letra": "E",
+        "a": "Floreria",
         "destino": {
-          "x": 9,
-          "y": 12
+          "x": 7,
+          "y": 10
         }
       }
     ],

@@ -30,8 +30,13 @@ window.AG = window.AG || {};
 
   AG.debug = {
     escenas: () => AG.juego.scene.scenes.map((e) => e.scene.key),
-    ir: (clave, datos) => AG.juego.scene.start(clave, datos),
-    saltar: (clave) => AG.juego.scene.start(clave),
+    ir: (clave, datos) => {
+      AG.juego.scene.getScenes(true).forEach((escena) => {
+        if (escena.scene.key !== clave) AG.juego.scene.stop(escena.scene.key);
+      });
+      AG.juego.scene.start(clave, datos);
+    },
+    saltar: (clave) => AG.debug.ir(clave),
     flores: (n) => {
       AG.Guardado.datos.flores = n;
       AG.Guardado.guardar();

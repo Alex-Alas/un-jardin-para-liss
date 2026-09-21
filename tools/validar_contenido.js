@@ -27,7 +27,6 @@ const errores = [];
 const avisos = [];
 const escenasValidas = ['Casa', 'Pueblo', 'Floreria', 'Colina', 'Petalos', 'Album', 'Creditos', 'Title'];
 const efectosValidos = ['latido', 'temblor', 'florecer'];
-const escenasPorMapa = { casa: 'Casa', pueblo: 'Pueblo', floreria: 'Floreria', colina: 'Colina' };
 
 Object.entries(AG.DIALOGOS).forEach(([clave, valor]) => {
   const variantes = Array.isArray(valor[0]) ? valor : [valor];
@@ -68,7 +67,7 @@ Object.entries(AG.MAPAS).forEach(([nombre, mapa]) => {
     }
   });
   (mapa.puertas || []).forEach((puerta) => {
-    if (!escenasValidas.includes(escenasPorMapa[puerta.a])) {
+    if (!escenasValidas.includes(puerta.a)) {
       errores.push(`mapa ${nombre}: la puerta lleva a un mapa desconocido: ${puerta.a}`);
     }
     const destino = AG.MAPAS[puerta.a];

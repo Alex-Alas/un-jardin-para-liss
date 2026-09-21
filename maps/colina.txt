@@ -5,7 +5,7 @@
 
 #! objeto 1 npc alex colina.alex.1
 
-#! puerta D pueblo 45 4
+#! puerta D Pueblo 45 4
 
 ................................
 ............T.......T...........

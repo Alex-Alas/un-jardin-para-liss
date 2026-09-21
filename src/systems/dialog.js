@@ -13,7 +13,6 @@ window.AG = window.AG || {};
       this.paginas = [];
       this.pagina = 0;
       this.reveladas = 0;
-      this.acumulador = 0;
       this.pausado = false;
       this.ultimaEleccion = 0;
       this.alCerrar = null;
@@ -47,12 +46,20 @@ window.AG = window.AG || {};
           .setScrollFactor(0)
       );
 
-      this.retrato = escena.add
-        .image(this.x + 8, this.y + 8, 'arte', 'retrato_liss_normal')
-        .setOrigin(0)
-        .setScale(1.75)
-        .setDepth(702)
-        .setScrollFactor(0);
+      if (escena.textures.exists('arte')) {
+        this.retrato = escena.add
+          .image(this.x + 8, this.y + 8, 'arte', 'retrato_liss_normal')
+          .setOrigin(0)
+          .setScale(1.75)
+          .setDepth(702)
+          .setScrollFactor(0);
+      } else {
+        this.retrato = escena.add
+          .rectangle(this.x + 8, this.y + 8, 84, 84, c(COLORES.tintaSuave))
+          .setOrigin(0)
+          .setDepth(702)
+          .setScrollFactor(0);
+      }
       this.retratoInicial = AG.UI.texto(escena, this.x + 32, this.y + 52, 'L', {
         color: COLORES.amarillo,
         escala: 4
@@ -129,6 +136,7 @@ window.AG = window.AG || {};
     }
 
     mostrarLineas(lineas, opciones = {}) {
+      if (this.entrada && this.entrada.mostrarControles) this.entrada.mostrarControles(false);
       this.lineas = lineas.slice();
       this.indice = 0;
       this.activa = true;
@@ -157,7 +165,9 @@ window.AG = window.AG || {};
       if (personaje) {
         this.nombre.setText(personaje.nombre);
         this.nombre.setVisible(true);
-        this.retrato.setFrame(`retrato_${personaje.sprite || quien}_normal`);
+        if (this.retrato.setFrame && this.scene.textures.exists('arte')) {
+          this.retrato.setFrame(`retrato_${personaje.sprite || quien}_normal`);
+        }
         this.retratoInicial.setText(personaje.nombre.charAt(0));
       } else {
         this.nombre.setText('');
@@ -181,8 +191,13 @@ window.AG = window.AG || {};
       this.paginas = AG.UI.paginar(lineas, 3);
       this.pagina = 0;
       this.reveladas = 0;
-      this.acumulador = 0;
       this.aplicarAcciones(linea);
+
+      // Las líneas que solo ejecutan algo (dar una flor, abrir un recuerdo) no se esperan.
+      if (!contenido.trim() && !linea.eleccion && this.activa) {
+        this.siguiente();
+        return;
+      }
       this.pintarPagina();
     }
 
@@ -193,17 +208,15 @@ window.AG = window.AG || {};
     }
 
     escribir(delta) {
-      const total = (this.paginas[this.pagina] || []).join('\n').length;
-      if (this.reveladas >= total) return;
-      this.acumulador += delta * AG.CFG.TEXTO.VELOCIDAD;
+      const contenido = (this.paginas[this.pagina] || []).join('\n');
+      if (this.reveladas >= contenido.length) return;
       const antes = Math.floor(this.reveladas);
-      this.reveladas = Math.min(total, this.acumulador / 16);
+      this.reveladas = Math.min(contenido.length, this.reveladas + (delta / 1000) * AG.CFG.TEXTO.VELOCIDAD);
       if (Math.floor(this.reveladas) > antes && Math.floor(this.reveladas) % AG.CFG.TEXTO.BLIP_CADA === 0) {
         AG.Musica && AG.Musica.sfx('blip');
       }
-      const completo = (this.paginas[this.pagina] || []).join('\n');
-      this.texto.setText(completo.slice(0, Math.floor(this.reveladas)));
-      if (this.reveladas >= total) this.indicador.setVisible(true);
+      this.texto.setText(contenido.slice(0, Math.floor(this.reveladas)));
+      if (this.reveladas >= contenido.length) this.indicador.setVisible(true);
     }
 
     completo() {
@@ -286,7 +299,10 @@ window.AG = window.AG || {};
         y: '-=6',
         duration: 700,
         yoyo: true,
-        onComplete: () => texto.destroy()
+        onComplete: () => {
+          texto.destroy();
+          icono.destroy();
+        }
       });
     }
 
@@ -303,7 +319,6 @@ window.AG = window.AG || {};
         return;
       }
       this.reveladas = 0;
-      this.acumulador = 0;
       this.pintarPagina();
       this.texto.setText('');
     }
@@ -316,6 +331,7 @@ window.AG = window.AG || {};
     cerrar() {
       this.activa = false;
       this.ocultar();
+      if (this.entrada && this.entrada.mostrarControles) this.entrada.mostrarControles(true);
       const cb = this.alCerrar;
       this.alCerrar = null;
       if (cb) cb();
@@ -336,9 +352,7 @@ window.AG = window.AG || {};
       if (!this.completo()) {
         this.escribir(delta);
         if (accion) {
-          const total = (this.paginas[this.pagina] || []).join('\n').length;
-          this.reveladas = total;
-          this.acumulador = total * 16;
+          this.reveladas = (this.paginas[this.pagina] || []).join('\n').length;
           this.texto.setText((this.paginas[this.pagina] || []).join('\n'));
           this.indicador.setVisible(true);
         }

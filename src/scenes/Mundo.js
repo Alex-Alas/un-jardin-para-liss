@@ -76,7 +76,7 @@ window.AG = window.AG || {};
     }
 
     registrarVisita() {
-      AG.Guardado.datos.escena = this.claveMapa;
+      AG.Guardado.datos.escena = this.scene.key;
       AG.Guardado.guardar();
     }
 
@@ -202,7 +202,11 @@ window.AG = window.AG || {};
 
     usarObjeto(objeto) {
       if (objeto.tipo === 'guardado') {
-        AG.Guardado.registrarPos(this.claveMapa, this.jugador.x, this.jugador.y);
+        AG.Guardado.registrarPos(
+          this.scene.key,
+          Math.floor((this.jugador.x - this.desfase.x) / AG.CFG.TILE),
+          Math.floor((this.jugador.y - this.desfase.y) / AG.CFG.TILE)
+        );
         AG.Musica.sfx('corazon');
         AG.FX.latido(this);
         this.dialogo.abrir('sistema.guardado');

@@ -54,6 +54,7 @@ AG.Title = class Title extends Phaser.Scene {
     AG.Musica.tocar('titulo');
     if (this.fase !== 'empezar') return;
     this.fase = 'menu';
+    this.bloqueoAccion = 340;
     this.pista.setVisible(false);
     this.abrirMenu();
   }
@@ -68,7 +69,7 @@ AG.Title = class Title extends Phaser.Scene {
     definiciones.push({ texto: 'CRÉDITOS', accion: () => this.scene.start('Creditos') });
 
     this.opciones = definiciones.map((definicion, i) => {
-      const texto = AG.UI.texto(this, VIEW_W / 2, VIEW_H / 2 + 16 + i * 18, '  ' + definicion.texto, {
+      const texto = AG.UI.texto(this, VIEW_W / 2, VIEW_H / 2 + 26 + i * 17, '  ' + definicion.texto, {
         color: COLORES.blanco
       })
         .setOrigin(0.5)
@@ -101,8 +102,9 @@ AG.Title = class Title extends Phaser.Scene {
     this.pintarCursor();
   }
 
-  update() {
+  update(tiempo, delta) {
     if (this.fase !== 'menu') return;
+    if (this.bloqueoAccion > 0) this.bloqueoAccion -= delta;
     const entrada = this.entrada || (this.entrada = { dir: { x: 0, y: 0 } });
     if (!this.teclas) {
       this.teclas = this.input.keyboard.addKeys({
@@ -124,7 +126,7 @@ AG.Title = class Title extends Phaser.Scene {
       Phaser.Input.Keyboard.JustDown(this.teclas.accion) ||
       Phaser.Input.Keyboard.JustDown(this.teclas.accion2)
     ) {
-      const opcion = this.opciones[this.cursor];
+      const opcion = this.bloqueoAccion > 0 ? null : this.opciones[this.cursor];
       if (opcion) opcion.accion();
     }
   }

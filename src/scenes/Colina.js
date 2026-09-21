@@ -57,7 +57,7 @@ AG.Colina = class Colina extends AG.Mundo {
     const { TILE, COLORES } = AG.CFG;
     const x = this.desfase.x + 17 * TILE + 4;
     const y = this.desfase.y + 5 * TILE + TILE;
-    if (AG.hayAtlas()) {
+    if (AG.hayAtlas() && this.textures.get('arte').has('ramo_0')) {
       this.ramo = this.add.sprite(x, y, 'arte', 'ramo_0').setOrigin(0.5, 1).setDepth(y);
     } else {
       this.ramo = this.add.rectangle(x, y - 8, 12, 16, AG.UI.color(COLORES.amarillo)).setDepth(y);

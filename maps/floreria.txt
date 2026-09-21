@@ -9,7 +9,7 @@
 
 #! objeto 3 estante estante pueblo.floreria.estante
 
-#! puerta D pueblo 41 10
+#! puerta D Pueblo 41 10
 
 ################
 #bbbbbbbbbbbbbb#

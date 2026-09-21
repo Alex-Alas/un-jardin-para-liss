@@ -82,9 +82,9 @@ window.AG = window.AG || {};
       return nuevo;
     },
 
-    registrarPos(escena, x, y) {
+    registrarPos(escena, tileX, tileY) {
       this.datos.escena = escena;
-      this.datos.pos = { x, y };
+      this.datos.pos = { x: tileX, y: tileY };
       this.guardar();
     }
   };

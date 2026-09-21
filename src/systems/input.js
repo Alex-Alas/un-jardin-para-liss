@@ -21,6 +21,7 @@ window.AG = window.AG || {};
       });
       this.botonA = false;
       this.botonAPulsado = false;
+      this.toqueLibre = false;
       this.ejeTactil = { x: 0, y: 0 };
       this.controles = [];
       this.crearControles();
@@ -88,13 +89,22 @@ window.AG = window.AG || {};
       if (pointer.x > AG.CFG.VIEW_W - 96 && pointer.y > AG.CFG.VIEW_H - 96) {
         this.botonA = true;
         this.botonAPulsado = true;
+        return;
       }
+      // Toque en cualquier otra parte: vale como acción (así se avanza el diálogo en el celular).
+      this.toqueLibre = true;
     }
 
     pointerArriba(pointer, centro) {
       const distancia = Phaser.Math.Distance.Between(pointer.x, pointer.y, centro.x, centro.y);
       if (distancia < 40) this.ejeTactil = { x: 0, y: 0 };
       if (pointer.x > AG.CFG.VIEW_W - 96 && pointer.y > AG.CFG.VIEW_H - 96) this.botonA = false;
+    }
+
+    mostrarControles(visible) {
+      this.controles.forEach((control) => control.setVisible(visible));
+      if (this.zonaDpad) this.zonaDpad.setVisible(visible);
+      if (visible === false) this.soltarTodo();
     }
 
     soltarTodo() {
@@ -126,8 +136,9 @@ window.AG = window.AG || {};
     accion() {
       const tecla = Phaser.Input.Keyboard.JustDown(this.teclas.accion) ||
         Phaser.Input.Keyboard.JustDown(this.teclas.accion2);
-      const tactil = this.botonAPulsado;
+      const tactil = this.botonAPulsado || this.toqueLibre;
       this.botonAPulsado = false;
+      this.toqueLibre = false;
       return Boolean(tecla || tactil);
     }
 

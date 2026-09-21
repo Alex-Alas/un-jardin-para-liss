@@ -204,7 +204,7 @@ def render(mapa: dict, salida: Path) -> dict:
             px, py = x * TILE, y * TILE
             if ch == "T":
                 pinta_arbol(dib, px, py)
-            elif ch == "D":
+            elif ch in mapa["meta"]["puertas"]:
                 dib.rectangle([px + 2, py + 2, px + 13, py + 15], fill=rgb("marron"))
                 dib.rectangle([px + 3, py + 3, px + 12, py + 9], fill=rgb("ambar"))
                 dib.rectangle([px + 11, py + 10, px + 12, py + 12], fill=rgb("crema"))

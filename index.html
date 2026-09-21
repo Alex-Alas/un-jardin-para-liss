@@ -10,7 +10,16 @@
 </head>
 <body>
   <div id="juego"></div>
-  <p id="aviso-girar">Gira el teléfono para verlo mejor</p>
+
+  <div id="girar" hidden>
+    <div class="girar-caja">
+      <div class="girar-icono" aria-hidden="true"></div>
+      <p class="girar-titulo">Gira el teléfono</p>
+      <p class="girar-texto">Un jardín se ve mejor de lado</p>
+      <button id="girar-seguir" type="button">jugar así</button>
+    </div>
+  </div>
+
   <noscript><p id="sin-js">Este jueguito necesita JavaScript activado.</p></noscript>
 
   <script src="vendor/phaser.min.js"></script>
@@ -42,5 +51,31 @@
   <script src="src/scenes/Creditos.js"></script>
 
   <script src="src/main.js"></script>
+
+  <script>
+    // Invitación a girar el teléfono: aparece solo en vertical y se puede saltar.
+    (function () {
+      var capa = document.getElementById('girar');
+      var boton = document.getElementById('girar-seguir');
+      var saltado = false;
+
+      function revisar() {
+        var vertical = window.innerHeight > window.innerWidth;
+        var chico = Math.min(window.innerWidth, window.innerHeight) < 620;
+        capa.hidden = !(vertical && chico && !saltado);
+      }
+
+      boton.addEventListener('click', function () {
+        saltado = true;
+        capa.hidden = true;
+      });
+
+      window.addEventListener('resize', revisar);
+      window.addEventListener('orientationchange', function () {
+        setTimeout(revisar, 240);
+      });
+      revisar();
+    })();
+  </script>
 </body>
 </html>

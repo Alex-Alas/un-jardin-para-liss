@@ -135,6 +135,21 @@ window.AG = window.AG || {};
       );
 
       AG.Musica && AG.Musica.sfx('recuerdo');
+      this.escucharToque();
+    }
+
+    /** Cerrar el polaroid tocando en cualquier lado (celular). */
+    escucharToque() {
+      this.quitarToque();
+      this.cierreTactil = () => this.cerrar();
+      this.scene.input.once('pointerdown', this.cierreTactil);
+    }
+
+    quitarToque() {
+      if (this.cierreTactil) {
+        this.scene.input.off('pointerdown', this.cierreTactil);
+        this.cierreTactil = null;
+      }
     }
 
     abrirAlbum(opciones = {}) {
@@ -191,6 +206,8 @@ window.AG = window.AG || {};
           .setDepth(801)
           .setScrollFactor(0);
         marco.id = recuerdo.id;
+        marco.setInteractive({ useHandCursor: true });
+        marco.on('pointerdown', () => this.abrirDesdeAlbum(recuerdo.id));
         this.objetos.push(marco);
         if (AG.hayFoto(recuerdo.id)) {
           const clave = `foto_${recuerdo.id}`;
@@ -211,11 +228,22 @@ window.AG = window.AG || {};
           );
         }
         this.objetos.push(
-          AG.UI.texto(this.scene, x + 6, y + 70, recuerdo.titulo.slice(0, 12), { color: COLORES.tinta, escala: 0.8 })
+          AG.UI.texto(this.scene, x + 6, y + 70, recuerdo.titulo.slice(0, 10), {
+            color: COLORES.tinta,
+            escala: 0.75
+          })
             .setDepth(802)
             .setScrollFactor(0)
         );
       });
+
+      const cerrar = AG.UI.texto(this.scene, VIEW_W - 14, 14, 'cerrar', { color: COLORES.gris })
+        .setOrigin(1, 0)
+        .setDepth(801)
+        .setScrollFactor(0)
+        .setInteractive({ useHandCursor: true });
+      cerrar.on('pointerdown', () => this.cerrar());
+      this.objetos.push(cerrar);
 
       this.cursorCorazon = AG.UI.corazon(this.scene, 92, 60, 1).setDepth(803).setScrollFactor(0);
       this.objetos.push(this.cursorCorazon);
@@ -226,6 +254,14 @@ window.AG = window.AG || {};
           .setScrollFactor(0)
       );
       this.moverCursor(0, abiertos);
+    }
+
+    abrirDesdeAlbum(id) {
+      const alCerrar = this.alCerrar;
+      this.limpiar();
+      this.abierto = false;
+      AG.Musica.sfx('recuerdo');
+      this.abrir(id, { alCerrar: () => this.abrirAlbum({ alCerrar }) });
     }
 
     moverCursor(paso, abiertos) {
@@ -243,13 +279,14 @@ window.AG = window.AG || {};
         alListo();
         return;
       }
-      this.scene.load.image(clave, recuerdo.foto);
+      this.scene.load.image(clave, AG.ASSETS.foto(recuerdo.id));
       this.scene.load.once(`filecomplete-image-${clave}`, () => alListo());
-      this.scene.load.once(`loaderror`, () => console.warn('[Recuerdos] Falta la foto:', recuerdo.foto));
+      this.scene.load.once(`loaderror`, () => console.warn('[Recuerdos] Falta la foto:', AG.ASSETS.foto(recuerdo.id)));
       this.scene.load.start();
     }
 
     cerrar() {
+      this.quitarToque();
       this.abierto = false;
       this.limpiar();
       const cb = this.alCerrar;
@@ -259,9 +296,11 @@ window.AG = window.AG || {};
 
     actualizar() {
       if (!this.abierto) return;
-      const accion = this.scene.entrada.accion();
+      const entrada = this.scene.entrada;
+      if (!entrada) return;
+      const accion = entrada.accion();
       if (this.esAlbum && this.objetos.length) {
-        const dir = this.scene.entrada.direccion();
+        const dir = entrada.direccion();
         if (dir.x < 0 || dir.y < 0) this.moverCursor(-1);
         if (dir.x > 0 || dir.y > 0) this.moverCursor(1);
         if (accion) {
@@ -276,7 +315,7 @@ window.AG = window.AG || {};
           return;
         }
       }
-      if (accion || this.scene.entrada.pausa()) this.cerrar();
+      if (accion || entrada.pausa()) this.cerrar();
     }
   };
 })();

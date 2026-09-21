@@ -15,7 +15,7 @@
 
 #! objeto 6 nota nota casa.nota
 
-#! puerta D pueblo 6 8
+#! puerta D Pueblo 6 8
 
 ####################
 #wwwwwwwwwwwwwwwwww#

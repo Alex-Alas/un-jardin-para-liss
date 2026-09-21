@@ -2,15 +2,27 @@ window.AG = window.AG || {};
 
 AG.MANIFIESTO = AG.MANIFIESTO || { fuente: false, atlas: false, mapas: [], fotos: [] };
 
+/** En el build de un solo archivo estas rutas se reemplazan por data URIs. */
+AG.ruta = function (ruta) {
+  if (AG.ARCHIVOS_DATOS && AG.ARCHIVOS_DATOS[ruta]) return AG.ARCHIVOS_DATOS[ruta];
+  return ruta;
+};
+
 AG.ASSETS = {
-  atlas: 'assets/atlas.png',
-  atlasDatos: 'assets/atlas.json',
+  atlas: () => AG.ruta('assets/atlas.png'),
+  atlasDatos: () => AG.ruta('assets/atlas.json'),
   fuentes: {
-    pixel8: { png: 'assets/font_pixel8.png', xml: 'assets/font_pixel8.xml' },
-    pixel16: { png: 'assets/font_pixel16.png', xml: 'assets/font_pixel16.xml' }
+    pixel8: {
+      png: () => AG.ruta('assets/font_pixel8.png'),
+      xml: () => AG.ruta('assets/font_pixel8.xml')
+    },
+    pixel16: {
+      png: () => AG.ruta('assets/font_pixel16.png'),
+      xml: () => AG.ruta('assets/font_pixel16.xml')
+    }
   },
-  mapa: (clave) => `assets/mapa_${clave}.png`,
-  foto: (id) => `assets/fotos/recuerdo_${id}.jpg`
+  mapa: (clave) => AG.ruta(`assets/mapa_${clave}.png`),
+  foto: (id) => AG.ruta(`assets/fotos/recuerdo_${id}.jpg`)
 };
 
 AG.hayFuente = () => AG.MANIFIESTO.fuente === true;
