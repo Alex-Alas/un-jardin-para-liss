@@ -228,7 +228,9 @@ window.AG = window.AG || {};
           );
         }
         this.objetos.push(
-          AG.UI.texto(this.scene, x + 6, y + 70, recuerdo.titulo.slice(0, 10), {
+          // y+72: la foto termina en y+66 y el título pegado abajo parecía estar encima de
+          // ella. 12 caracteres entran en los 92 px de la tarjeta a escala 0.75 con margen.
+          AG.UI.texto(this.scene, x + 6, y + 72, recuerdo.titulo.slice(0, 12), {
             color: COLORES.tinta,
             escala: 0.75
           })
