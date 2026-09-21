@@ -95,6 +95,24 @@ AG.crearAnimacionesDeLiss = function (escena) {
   });
 };
 
+/**
+ * Respiración de un NPC: los frames `npc_<id>_abajo_0/1` en bucle lento.
+ * Devuelve la clave de la animación, o null si ese NPC todavía no tiene arte.
+ */
+AG.crearAnimacionDeNpc = function (escena, id) {
+  const clave = `npc_${id}_idle`;
+  if (escena.anims.exists(clave)) return clave;
+  const frames = AG.framesDe(escena, `npc_${id}_abajo`, 2);
+  if (frames.length < 2) return null;
+  escena.anims.create({
+    key: clave,
+    frames: frames.map((frame) => ({ key: 'arte', frame })),
+    frameRate: 1.2,
+    repeat: -1
+  });
+  return clave;
+};
+
 AG.hayFuente = () => AG.MANIFIESTO.fuente === true;
 AG.hayAtlas = () => AG.MANIFIESTO.atlas === true;
 AG.hayMapa = (clave) => (AG.MANIFIESTO.mapas || []).indexOf(clave) !== -1;

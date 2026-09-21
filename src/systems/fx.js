@@ -99,9 +99,11 @@ window.AG = window.AG || {};
       scene.time.delayedCall(2200, () => emisor.destroy());
     },
 
+    /** Velo cálido de las seis de la tarde. Suave a propósito: el mapa de la colina ya viene
+     *  teñido desde el PNG (tools/tiles.py § atardecer) y con los dos al full quemaba la escena. */
     washAtardecer(scene) {
       const capa = scene.add
-        .rectangle(0, 0, AG.CFG.VIEW_W, AG.CFG.VIEW_H, c(AG.CFG.COLORES.atardecer), 0.22)
+        .rectangle(0, 0, AG.CFG.VIEW_W, AG.CFG.VIEW_H, c(AG.CFG.COLORES.atardecer), 0.12)
         .setOrigin(0)
         .setScrollFactor(0)
         .setDepth(600)

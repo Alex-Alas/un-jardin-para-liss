@@ -1,5 +1,6 @@
 #! nombre: colina
 #! tipo: exterior
+#! luz: atardecer
 
 #! titulo: La colina
 
