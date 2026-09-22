@@ -50,7 +50,7 @@ vendor/phaser.min.js → assets/manifest.js → src/config.js → src/assets.js
 - `src/scenes/*.js` — una escena por lugar: `Boot`, `Title`, `Casa`, `Pueblo`, `Floreria`, `Parque`,
   `Colina`, `Final`, `Album`, `Creditos`, `Petalos` (escena parametrizada, se reutiliza para las dos
   escenas de pétalos).
-- `src/systems/*.js` — `input`, `dialog`, `memories`, `save`, `fx`.
+- `src/systems/*.js` — `input`, `dialog`, `fotos`, `memories`, `save`, `fx`.
 - `src/data/*.js` — contenido: `dialogos`, `recuerdos`, `personajes`, `mapas` (este último generado).
 - `tools/*.py` — pipeline de arte y build. `tools/generate_sprites.py` convierte la hoja de Liss
   en el atlas; `tools/build_single.py` inlinea todo en un solo HTML (lee los `<script src>` de
@@ -83,18 +83,25 @@ Entradas disponibles: `narracion`, `quien` + `texto`, `eleccion` (2 opciones), `
 `efecto` ('fundido', 'temblor', 'petalos'…). Texto exacto en `docs/guion.md` (las claves del guion
 son las claves de este objeto).
 
-### Recuerdos (`src/data/recuerdos.js`)
+### Recuerdos (`src/data/personajes.js`)
 
 ```js
 AG.RECUERDOS = [
-  { id: 'r1', titulo: 'La primera vez', pie: 'El día que nos conocimos',
-    mensaje: 'Antes de esta foto yo ya estaba nervioso. Después también.',
-    foto: 'assets/fotos/recuerdo_01.jpg' }
+  { id: 'r1', titulo: 'Pegaditos bien gonitos', pie: 'La primera vez q te tuve tan cómoda cerca de mí',
+    mensaje: 'Antes de esta foto yo ya estaba nervioso. Después también :P',
+    foto: 'assets/fotos/recuerdo_r1.jpg' }
 ];
 ```
 
 Si la foto no existe todavía, `memories.js` dibuja un marco vacío con el texto "foto pendiente" en
 lugar de romperse.
+
+Las fotos **no** se dibujan dentro del canvas: `memories.js` le pasa a `AG.Fotos`
+(`src/systems/fotos.js`) la caja en píxeles del juego, y esa capa HTML (`#fotos`, encima del canvas)
+pega la foto al canvas real. El juego mide 480 × 270 y se agranda en bloques (`image-rendering:
+pixelated`), así que una foto adentro saldría pixelada; afuera se ve con toda su resolución. La capa
+no recibe toques (`pointer-events: none`), así que el álbum y el polaroid se siguen manejando desde
+Phaser.
 
 ### Personajes (`src/data/personajes.js`)
 

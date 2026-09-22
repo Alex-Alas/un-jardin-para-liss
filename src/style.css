@@ -34,6 +34,24 @@ body {
   image-rendering: crisp-edges;
 }
 
+/* Las fotos de los recuerdos: son fotos, no pixel art. Van en una capa por encima del canvas
+   (que mide 480 × 270 y se agranda en bloques) para que se vean con toda su resolución. */
+#fotos {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+#fotos img {
+  position: absolute;
+  display: block;
+  object-fit: cover;
+  image-rendering: auto;
+  pointer-events: none;
+}
+
 #girar {
   position: fixed;
   inset: 0;

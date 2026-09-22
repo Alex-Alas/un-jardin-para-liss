@@ -42,9 +42,7 @@ tools/qa_navegador.sh     # juega la partida completa y guarda capturas
 
 1. **Encender Pages una vez**: en GitHub, *Settings → Pages → Source: **GitHub Actions***. Después
    de eso, cada push a `main` publica solo (`.github/workflows/pages.yml`).
-2. Revisar los pies de foto de `src/data/personajes.js` contra las fotos que quedaron en cada
-   recuerdo: el de `r3` dice «No llevábamos paraguas» y en esa foto no llueve.
-3. Nada más es obligatorio. Lo que sigue es gusto: más NPCs, más recuerdos, música grabada.
+2. Nada más es obligatorio. Lo que sigue es gusto: más NPCs, más recuerdos, música grabada.
 
 
 ## Para co-crear con Claude

@@ -8,9 +8,9 @@
 | Tile | 16 × 16 px | mapas de 30 × 17 tiles visibles |
 | Sprite de personaje | 16 × 34 px | Liss mide 32 px (2 tiles); 8 direcciones, idle + 4 frames de caminata |
 | Retrato de diálogo | 48 × 48 px | se dibuja a ×2 en la caja de diálogo |
-| Polaorid / foto | 96 × 96 px (foto) | marco dibujado en código, foto real dentro |
+| Polaroid / foto | 176 × 168 px (ventana) | marco dibujado en código; la foto real va en una capa HTML, a su resolución (720 × 720) |
 | Iconos UI | 16 × 16 px | corazón, flor, pétalo, flecha |
-| Filtrado | nearest neighbor | sin antialias, sin suavizado, sin escalados raros |
+| Filtrado | nearest neighbor | sin antialias, sin suavizado, sin escalados raros; la excepción son las fotos de los recuerdos, que van fuera del canvas |
 
 ## La hoja de Liss manda
 
