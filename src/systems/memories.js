@@ -13,6 +13,8 @@ window.AG = window.AG || {};
       this.cursor = 0;
       this.objetos = [];
       this.modo = null;
+      // Si la escena se va con un polaroid abierto, la foto de la capa HTML no tiene que quedar.
+      this.scene.events.on('shutdown', () => AG.Fotos.ocultar());
     }
 
     activo() {
@@ -22,6 +24,7 @@ window.AG = window.AG || {};
     limpiar() {
       this.objetos.forEach((o) => o.destroy());
       this.objetos = [];
+      AG.Fotos.ocultar();
     }
 
     abrir(id, opciones = {}) {
@@ -52,27 +55,19 @@ window.AG = window.AG || {};
       const fotoX = 40;
       const fotoY = 31;
       const fotoAncho = 176;
+      const fotoAlto = 168;
+      // El respaldo oscuro se ve mientras la foto carga, y queda si todavía no hay foto.
+      this.objetos.push(
+        this.scene.add
+          .rectangle(fotoX, fotoY, fotoAncho, fotoAlto, c(COLORES.grisOscuro), 1)
+          .setOrigin(0)
+          .setDepth(802)
+          .setScrollFactor(0)
+      );
       if (AG.hayFoto(id)) {
-        const clave = `foto_${id}`;
-        this.cargarFoto(clave, recuerdo, () => {
-          const imagen = this.scene.add
-            .image(fotoX, fotoY, clave)
-            .setOrigin(0)
-            .setDepth(802)
-            .setScrollFactor(0);
-          const escala = Math.max(fotoAncho / imagen.width, 168 / imagen.height);
-          imagen.setScale(escala);
-          imagen.setCrop(0, 0, fotoAncho / escala, 168 / escala);
-          this.objetos.push(imagen);
-        });
+        // La foto va en la capa HTML: adentro del canvas de 480 × 270 saldría pixelada.
+        AG.Fotos.mostrar([{ id, x: fotoX, y: fotoY, ancho: fotoAncho, alto: fotoAlto }]);
       } else {
-        this.objetos.push(
-          this.scene.add
-            .rectangle(fotoX, fotoY, fotoAncho, 168, c(COLORES.grisOscuro), 1)
-            .setOrigin(0)
-            .setDepth(802)
-            .setScrollFactor(0)
-        );
         this.objetos.push(
           AG.UI.texto(this.scene, fotoX + fotoAncho / 2, fotoY + 74, 'foto pendiente', {
             color: COLORES.crema
@@ -195,13 +190,14 @@ window.AG = window.AG || {};
         return;
       }
 
+      const capas = [];
       abiertos.forEach((recuerdo, i) => {
         const columna = i % 3;
         const fila = Math.floor(i / 3);
         const x = 92 + columna * 106;
         const y = 60 + fila * 96;
         const marco = this.scene.add
-          .rectangle(x, y, 92, 84, c(COLORES.crema), 1)
+          .rectangle(x, y, 92, 88, c(COLORES.crema), 1)
           .setOrigin(0)
           .setDepth(801)
           .setScrollFactor(0);
@@ -210,14 +206,7 @@ window.AG = window.AG || {};
         marco.on('pointerdown', () => this.abrirDesdeAlbum(recuerdo.id));
         this.objetos.push(marco);
         if (AG.hayFoto(recuerdo.id)) {
-          const clave = `foto_${recuerdo.id}`;
-          this.cargarFoto(clave, recuerdo, () => {
-            const imagen = this.scene.add.image(x + 6, y + 6, clave).setOrigin(0).setDepth(802).setScrollFactor(0);
-            const escala = Math.max(80 / imagen.width, 60 / imagen.height);
-            imagen.setScale(escala);
-            imagen.setCrop(0, 0, 80 / escala, 60 / escala);
-            this.objetos.push(imagen);
-          });
+          capas.push({ id: recuerdo.id, x: x + 6, y: y + 6, ancho: 80, alto: 60 });
         } else {
           this.objetos.push(
             this.scene.add
@@ -227,10 +216,12 @@ window.AG = window.AG || {};
               .setScrollFactor(0)
           );
         }
+        // Dos líneas de 6 px a escala 0.75: la tarjeta mide 88 de alto y el título arranca en
+        // y+70, así que entra justo sin tocar el pie de la pantalla.
+        const lineas = AG.UI.envolver(recuerdo.titulo, 12);
+        const titulo = lineas.length > 2 ? `${lineas[0]}\n${lineas[1]}…` : lineas.join('\n');
         this.objetos.push(
-          // y+72: la foto termina en y+66 y el título pegado abajo parecía estar encima de
-          // ella. 12 caracteres entran en los 92 px de la tarjeta a escala 0.75 con margen.
-          AG.UI.texto(this.scene, x + 6, y + 72, recuerdo.titulo.slice(0, 12), {
+          AG.UI.texto(this.scene, x + 6, y + 70, titulo, {
             color: COLORES.tinta,
             escala: 0.75
           })
@@ -238,6 +229,8 @@ window.AG = window.AG || {};
             .setScrollFactor(0)
         );
       });
+      // Las fotos del álbum van juntas a la capa HTML, que las pega encima del canvas.
+      AG.Fotos.mostrar(capas);
 
       const cerrar = AG.UI.texto(this.scene, VIEW_W - 14, 14, 'cerrar', { color: COLORES.gris })
         .setOrigin(1, 0)
@@ -274,17 +267,6 @@ window.AG = window.AG || {};
       const fila = Math.floor(this.cursor / 3);
       this.cursorCorazon.setPosition(88 + columna * 106, 62 + fila * 96);
       AG.Musica && AG.Musica.sfx('blip');
-    }
-
-    cargarFoto(clave, recuerdo, alListo) {
-      if (this.scene.textures.exists(clave)) {
-        alListo();
-        return;
-      }
-      this.scene.load.image(clave, AG.ASSETS.foto(recuerdo.id));
-      this.scene.load.once(`filecomplete-image-${clave}`, () => alListo());
-      this.scene.load.once(`loaderror`, () => console.warn('[Recuerdos] Falta la foto:', AG.ASSETS.foto(recuerdo.id)));
-      this.scene.load.start();
     }
 
     cerrar() {
