@@ -53,7 +53,9 @@ def inventario() -> dict:
     for ruta in candidatos:
         if not ruta.exists():
             continue
-        relativa = str(ruta.relative_to(RAIZ))
+        # as_posix(): las claves del manifiesto y de AG.ruta van con barras normales, también en
+        # Windows (si no, `AG.ruta('assets/mapa_casa.png')` no encuentra nada y el build sale sin arte).
+        relativa = ruta.relative_to(RAIZ).as_posix()
         archivos[relativa] = data_uri(ruta)
         if ruta.parent.name == "fotos":
             fotos.append(ruta.stem.replace("recuerdo_", ""))
