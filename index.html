@@ -56,6 +56,29 @@
   <script src="src/main.js"></script>
 
   <script>
+    // Pantalla completa en celulares/tablets: en horizontal la barra del navegador y la
+    // del sistema se comen medio juego. Se pide en el primer toque (necesita gesto de usuario).
+    (function () {
+      if (!window.matchMedia('(pointer: coarse)').matches) return;
+      var pedida = false;
+
+      document.addEventListener('pointerdown', function intentar() {
+        if (pedida || document.fullscreenElement || document.webkitFullscreenElement) return;
+        pedida = true;
+        var raiz = document.documentElement;
+        var pedir = raiz.requestFullscreen || raiz.webkitRequestFullscreen;
+        if (!pedir) return;
+        try {
+          var promesa = pedir.call(raiz);
+          if (promesa && promesa.catch) promesa.catch(function () {});
+        } catch (e) {
+          // Algunos navegadores lo rechazan fuera de un gesto; no insiste.
+        }
+      });
+    })();
+  </script>
+
+  <script>
     // Invitación a girar el teléfono: aparece solo en vertical y se puede saltar.
     (function () {
       var capa = document.getElementById('girar');

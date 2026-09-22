@@ -36,6 +36,7 @@ window.AG = window.AG || {};
       this.abierto = true;
       this.esAlbum = false;
       this.modo = 'polaroid';
+      this.silenciarToques();
 
       const { VIEW_W, VIEW_H, COLORES } = AG.CFG;
       const velo = this.scene.add
@@ -133,11 +134,23 @@ window.AG = window.AG || {};
       this.escucharToque();
     }
 
+    /** El toque que abrió/cerró un recuerdo no debe ser leído como una acción nueva. */
+    silenciarToques() {
+      const entrada = this.scene.entrada;
+      if (entrada && entrada.silenciarToques) entrada.silenciarToques();
+    }
+
     /** Cerrar el polaroid tocando en cualquier lado (celular). */
     escucharToque() {
       this.quitarToque();
-      this.cierreTactil = () => this.cerrar();
-      this.scene.input.once('pointerdown', this.cierreTactil);
+      // Si el mismo toque que abrió la foto se entrega en este dispatch, se ignora:
+      // sin este filtro la foto se cerraría sola apenas se abre.
+      this.abrioEn = performance.now();
+      this.cierreTactil = () => {
+        if (performance.now() - this.abrioEn < 150) return;
+        this.cerrar();
+      };
+      this.scene.input.on('pointerdown', this.cierreTactil);
     }
 
     quitarToque() {
@@ -154,6 +167,7 @@ window.AG = window.AG || {};
       this.esAlbum = true;
       this.modo = 'album';
       this.cursor = 0;
+      this.silenciarToques();
 
       const { VIEW_W, VIEW_H, COLORES } = AG.CFG;
       this.objetos.push(
@@ -271,6 +285,7 @@ window.AG = window.AG || {};
 
     cerrar() {
       this.quitarToque();
+      this.silenciarToques();
       this.abierto = false;
       this.limpiar();
       const cb = this.alCerrar;

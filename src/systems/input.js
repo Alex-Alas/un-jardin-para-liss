@@ -22,6 +22,7 @@ window.AG = window.AG || {};
       this.botonA = false;
       this.botonAPulsado = false;
       this.toqueLibre = false;
+      this.silencioHasta = 0;
       this.ejeTactil = { x: 0, y: 0 };
       this.controles = [];
       this.crearControles();
@@ -130,13 +131,25 @@ window.AG = window.AG || {};
       return { x, y };
     }
 
+    /**
+     * Descarta los toques durante unos ms: el toque que abrió o cerró un recuerdo no debe
+     * valer también como acción para quien recién retomó el control (el diálogo lo
+     * saltaría, o el álbum reabriría la foto recién cerrada).
+     */
+    silenciarToques(ms = 160) {
+      this.silencioHasta = Math.max(this.silencioHasta, performance.now() + ms);
+      this.toqueLibre = false;
+      this.botonAPulsado = false;
+    }
+
     /** Acción: verdadero solo en el instante en que se presiona. */
     accion() {
       const tecla = Phaser.Input.Keyboard.JustDown(this.teclas.accion) ||
         Phaser.Input.Keyboard.JustDown(this.teclas.accion2);
-      const tactil = this.botonAPulsado || this.toqueLibre;
+      let tactil = this.botonAPulsado || this.toqueLibre;
       this.botonAPulsado = false;
       this.toqueLibre = false;
+      if (tactil && performance.now() < this.silencioHasta) tactil = false;
       return Boolean(tecla || tactil);
     }
 
