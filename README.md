@@ -63,7 +63,8 @@ python3 -m venv .venv && .venv/bin/pip install -r tools/requirements.txt
 .venv/bin/python tools/generate_sprites.py # hoja de Liss + NPCs -> assets/atlas.png + atlas.json
 .venv/bin/python tools/arte_extra.py --contacto # solo los NPCs, para mirarlos: dist/contacto_extra.png
 .venv/bin/python tools/prepare_photos.py   # assets/source/fotos/r1..r6 -> polaroids de 720 px
-.venv/bin/python tools/render_maps.py      # mapas ASCII -> PNG + colisiones
+.venv/bin/python tools/render_maps.py      # mapas (ASCII y pintados) -> PNG + colisiones
+.venv/bin/python tools/render_maps.py --ver   # + dist/mapa_<n>_revision.png: colisión, frentes, objetos
 .venv/bin/python tools/generate_font.py    # fuente bitmap desde Press Start 2P (OFL)
 .venv/bin/python tools/build_single.py     # dist/un-jardin-para-liss.html (un solo archivo)
 .venv/bin/python tools/actualizar_manifest.py  # qué arte existe (lo lee el juego al arrancar)

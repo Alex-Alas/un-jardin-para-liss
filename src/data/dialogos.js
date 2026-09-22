@@ -120,7 +120,7 @@ AG.DIALOGOS = {
   ],
   'pueblo.sofi.pista': [
     { quien: 'sofi', texto: 'Yo te aviso si lo veo venir. Tú corre.' },
-    { lanzarEscena: { clave: 'Petalos', datos: { tipo: 'petalos2', volver: 'Pueblo', inicio: { x: 29, y: 21 } } } }
+    { lanzarEscena: { clave: 'Petalos', datos: { tipo: 'petalos2', volver: 'Pueblo', inicio: { px: 496, py: 328 } } } }
   ],
   'pueblo.sofi.gracias': [
     { quien: 'sofi', texto: '¡Corre a la colina! Y después me cuentas.' }

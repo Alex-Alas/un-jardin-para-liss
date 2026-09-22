@@ -1,57 +1,125 @@
 #! nombre: pueblo
 #! tipo: exterior
-
 #! titulo: El pueblo
 
-#! objeto 2 npc beto pueblo.beto.saludo
+// Mapa pintado: la ilustración manda y este archivo dice lo que la imagen no dice.
+// Coordenadas en píxeles del mapa ya escalado (768 × 512). Formato: tools/escenarios.py.
+#! pintura: escenarios/pueblo.webp
+#! tamaño: 48 32
+#! inicio: 146 184                                // frente a la puerta de su casa
+#! colores: 256
+#! ajuste: 3                                     // el borde de cada frente se pega a la silueta pintada
 
-#! objeto 3 banco banco pueblo.banco
+// --- retoques
+#! retoque copiar 224 236 234 257 a 211 236       // dos muñequitos que marcaban los puntos de
+#! retoque copiar 528 285 538 304 a 515 285       // guardado: el motor ya pone el corazón
+#! retoque espejar 716 428 742 452 a 680 428      // la marca de agua sobre el pino de abajo
 
-#! objeto 4 npc sofi pueblo.sofi.saludo
+// --- lo que se toca (x y = el punto donde el objeto toca el piso)
+#! objeto buzon buzon pueblo.buzon 254 126               // la casilla de madera con ranura
+#! objeto cartel cartel pueblo.cartel 244 224
+#! objeto lampara lampara pueblo.lampara 500 196
+#! objeto banco banco pueblo.banco 566 388              // el banco del pícnic
+#! objeto arbol_tallado arbol_tallado pueblo.arbol 711 370   // el tronco con las iniciales
+#! objeto npc michi pueblo.michi 334 206
+#! objeto npc beto pueblo.beto.saludo 558 276           // junto al pozo, donde estaba el kiosco
+#! objeto npc sofi pueblo.sofi.saludo 512 322
+#! guardado 216 252
+#! guardado 520 300
 
-#! objeto 5 npc michi pueblo.michi
+// --- puertas (zona x0 y0 x1 y1 · destino en las unidades del mapa destino)
+#! puerta Casa 136 156 157 170 68 202
+#! puerta Floreria 656 170 673 184 7 10
+#! puerta Colina 726 14 747 30 258 292              // el camino de arriba a la derecha
+#! puerta Colina 386 0 414 10 258 292               // y el de arriba al centro, que sale del mapa
 
-#! objeto 6 buzon buzon pueblo.buzon
+// --- casas y cosas grandes: bloquean todo lo que ocupan, así nadie queda escondido detrás
+#! solido rect 47 0 233 158                       // la casa de Liss (y el bosquecito de atrás)
+#! solido rect 26 112 49 158                      // la leña
+#! solido rect 79 156 93 167                      // macetas del frente
+#! solido rect 120 156 134 177
+#! solido rect 160 156 190 177
+#! solido rect 207 156 223 168
+#! solido rect 607 79 722 175                     // la florería
+#! solido rect 689 172 720 192                    // el cajón de flores
+#! solido rect 686 208 753 277                    // la huerta
+#! solido rect 399 196 466 256                    // la fuente
+#! solido poli 0,416 46,416 56,424 60,440 72,447 76,458 88,466 94,478 94,494 84,502 60,504 30,500 0,500   // las piedras
 
-#! objeto 7 lampara lampara pueblo.lampara
+// --- cosas que se pueden rodear: bloquean su pie y tapan a Liss si pasa por detrás
+#! solido rect 240 98 268 122                     // la casilla de madera
+#! frente 122 rect 239 69 269 123
+#! solido rect 222 207 267 220                    // el cartel
+#! frente 220 rect 220 176 269 221
+#! solido rect 411 178 453 192                    // el banco de la plaza
+#! frente 192 rect 409 164 454 193
+#! solido elipse 500 187 5 3                      // el farol
+#! frente 190 poli 485,142 496,141 497,136 504,136 505,141 512,142 512,157 504,157 504,172 507,178 507,191 494,191 494,178 497,172 497,157 495,157 495,164 484,164
+#! solido rect 570 256 596 275                    // el pozo
+#! frente 275 rect 568 236 603 276
+#! solido rect 722 160 737 178                    // los barriles
+#! frente 178 rect 720 145 738 179
+#! solido elipse 711 315 5 3                      // tronco cortado
+#! frente 318 rect 704 296 719 319
+#! solido elipse 711 363 5 3                      // el tronco con las iniciales
+#! frente 366 rect 704 344 719 367
+#! solido rect 547 373 587 386                    // el banco del pícnic
+#! frente 386 rect 545 358 588 387
+#! solido elipse 596 390 8 4                      // la canasta
+#! frente 395 rect 586 372 606 396
+#! solido elipse 535 394 7 4                      // las piedritas
 
-#! objeto 8 cartel cartel pueblo.cartel
+// --- árboles: tronco x, piso, medio ancho del tronco; copa cx cy rx ry
+#! arbol 9 108 5 14 66 22 33
+#! arbol 40 50 3 40 26 12 16
+#! arbol 230 52 4 230 27 12 17
+#! arbol 298 110 10 298 38 40 36                  // el roble grande
+#! arbol 360 52 4 360 27 12 17
+#! arbol 485 56 5 488 20 26 24
+#! arbol 537 158 10 535 92 40 36
+#! arbol 620 30 6 622 2 28 16
+#! arbol 691 31 7 693 4 30 17
+#! arbol 744 208 4 744 188 12 18
+#! arbol 40 205 4 41 185 13 16
+#! arbol 4 290 4 10 262 16 30
+#! arbol 6 388 4 6 358 14 28
+#! arbol 78 333 11 78 268 38 32
+#! arbol 38 336 4 38 316 11 16
+#! arbol 245 348 8 244 290 34 34
+#! arbol 200 336 3 202 314 12 17
+#! arbol 134 398 4 133 378 16 18
+#! arbol 263 431 4 264 408 14 14
+#! arbol 198 480 4 200 460 13 16
+#! arbol 327 496 5 327 474 13 17
+#! arbol 391 496 4 391 474 15 18
+#! arbol 440 399 4 440 377 14 18
+#! arbol 423 463 4 424 443 13 18
+#! arbol 503 480 4 504 461 14 19
+#! arbol 471 367 4 471 348 12 17
+#! arbol 551 358 4 551 336 13 18
+#! arbol 535 447 4 535 428 13 18
+#! arbol 584 494 4 582 472 16 18
+#! arbol 679 398 4 680 378 13 18
+#! arbol 745 358 4 745 336 13 17
+#! arbol 697 492 4 699 474 13 15
+#! arbol 744 493 4 746 472 15 18
 
-#! objeto 9 arbol_tallado arbol_tallado pueblo.arbol
+// el árbol grande de abajo a la izquierda: la copa es de varios bultos, va con polígono
+#! solido elipse 171 402 13 3
+#! frente 405 poli 108,338 116,316 132,306 152,306 160,302 184,302 194,312 194,340 212,344 226,358 226,380 212,388 184,388 170,382 150,380 126,374 110,362 + rect 158 360 184 406
 
-#! puerta D Casa 9 11
-#! puerta E Floreria 7 10
-#! puerta F Colina 16 18
-
-................................................
-................................................
-..T...........T.......T.......T.............f...
-...########.........................,,,,,,,,,F..
-...########.........................,.......f...
-...########.........................,.#######...
-...########.........................,.#######...
-...###D####.........................,.#######...
-......,.............................,.#######...
-......,..............f..............,.###E###...
-....f.,.f..6....f...................,....,......
-......,...............==========....,....,......
-..T...,.............5.==========....,..f.,..f.T.
-......,.......8.......====~~====....,....,......
-......,,,,,,,,,,,,7,,,====~~====,,,,,....,......
-.............S........==========..###...........
-......................==========..#2#...........
-........f...f.........==========.....f.....f....
-....................f.........,.S...............
-........................f.....,...f.............
-..T.........T................4,.................
-........................f...f.,...T...T.......T.
-.................f...........T,.............9...
-..............................,.................
-........T..................T..f..3.....f..T.....
-.....................f........,.................
-.....f....f.....T.............,,,,,,,,,,,.......
-.................................T..............
-..T.......................T........f.....f...T..
-............T..................T................
-....................T...T...........T......T..T.
-................................................
+// --- pinos: la copa es un triángulo con ramas, va con polígono
+#! solido elipse 466 122 5 3
+#! frente 125 poli 466,44 480,56 490,80 494,96 486,106 470,108 470,126 462,126 462,108 448,106 444,96 448,76 456,56
+#! solido elipse 756 170 6 3
+#! frente 173 poli 760,46 768,50 768,168 740,160 733,140 736,110 744,80
+#! solido elipse 586 349 6 3
+#! frente 352 poli 580,266 598,290 604,318 600,340 592,346 592,352 580,352 580,346 566,342 560,318 564,292
+#! solido elipse 620 363 7 3
+#! frente 366 poli 618,284 630,300 640,322 642,344 628,352 627,366 613,366 612,352 596,344 598,322 606,300
+#! solido elipse 711 478 6 3
+#! frente 481 poli 708,394 718,410 728,428 738,448 740,462 724,468 716,470 716,481 706,481 706,470 690,466 674,460 676,444 688,428 698,410
+#! solido elipse 760 438 6 3
+#! frente 441 poli 758,372 768,376 768,436 766,441 754,441 744,432 738,420 742,400 750,384
+#! solido elipse 647 509 8 3
+#! frente 512 poli 648,466 660,484 670,504 670,512 624,512 626,500 636,484

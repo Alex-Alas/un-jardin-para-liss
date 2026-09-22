@@ -1,11 +1,16 @@
 #!/usr/bin/env python3
-"""Renderiza los mapas ASCII a PNG y exporta colisiones/objetos a src/data/mapas.js.
+"""Renderiza los mapas a PNG y exporta colisiones/objetos a src/data/mapas.js.
 
-Una letra por tile en maps/*.txt (leyenda en docs/handoff.md). Los comentarios son //. Las líneas que empiezan con
-'#!' son metadatos: definen qué es cada letra y a dónde llevan las puertas.
+Hay dos clases de mapa en maps/*.txt:
+
+- **ASCII**: una letra por tile (leyenda en docs/handoff.md). Los comentarios son //. Las líneas
+  que empiezan con '#!' son metadatos: definen qué es cada letra y a dónde llevan las puertas.
+- **pintados**: los que tienen `#! pintura:`. La imagen viene hecha y el archivo describe, en
+  píxeles, qué bloquea, qué tapa a Liss y dónde está cada cosa. Los resuelve `escenarios.py`.
 
     .venv/bin/python tools/render_maps.py
     .venv/bin/python tools/render_maps.py --mapa pueblo
+    .venv/bin/python tools/render_maps.py --ver        # además, dist/mapa_<n>_revision.png
 """
 
 from __future__ import annotations
@@ -20,6 +25,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw
 
 sys.path.insert(0, str(Path(__file__).parent))
+import escenarios  # noqa: E402
 import tiles  # noqa: E402
 from paleta import rgb  # noqa: E402
 
@@ -81,7 +87,7 @@ def npcs_con_sprite() -> set[str]:
     return {n[len("npc_"):-len("_abajo_0")] for n in frames if n.startswith("npc_") and n.endswith("_abajo_0")}
 
 
-def render(mapa: dict, salida: Path) -> dict:
+def render(mapa: dict, salida: Path, resolver_destino) -> dict:
     del_motor = npcs_con_sprite()
     ancho, alto = mapa["ancho"], mapa["alto"]
     filas = mapa["filas"]
@@ -198,7 +204,9 @@ def render(mapa: dict, salida: Path) -> dict:
                 objetos.append({"x": x, "y": y, "letra": ch, **dato})
                 letras_usadas.add(ch)
             if ch in mapa["meta"]["puertas"]:
-                puertas.append({"x": x, "y": y, "letra": ch, **mapa["meta"]["puertas"][ch]})
+                puerta = dict(mapa["meta"]["puertas"][ch])
+                puerta["destino"] = resolver_destino(puerta["a"], (puerta["destino"]["x"], puerta["destino"]["y"]))
+                puertas.append({"x": x, "y": y, "letra": ch, **puerta})
             if ch in mapa["meta"]["zonas"]:
                 zonas.append({"x": x, "y": y, "letra": ch, "clave": mapa["meta"]["zonas"][ch]})
         colisiones.append("".join(linea))
@@ -218,23 +226,49 @@ def render(mapa: dict, salida: Path) -> dict:
 def main() -> int:
     parser = argparse.ArgumentParser(description="Renderiza mapas ASCII a PNG + JS.")
     parser.add_argument("--mapa", help="renderiza solo este mapa")
+    parser.add_argument("--ver", action="store_true",
+                        help="guarda una vista de revisión de cada mapa pintado en dist/")
     args = parser.parse_args()
 
     DESTINO.mkdir(parents=True, exist_ok=True)
-    rutas = sorted(ORIGEN.glob("*.txt"))
-    if args.mapa:
-        rutas = [r for r in rutas if r.stem == args.mapa]
+    todas = sorted(ORIGEN.glob("*.txt"))
+    rutas = [r for r in todas if not args.mapa or r.stem == args.mapa]
     if not rutas:
         print("No hay mapas en maps/*.txt", file=sys.stderr)
         return 1
 
+    pintados = {r.stem for r in todas if escenarios.es_pintado(r)}
+
+    def resolver_destino(escena: str, punto: tuple[int, int]) -> dict:
+        """El destino de una puerta va en las unidades del mapa al que lleva: píxeles si ese
+        mapa es pintado, tiles si es ASCII."""
+        if escena.lower() in pintados:
+            return {"px": punto[0], "py": punto[1]}
+        return {"x": punto[0], "y": punto[1]}
+
+    # Con --mapa se regenera uno solo, pero mapas.js lleva todos: los demás se conservan.
     datos = {}
+    if args.mapa and SALIDA_JS.exists():
+        previo = re.search(r"AG\.MAPAS = (\{.*\})\s*;", SALIDA_JS.read_text(encoding="utf-8"), re.S)
+        if previo:
+            datos = json.loads(previo.group(1))
+
     for ruta in rutas:
-        mapa = leer_mapa(ruta)
-        png = DESTINO / f"mapa_{mapa['nombre']}.png"
-        datos[mapa["nombre"]] = render(mapa, png)
-        print(f"{mapa['nombre']:9s} {mapa['ancho']}x{mapa['alto']} tiles -> {png.relative_to(RAIZ)} "
-              f"({len(datos[mapa['nombre']]['objetos'])} objetos, {len(datos[mapa['nombre']]['puertas'])} puertas)")
+        nombre = ruta.stem
+        if nombre in pintados:
+            pintado = escenarios.leer(ruta)
+            datos[nombre] = escenarios.render(pintado, resolver_destino)
+            if args.ver:
+                escenarios.depurar(pintado, datos[nombre], RAIZ / "dist" / f"mapa_{nombre}_revision.png")
+            detalle = f"pintado, {len(datos[nombre].get('frentes', {}).get('piezas', []))} frentes"
+        else:
+            mapa = leer_mapa(ruta)
+            datos[nombre] = render(mapa, DESTINO / f"mapa_{nombre}.png", resolver_destino)
+            detalle = "ASCII"
+        print(f"{nombre:9s} {datos[nombre]['ancho']}x{datos[nombre]['alto']} tiles -> assets/mapa_{nombre}.png "
+              f"({detalle}; {len(datos[nombre]['objetos'])} objetos, {len(datos[nombre]['puertas'])} puertas)")
+
+    datos = dict(sorted(datos.items()))
 
     SALIDA_JS.parent.mkdir(parents=True, exist_ok=True)
     SALIDA_JS.write_text(

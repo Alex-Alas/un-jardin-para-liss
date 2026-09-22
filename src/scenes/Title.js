@@ -135,13 +135,13 @@ AG.Title = class Title extends Phaser.Scene {
     const datos = AG.Guardado.datos;
     AG.Musica.sfx('corazon');
     AG.FX.fundir(this, () =>
-      this.scene.start(datos.escena || 'Casa', { inicio: datos.pos || undefined })
+      this.scene.start(datos.escena || 'Casa', { inicio: AG.Guardado.posEn(datos.escena || 'Casa') })
     );
   }
 
   empezarNuevo() {
     AG.Guardado.reiniciar();
     AG.Musica.sfx('corazon');
-    AG.FX.fundir(this, () => this.scene.start('Casa', { inicio: { x: 9, y: 11 } }));
+    AG.FX.fundir(this, () => this.scene.start('Casa'));
   }
 };
