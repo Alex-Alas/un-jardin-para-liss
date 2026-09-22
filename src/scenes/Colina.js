@@ -6,7 +6,6 @@ AG.Colina = class Colina extends AG.Mundo {
       clave: 'Colina',
       mapa: 'colina',
       musica: 'pueblo',
-      inicio: { x: 16, y: 17 },
       intro: 'colina.entrada',
       velo: true,
       petalos: 3
@@ -19,7 +18,7 @@ AG.Colina = class Colina extends AG.Mundo {
   }
 
   usarObjeto(objeto) {
-    if (objeto.tipo === 'npc' && objeto.letra === '1') {
+    if (objeto.nombre === 'alex') {
       this.hablarConAlex();
       return;
     }
@@ -54,9 +53,11 @@ AG.Colina = class Colina extends AG.Mundo {
 
   mostrarRamo() {
     if (this.ramo) return;
-    const { TILE, COLORES } = AG.CFG;
-    const x = this.desfase.x + 17 * TILE + 4;
-    const y = this.desfase.y + 5 * TILE + TILE;
+    const { COLORES } = AG.CFG;
+    // Al lado de Alex, a la derecha, apoyado en el mismo piso que él.
+    const alex = this.objetos.find((objeto) => objeto.nombre === 'alex');
+    const x = alex ? alex.x + 12 : this.desfase.x + 17 * AG.CFG.TILE + 4;
+    const y = alex ? alex.y : this.desfase.y + 6 * AG.CFG.TILE;
     if (AG.hayAtlas() && this.textures.get('arte').has('ramo_0')) {
       this.ramo = this.add.sprite(x, y, 'arte', 'ramo_0').setOrigin(0.5, 1).setDepth(y);
     } else {

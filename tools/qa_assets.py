@@ -105,8 +105,11 @@ def revisar_mapas(informe: list, avisos: list, errores: list) -> None:
                             "objetos": len(mapa["objetos"]), "puertas": len(mapa["puertas"])})
             if imagen.size != esperado:
                 errores.append(f"mapa {nombre}: mide {imagen.size}, se esperaba {esperado}")
-            if len(mapa["colisiones"]) != mapa["alto"]:
-                errores.append(f"mapa {nombre}: colisiones con {len(mapa['colisiones'])} filas")
+            filas = mapa["alto"] * mapa["tile"] // mapa.get("celda", mapa["tile"])
+            if len(mapa["colisiones"]) != filas:
+                errores.append(f"mapa {nombre}: colisiones con {len(mapa['colisiones'])} filas, se esperaban {filas}")
+        if mapa.get("frentes") and not (ASSETS / f"mapa_{nombre}_frentes.png").exists():
+            errores.append(f"falta el PNG de frentes del mapa {nombre}")
 
 
 def revisar_fotos(informe: list, avisos: list, errores: list) -> None:

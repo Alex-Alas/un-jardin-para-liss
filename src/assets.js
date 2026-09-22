@@ -22,6 +22,7 @@ AG.ASSETS = {
     }
   },
   mapa: (clave) => AG.ruta(`assets/mapa_${clave}.png`),
+  frentes: (clave) => AG.ruta(`assets/mapa_${clave}_frentes.png`),
   foto: (id) => AG.ruta(`assets/fotos/recuerdo_${id}.jpg`)
 };
 
@@ -116,5 +117,6 @@ AG.crearAnimacionDeNpc = function (escena, id) {
 AG.hayFuente = () => AG.MANIFIESTO.fuente === true;
 AG.hayAtlas = () => AG.MANIFIESTO.atlas === true;
 AG.hayMapa = (clave) => (AG.MANIFIESTO.mapas || []).indexOf(clave) !== -1;
+AG.hayFrentes = (clave) => (AG.MANIFIESTO.frentes || []).indexOf(clave) !== -1;
 AG.hayFoto = (id) => (AG.MANIFIESTO.fotos || []).indexOf(id) !== -1;
 AG.hayArte = () => AG.hayFuente() && AG.hayAtlas();

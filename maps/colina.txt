@@ -1,30 +1,71 @@
 #! nombre: colina
 #! tipo: exterior
 #! luz: atardecer
-
 #! titulo: La colina
 
-#! objeto 1 npc alex colina.alex.1
+// Mapa pintado: la ilustración manda y este archivo dice lo que la imagen no dice.
+// Coordenadas en píxeles del mapa ya escalado (512 × 320). Formato: tools/escenarios.py.
+// La pintura es de día: `luz: atardecer` la tiñe igual que a los mapas ASCII.
+#! pintura: escenarios/colina.webp
+#! tamaño: 32 20
+#! inicio: 260 292                                // subiendo por el camino
+#! colores: 256
+#! ajuste: 3
 
-#! puerta D Pueblo 45 4
+// --- retoques
+#! retoque copiar 190 272 202 290 a 226 290       // el muñequito que marcaba el guardado
+#! retoque copiar 478 262 496 288 a 458 262       // la marca de agua de abajo a la derecha
 
-................................
-............T.......T...........
-......T............f............
-.............f........T..f......
-....T...........................
-................1...............
-..........f...............T.....
-...T..................f.........
-.......f........,f..............
-................,...........T...
-............f...,...............
-................,...f.....f.....
-..T.....f.......,.......f.......
-..............f.,...............
-................,.f..........T..
-........T.......,...............
-..........f.....,.......T.......
-......f.........,.....f.....f...
-..............S.,...............
-................D...............
+// --- lo que se toca
+#! objeto npc alex colina.alex.1 262 110          // arriba del camino, esperando
+#! guardado 232 300
+
+// --- la vuelta al pueblo: el camino sale por abajo y llega al final del camino de arriba
+#! puerta Pueblo 246 310 274 320 736 40
+
+// --- el bosque que rodea el claro: bloquea entero, nadie pasa por detrás
+#! solido poli 0,0 92,0 92,12 70,30 60,44 56,64 44,70 40,96 38,118 50,124 52,158 34,172 26,178 26,250 40,262 46,300 40,320 0,320
+#! solido poli 92,0 380,0 380,14 340,16 306,22 292,22 264,14 236,12 224,12 160,16 150,32 140,32 130,16 92,14
+#! solido poli 512,0 380,0 380,14 400,24 436,20 440,60 438,100 444,118 474,122 470,160 468,206 490,210 490,242 492,262 486,280 490,320 512,320
+
+// --- árboles sueltos del claro: tronco x, piso, medio ancho; copa cx cy rx ry
+#! arbol 103 47 3 103 25 13 13
+#! arbol 70 79 3 71 58 13 14
+#! arbol 54 127 3 54 107 12 13
+#! arbol 198 31 3 200 14 12 14
+#! arbol 329 31 3 330 13 12 13
+#! arbol 361 62 3 361 43 11 15
+#! arbol 427 111 3 426 93 13 15
+#! arbol 459 164 3 459 141 13 16
+#! arbol 38 207 3 39 188 11 14
+#! arbol 135 257 3 135 238 13 16
+#! arbol 393 273 3 393 252 13 14
+#! arbol 474 241 3 474 222 13 16
+
+// --- arbustos redondos: centro y radios de la mata
+#! arbusto 132 35 14 13
+#! arbusto 171 28 13 12
+#! arbusto 283 17 15 13
+#! arbusto 334 76 16 14
+#! arbusto 388 45 12 13
+#! arbusto 164 144 14 15
+#! arbusto 390 129 16 13
+#! arbusto 424 209 10 13
+
+// --- troncos caídos, tocones y piedras
+#! solido rect 290 104 336 117                     // tronco caído de arriba
+#! frente 117 rect 289 96 337 118
+#! solido rect 171 213 220 226                     // tronco caído de la izquierda
+#! frente 226 rect 170 205 221 227
+#! solido rect 288 248 336 260                     // tronco caído de la derecha
+#! frente 260 rect 286 240 337 261
+#! solido rect 222 130 239 177                     // troncos acostados junto al camino
+#! solido rect 220 236 239 292
+#! solido rect 280 148 297 196
+#! solido elipse 303 142 12 5                      // tocones
+#! frente 148 rect 289 125 317 149
+#! solido elipse 293 221 12 5
+#! frente 226 rect 279 203 307 227
+#! solido elipse 354 221 11 5
+#! frente 226 rect 341 205 367 227
+#! solido elipse 230 188 10 5                      // las piedras

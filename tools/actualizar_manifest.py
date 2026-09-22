@@ -20,12 +20,15 @@ MAPAS = ["casa", "pueblo", "floreria", "colina"]
 def detectar() -> dict:
     fuentes = sorted(p.stem.replace("font_", "") for p in ASSETS.glob("font_*.png"))
     mapas = [m for m in MAPAS if (ASSETS / f"mapa_{m}.png").exists()]
+    # Los recortes que tapan a Liss en los mapas pintados (tools/escenarios.py).
+    frentes = [m for m in mapas if (ASSETS / f"mapa_{m}_frentes.png").exists()]
     fotos = sorted(p.stem.replace("recuerdo_", "") for p in (ASSETS / "fotos").glob("*.jpg"))
     return {
         "fuente": bool(fuentes),
         "fuentes": fuentes,
         "atlas": (ASSETS / "atlas.png").exists() and (ASSETS / "atlas.json").exists(),
         "mapas": mapas,
+        "frentes": frentes,
         "fotos": fotos,
         "fotosPendientes": [
             f"r{i}" for i in range(1, 7) if f"r{i}" not in fotos

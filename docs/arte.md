@@ -145,6 +145,25 @@ script pinta el pasto con variación determinista, bordes de camino, sombras de 
   colores del PNG hacia el naranja. Es un remapeo y no una capa encima, así el mapa ya llega
   teñido; el velo del motor (`AG.FX.washAtardecer`) queda suave, solo para teñir a los sprites.
 
+### Mapas pintados
+
+La casa, el pueblo y la colina ya no se arman con tiles: son ilustraciones
+(`assets/source/escenarios/*.webp`) escaladas al tamaño de siempre (256×256, 768×512 y 512×320),
+así las distancias, los NPCs y las puertas quedaron donde estaban. Su `maps/<n>.txt` dice en
+píxeles lo que la imagen no dice (formato en `tools/escenarios.py`):
+
+- **colisión fina**: celdas de 4 px dibujadas con rectángulos, elipses y polígonos;
+- **frentes**: recortes de la pintura (copas, pinos, techos, el farol, el cartel) con la línea
+  donde tocan el piso. El motor los dibuja encima de Liss solo cuando ella pasa por detrás, y los
+  vuelve a medias transparentes si la tapan casi entera. El borde de cada recorte se ajusta solo
+  a la silueta pintada mirando colores (`#! ajuste: 3`);
+- **retoques**: se borraron las marcas de agua y los muñequitos que marcaban los guardados, y al
+  cuarto se le pintaron lo que el guion pide y la ilustración no trae: el espejo (en el costado
+  del ropero), el 21 marcado en la libreta del escritorio y la nota junto a la puerta.
+
+`node tools/validar_contenido.js` recorre cada mapa con la caja de pies de Liss y falla si alguna
+puerta, objeto o NPC queda inalcanzable.
+
 ## QA de arte (puertas de calidad)
 
 ```bash

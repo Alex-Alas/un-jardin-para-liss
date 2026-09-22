@@ -82,10 +82,18 @@ window.AG = window.AG || {};
       return nuevo;
     },
 
-    registrarPos(escena, tileX, tileY) {
+    /** Dónde guardó Liss, en píxeles del mapa (el punto de sus pies) y en qué escena. */
+    registrarPos(escena, px, py) {
       this.datos.escena = escena;
-      this.datos.pos = { x: tileX, y: tileY };
+      this.datos.pos = { escena, px, py };
       this.guardar();
+    },
+
+    /** La posición guardada, solo si es de esa escena: al cruzar una puerta la escena cambia
+     *  y la posición vieja ya no significa nada ahí (antes eso dejaba a Liss en cualquier lado). */
+    posEn(escena) {
+      const pos = this.datos.pos;
+      return pos && pos.escena === escena ? { px: pos.px, py: pos.py } : undefined;
     }
   };
 })();

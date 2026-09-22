@@ -47,6 +47,7 @@ def inventario() -> dict:
         ASSETS / "font_pixel16.png", ASSETS / "font_pixel16.xml"
     ]
     candidatos += [ASSETS / f"mapa_{m}.png" for m in MAPAS]
+    candidatos += [ASSETS / f"mapa_{m}_frentes.png" for m in MAPAS]
     candidatos += sorted((ASSETS / "fotos").glob("*.jpg"))
 
     for ruta in candidatos:
@@ -63,6 +64,7 @@ def inventario() -> dict:
         "fuentes": fuentes,
         "atlas": "assets/atlas.png" in archivos and "assets/atlas.json" in archivos,
         "mapas": [m for m in MAPAS if f"assets/mapa_{m}.png" in archivos],
+        "frentes": [m for m in MAPAS if f"assets/mapa_{m}_frentes.png" in archivos],
         "fotos": sorted(fotos),
         "fotosPendientes": [f"r{i}" for i in range(1, 7) if f"r{i}" not in fotos]
     }
