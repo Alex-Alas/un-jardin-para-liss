@@ -12,9 +12,9 @@ AG.PERSONAJES = {
 AG.RECUERDOS = [
   {
     id: 'r1',
-    titulo: 'La primera vez',
-    pie: 'El día que nos conocimos',
-    mensaje: 'Antes de esta foto yo ya estaba nervioso. Después también.',
+    titulo: 'Echaditos bien gonitos',
+    pie: 'La primera vez q te tuve tan cómoda cerca de mi',
+    mensaje: 'Antes de esta foto yo ya estaba nervioso. Después también :P',
     foto: 'assets/fotos/recuerdo_r1.jpg'
   },
   {
@@ -26,7 +26,7 @@ AG.RECUERDOS = [
   },
   {
     id: 'r3',
-    titulo: 'Ese día que llovió',
+    titulo: 'Ese día que llovió/',
     pie: 'No llevábamos paraguas',
     mensaje: 'No nos importó. Volvería a mojarme contigo.',
     foto: 'assets/fotos/recuerdo_r3.jpg'
