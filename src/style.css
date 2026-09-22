@@ -124,6 +124,21 @@ body {
   }
 }
 
+/* Pantalla completa: fondo negro también en el elemento en fullscreen. */
+:fullscreen,
+:-webkit-full-screen {
+  background: var(--fondo);
+}
+
+/* iPhone (sin Fullscreen API): se fija la página y se estira al alto real para que la
+   barra del navegador coma lo menos posible. */
+body.pantalla-ios {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100dvh;
+}
+
 #sin-js {
   color: #ffd666;
   font-size: 1rem;

@@ -66,6 +66,15 @@ AG.Title = class Title extends Phaser.Scene {
     if (hayPartida) definiciones.push({ texto: 'CONTINUAR', accion: () => this.continuar() });
     definiciones.push({ texto: 'EMPEZAR DESDE EL PRINCIPIO', accion: () => this.empezarNuevo() });
     definiciones.push({ texto: 'ÁLBUM DE RECUERDOS', accion: () => this.scene.start('Album') });
+    if (AG.Pantalla && (AG.Pantalla.soportada() || window.matchMedia('(pointer: coarse)').matches)) {
+      definiciones.push({
+        texto: 'PANTALLA COMPLETA',
+        accion: () => {
+          AG.Musica.sfx('blip');
+          AG.Pantalla.pedir();
+        }
+      });
+    }
     definiciones.push({ texto: 'CRÉDITOS', accion: () => this.scene.start('Creditos') });
 
     this.opciones = definiciones.map((definicion, i) => {
