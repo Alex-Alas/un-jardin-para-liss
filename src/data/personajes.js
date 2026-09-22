@@ -12,23 +12,23 @@ AG.PERSONAJES = {
 AG.RECUERDOS = [
   {
     id: 'r1',
-    titulo: 'Echaditos bien gonitos',
-    pie: 'La primera vez q te tuve tan cómoda cerca de mi',
+    titulo: 'Pegaditos bien gonitos',
+    pie: 'La primera vez q te tuve tan cómoda cerca de mí',
     mensaje: 'Antes de esta foto yo ya estaba nervioso. Después también :P',
     foto: 'assets/fotos/recuerdo_r1.jpg'
   },
   {
     id: 'r2',
-    titulo: 'Tu risa',
-    pie: 'Aquí te reías de mí',
+    titulo: 'Tu carita',
+    pie: 'Aquí te burlabas de mí',
     mensaje: 'No es la mejor foto que te he tomado, pero es mi favorita.',
     foto: 'assets/fotos/recuerdo_r2.jpg'
   },
   {
     id: 'r3',
-    titulo: 'Ese día que llovió/',
-    pie: 'No llevábamos paraguas',
-    mensaje: 'No nos importó. Volvería a mojarme contigo.',
+    titulo: 'Tu risa',
+    pie: 'Esa noche, entre las luces',
+    mensaje: 'No nos importó nada. Volvería a esa noche contigo.',
     foto: 'assets/fotos/recuerdo_r3.jpg'
   },
   {
@@ -47,9 +47,9 @@ AG.RECUERDOS = [
   },
   {
     id: 'r6',
-    titulo: 'Hoy',
-    pie: 'Esta la tomamos hoy',
-    mensaje: 'La puse al final a propósito. Es la que sigue.',
+    titulo: 'Bajo las flores',
+    pie: 'Un jardín entero para vos',
+    mensaje: 'Te beso y se prenden todas las luces.',
     foto: 'assets/fotos/recuerdo_r6.jpg'
   }
 ];

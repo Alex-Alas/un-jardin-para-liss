@@ -58,7 +58,7 @@ pétalos 2 en el parque → abre la colina.
 ```
 * En el escritorio hay un polaroid apoyado en el marco de la ventana.
 ```
-> Recuerdo 1 — «La primera vez»
+> Recuerdo 1 — «Pegaditos bien gonitos»
 
 **`casa.nota`** (el motor de la historia)
 ```
@@ -276,16 +276,19 @@ ALEX: (Se queda callado un rato, sonriendo.)
 ## Los 6 recuerdos
 
 Cada uno es un polaroid con la foto real, un pie de foto y un mensajito de Alex. Las fotos las
-aporta Alex en `_referencias/fotos/`; el pipeline las optimiza a `assets/fotos/recuerdo_0N.jpg`.
+aporta Alex en `_referencias/fotos/`; el pipeline las optimiza a `assets/fotos/recuerdo_rN.jpg`.
 
-| # | Título | Pie de foto | Mensaje | Foto sugerida |
+Los textos son los que se ven en el juego y viven en `src/data/personajes.js`: esta tabla es el
+registro de qué foto quedó en cada recuerdo.
+
+| # | Título | Pie de foto | Mensaje | Foto que quedó |
 |---|---|---|---|---|
-| 1 | «La primera vez» | «El día que nos conocimos» | «Antes de esta foto yo ya estaba nervioso. Después también.» | La foto más vieja que tengan juntos |
-| 2 | «Tu risa» | «Aquí te reías de mí» | «No es la mejor foto que te he tomado, pero es mi favorita.» | Ella riéndose |
-| 3 | «Ese día que llovió» | «No llevábamos paraguas» | «No nos importó. Volvería a mojarme contigo.» | Foto con lluvia / paraguas |
-| 4 | «El lugar de siempre» | «Ya nos conocen y todo» | «Aquí quiero volver contigo mil veces más.» | El café, la plaza, su lugar |
-| 5 | «Nosotros» | «Un día cualquiera, contigo» | «Los días normales contigo no tienen nada de normales.» | Foto espontánea favorita |
-| 6 | «Hoy» | «Esta la tomamos hoy» | «La puse al final a propósito. Es la que sigue.» | Una foto de hoy, o una que le tomen el mismo 21 |
+| 1 | «Pegaditos bien gonitos» | «La primera vez q te tuve tan cómoda cerca de mí» | «Antes de esta foto yo ya estaba nervioso. Después también :P» | Selfie de día, mejilla con mejilla |
+| 2 | «Tu carita» | «Aquí te burlabas de mí» | «No es la mejor foto que te he tomado, pero es mi favorita.» | Ella haciéndote carita de burla, con la plantita |
+| 3 | «Tu risa» | «Esa noche, entre las luces» | «No nos importó nada. Volvería a esa noche contigo.» | Los dos riéndose, de noche, con guirnaldas |
+| 4 | «El lugar de siempre» | «Ya nos conocen y todo» | «Aquí quiero volver contigo mil veces más.» | Un lugar con luces y un cartel violeta detrás |
+| 5 | «Nosotros» | «Un día cualquiera, contigo» | «Los días normales contigo no tienen nada de normales.» | Los dos en el sillón, ella apoyada en él |
+| 6 | «Bajo las flores» | «Un jardín entero para vos» | «Te beso y se prenden todas las luces.» | Posada bajo el arco de flores, con las luces |
 
 ---
 
