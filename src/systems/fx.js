@@ -3,7 +3,27 @@ window.AG = window.AG || {};
 (function () {
   const c = (v) => AG.UI.color(v);
 
+  /** Los frames pintados del atlas (tools/arte_extra.py) que reemplazan a las texturas de acá. */
+  const PINTADAS = { petalo: 'fx_petalo', hoja_seca: 'fx_hoja' };
+
   AG.FX = {
+    /**
+     * La textura de una partícula: el frame pintado del atlas si está, si no la que se dibuja
+     * en `crearTexturas` (que queda de respaldo, para jugar sin el arte generado).
+     */
+    textura(scene, nombre) {
+      const frame = PINTADAS[nombre];
+      if (frame && AG.tieneFrame(scene, frame)) return { clave: 'arte', frame };
+      return { clave: nombre, frame: undefined };
+    },
+
+    /** Configuración de partículas con su textura: el `frame` solo va si es un frame del atlas. */
+    particulas(scene, x, y, nombre, config) {
+      const { clave, frame } = this.textura(scene, nombre);
+      if (!scene.textures.exists(clave)) return null;
+      return scene.add.particles(x, y, clave, frame ? { frame, ...config } : config);
+    },
+
     crearTexturas(scene) {
       if (!scene.textures.exists('corazon')) {
         const g = scene.add.graphics();
@@ -65,9 +85,10 @@ window.AG = window.AG || {};
     latido(scene) {
       const { VIEW_W, VIEW_H } = AG.CFG;
       const corazon = AG.UI.corazon(scene, VIEW_W / 2, VIEW_H / 2 - 10, 4).setDepth(900).setScrollFactor(0);
+      const base = corazon.scaleX;   // depende de qué corazón tocó: el pintado o el de respaldo
       scene.tweens.add({
         targets: corazon,
-        scale: { from: 4, to: 5.4 },
+        scale: { from: base, to: base * 1.35 },
         duration: 140,
         yoyo: true,
         repeat: 2,
@@ -76,33 +97,35 @@ window.AG = window.AG || {};
     },
 
     petalosAmbientales(scene, cantidad = 1) {
-      if (!scene.textures.exists('petalo')) return null;
-      const emisor = scene.add.particles(0, 0, 'petalo', {
+      const emisor = this.particulas(scene, 0, 0, 'petalo', {
         x: { min: 0, max: AG.CFG.VIEW_W },
         y: -8,
         lifespan: 9000,
         speedY: { min: 14, max: 26 },
         speedX: { min: -8, max: 8 },
-        scale: { min: 0.8, max: 1.6 },
+        rotate: { min: 0, max: 360 },
+        scale: { min: 0.7, max: 1.4 },
         alpha: { start: 0.9, end: 0.5 },
         frequency: cantidad > 1 ? 420 : 900,
         quantity: cantidad,
         blendMode: 'NORMAL'
       });
+      if (!emisor) return null;
       emisor.setDepth(500).setScrollFactor(0);
       return emisor;
     },
 
     florecer(scene, x, y) {
-      if (!scene.textures.exists('petalo')) return;
-      const emisor = scene.add.particles(x, y, 'petalo', {
+      const emisor = this.particulas(scene, x, y, 'petalo', {
         lifespan: 1400,
         speed: { min: 20, max: 70 },
         angle: { min: 200, max: 340 },
         gravityY: 30,
-        scale: { start: 1.6, end: 0.6 },
+        rotate: { min: 0, max: 360 },
+        scale: { start: 1.4, end: 0.6 },
         emitting: false
       });
+      if (!emisor) return;
       emisor.setDepth(800);
       emisor.explode(26);
       scene.time.delayedCall(2200, () => emisor.destroy());

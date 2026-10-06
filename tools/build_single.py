@@ -19,6 +19,7 @@ RAIZ = Path(__file__).resolve().parent.parent
 ASSETS = RAIZ / "assets"
 SALIDA = RAIZ / "dist" / "un-jardin-para-liss.html"
 MAPAS = ["casa", "pueblo", "floreria", "colina"]
+FONDOS = ["titulo", "petalos1", "petalos2"]
 
 RE_SCRIPT = re.compile(r'\s*<script src="([^"]+)"></script>')
 RE_CSS = re.compile(r'\s*<link rel="stylesheet" href="([^"]+)"\s*/?>')
@@ -48,6 +49,7 @@ def inventario() -> dict:
     ]
     candidatos += [ASSETS / f"mapa_{m}.png" for m in MAPAS]
     candidatos += [ASSETS / f"mapa_{m}_frentes.png" for m in MAPAS]
+    candidatos += [ASSETS / f"fondo_{f}.png" for f in FONDOS]
     candidatos += sorted((ASSETS / "fotos").glob("*.jpg"))
 
     for ruta in candidatos:
@@ -67,6 +69,7 @@ def inventario() -> dict:
         "atlas": "assets/atlas.png" in archivos and "assets/atlas.json" in archivos,
         "mapas": [m for m in MAPAS if f"assets/mapa_{m}.png" in archivos],
         "frentes": [m for m in MAPAS if f"assets/mapa_{m}_frentes.png" in archivos],
+        "fondos": [f for f in FONDOS if f"assets/fondo_{f}.png" in archivos],
         "fotos": sorted(fotos),
         "fotosPendientes": [f"r{i}" for i in range(1, 7) if f"r{i}" not in fotos]
     }

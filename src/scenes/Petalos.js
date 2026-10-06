@@ -9,7 +9,7 @@ AG.Petalos = class Petalos extends Phaser.Scene {
     const datos_ = datos || {};
     this.tipo = datos_.tipo || 'petalos1';
     this.volverA = datos_.volver || 'Floreria';
-    this.inicioVolver = datos_.inicio || { x: 7, y: 10 };
+    this.inicioVolver = datos_.inicio || { px: 248, py: 178 };
     this.reglas = {
       petalos1: { meta: 10, segundos: 45, viento: 0, hojas: 0, motor: 26, intervalo: 300 },
       petalos2: { meta: 14, segundos: 50, viento: 30, hojas: 22, motor: 34, intervalo: 240 }
@@ -41,6 +41,9 @@ AG.Petalos = class Petalos extends Phaser.Scene {
     }
     this.jugador.setDepth(20);
 
+    // Placas oscuras detrás del contador y del reloj: sobre una nube blanca no se leían.
+    this.add.rectangle(6, 6, 116, 18, c(COLORES.tinta), 0.55).setOrigin(0).setDepth(49);
+    this.add.rectangle(VIEW_W - 6, 6, 40, 18, c(COLORES.tinta), 0.55).setOrigin(1, 0).setDepth(49);
     this.textoMeta = AG.UI.texto(this, 12, 12, '', { color: COLORES.blanco }).setDepth(50);
     this.textoTiempo = AG.UI.texto(this, VIEW_W - 12, 12, '', { color: COLORES.blanco })
       .setOrigin(1, 0)
@@ -59,6 +62,12 @@ AG.Petalos = class Petalos extends Phaser.Scene {
     const c = (v) => AG.UI.color(v);
     const horizonte = Math.round(VIEW_H * 0.62);
     const parque = this.tipo === 'petalos2';
+
+    // El fondo pintado (tools/fondos.py) ya trae cielo, árboles, pasto y la luz de la hora.
+    if (AG.ponerFondo(this, this.tipo)) {
+      if (parque) this.veloAtardecer();
+      return;
+    }
 
     if (parque) {
       // Cielo en bandas, de morado arriba a ámbar en el horizonte. Sin degradado real: son
@@ -107,14 +116,17 @@ AG.Petalos = class Petalos extends Phaser.Scene {
       this.add.circle(x - 7, base - 36, 7, c(parque ? COLORES.verde : COLORES.verdeClaro));
     }
 
-    if (parque) {
-      // Velo cálido encima de todo: el parque es la ronda de las seis de la tarde.
-      this.add
-        .rectangle(0, 0, VIEW_W, VIEW_H, c(COLORES.atardecer), 0.14)
-        .setOrigin(0)
-        .setDepth(40)
-        .setBlendMode('MULTIPLY');
-    }
+    if (parque) this.veloAtardecer();
+  }
+
+  /** Velo cálido encima de todo, también de Liss y los pétalos: es la ronda de las seis de la tarde. */
+  veloAtardecer() {
+    const { VIEW_W, VIEW_H, COLORES } = AG.CFG;
+    this.add
+      .rectangle(0, 0, VIEW_W, VIEW_H, AG.UI.color(COLORES.atardecer), 0.14)
+      .setOrigin(0)
+      .setDepth(40)
+      .setBlendMode('MULTIPLY');
   }
 
   empezarJuego() {
@@ -166,10 +178,11 @@ AG.Petalos = class Petalos extends Phaser.Scene {
     const { VIEW_W } = AG.CFG;
     const esHoja = this.reglas.hojas > 0 && Math.random() * 100 < this.reglas.hojas;
     const x = Phaser.Math.Between(12, VIEW_W - 12);
+    const { clave, frame } = AG.FX.textura(this, esHoja ? 'hoja_seca' : 'petalo');
     const imagen = this.add
-      .image(x, -8, esHoja ? 'hoja_seca' : 'petalo')
+      .image(x, -8, clave, frame)
       .setDepth(10)
-      .setScale(esHoja ? 1.5 : 1.3);   // las texturas de fx.js ya son más grandes
+      .setScale(esHoja ? 1.3 : 1.25);
     imagen.esHoja = esHoja;
     imagen.vel = {
       x: (Math.random() * 2 - 1) * this.reglas.viento,

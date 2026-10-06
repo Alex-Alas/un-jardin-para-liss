@@ -19,7 +19,7 @@ Liss despierta, encuentra una nota y el pueblo entero la espera con flores amari
 |---|---|---|
 | F0 | Repo, scaffold, docs | ✅ |
 | F1 | Hoja de sprites de Liss → sprite jugable | ✅ (camina en 8 direcciones) |
-| F2 | Pipeline de arte (`tools/`, Python + Pillow) | ✅ (NPCs, retratos, objetos y tiles con textura) |
+| F2 | Pipeline de arte (`tools/`, Python + Pillow) | ✅ (todo en el estilo pintado de Liss: NPCs, retratos, mapas y fondos) |
 | F3 | Núcleo jugable (movimiento, colisión, guardado) | ✅ |
 | F4 | Diálogos, recuerdos con fotos, música chiptune | ✅ (las 6 fotos están; la música es sintetizada, sin `.wav`) |
 | F5 | Las escenas de pétalos | ✅ (la del patio y la del parque al atardecer, con ráfagas) |
@@ -58,8 +58,9 @@ tools/qa_navegador.sh     # juega la partida completa y guarda capturas
 ```bash
 python3 -m http.server 8000     # servir el juego en http://localhost:8000
 python3 -m venv .venv && .venv/bin/pip install -r tools/requirements.txt
-.venv/bin/python tools/generate_sprites.py # hoja de Liss + NPCs -> assets/atlas.png + atlas.json
+.venv/bin/python tools/generate_sprites.py # hojas de Liss y de personajes -> assets/atlas.png + atlas.json
 .venv/bin/python tools/arte_extra.py --contacto # solo los NPCs, para mirarlos: dist/contacto_extra.png
+.venv/bin/python tools/fondos.py --ver     # fondos pintados del título y los pétalos (después de los mapas)
 .venv/bin/python tools/prepare_photos.py   # assets/source/fotos/r1..r6 -> polaroids de 720 px
 .venv/bin/python tools/render_maps.py      # mapas (ASCII y pintados) -> PNG + colisiones
 .venv/bin/python tools/render_maps.py --ver   # + dist/mapa_<n>_revision.png: colisión, frentes, objetos

@@ -110,7 +110,8 @@ un-jardin-para-liss/
 - **Gate:** ✅ hoja normalizada, hoja de contacto (`--contacto`) y partida completa revisada en navegador.
 
 ### F2 — Pipeline de arte completo ✅
-- [x] `tools/arte_extra.py`: Alex, Doña Flora, Don Beto, Sofi, Michi y el ramo — dibujados por código con la paleta maestra y las proporciones de la hoja de Liss. `generate_sprites.py` los empaca en el mismo atlas.
+- [x] `tools/arte_extra.py`: Alex, Doña Flora, Don Beto, Sofi, Michi, el ramo, los iconos y las partículas — recortados de la hoja de personajes pintada (`assets/source/personajes-sheet.png`) y retocados para el guion (canas, bigote, coletas). `generate_sprites.py` los empaca en el mismo atlas.
+- [x] Unificación de estilo: la florería pasó a ser un mapa pintado y `tools/fondos.py` pinta los fondos del título, los créditos y las dos rondas de pétalos. Ya no queda arte de bloques planos.
 - [x] `tools/generate_font.py`: fuente bitmap 8px (diálogo) y 16px (títulos) desde Press Start 2P; los 122 glifos incluyen `á é í ó ú ñ ¿ ¡ « »`.
 - [x] `tools/tiles.py` + `tools/render_maps.py`: terreno con textura, quince objetos dibujados y PNG de cada mapa desde `maps/*.txt`, con colisiones/objetos exportados a `src/data/mapas.js`.
 - [x] `tools/prepare_photos.py`: recorte cuadrado corrido hacia arriba, 720px, calidad automática bajo 300 KB → `assets/fotos/`.

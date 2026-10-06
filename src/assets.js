@@ -23,6 +23,7 @@ AG.ASSETS = {
   },
   mapa: (clave) => AG.ruta(`assets/mapa_${clave}.png`),
   frentes: (clave) => AG.ruta(`assets/mapa_${clave}_frentes.png`),
+  fondo: (clave) => AG.ruta(`assets/fondo_${clave}.png`),
   foto: (id) => AG.ruta(`assets/fotos/recuerdo_${id}.jpg`)
 };
 
@@ -119,4 +120,15 @@ AG.hayAtlas = () => AG.MANIFIESTO.atlas === true;
 AG.hayMapa = (clave) => (AG.MANIFIESTO.mapas || []).indexOf(clave) !== -1;
 AG.hayFrentes = (clave) => (AG.MANIFIESTO.frentes || []).indexOf(clave) !== -1;
 AG.hayFoto = (id) => (AG.MANIFIESTO.fotos || []).indexOf(id) !== -1;
+AG.hayFondo = (clave) => (AG.MANIFIESTO.fondos || []).indexOf(clave) !== -1;
+
+/**
+ * El fondo pintado de una pantalla (tools/fondos.py), a pantalla completa y fijo a la cámara.
+ * Devuelve null si ese fondo no existe: quien llama dibuja el de formas que tenía antes.
+ */
+AG.ponerFondo = function (escena, clave) {
+  const textura = `fondo_${clave}`;
+  if (!escena.textures.exists(textura)) return null;
+  return escena.add.image(0, 0, textura).setOrigin(0).setScrollFactor(0).setDepth(-10);
+};
 AG.hayArte = () => AG.hayFuente() && AG.hayAtlas();

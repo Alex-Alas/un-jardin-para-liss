@@ -12,15 +12,19 @@ AG.Title = class Title extends Phaser.Scene {
     this.opciones = [];
     this.cursor = 0;
 
-    this.add.rectangle(0, 0, VIEW_W, VIEW_H, c(COLORES.negro)).setOrigin(0);
-    for (let i = 0; i < 22; i += 1) {
-      this.add.circle(
-        Phaser.Math.Between(0, VIEW_W),
-        Phaser.Math.Between(0, VIEW_H),
-        Phaser.Math.Between(1, 2),
-        c(COLORES.crema),
-        Phaser.Math.FloatBetween(0.2, 0.7)
-      );
+    if (AG.ponerFondo(this, 'titulo')) {
+      this.luciernagas();
+    } else {
+      this.add.rectangle(0, 0, VIEW_W, VIEW_H, c(COLORES.negro)).setOrigin(0);
+      for (let i = 0; i < 22; i += 1) {
+        this.add.circle(
+          Phaser.Math.Between(0, VIEW_W),
+          Phaser.Math.Between(0, VIEW_H),
+          Phaser.Math.Between(1, 2),
+          c(COLORES.crema),
+          Phaser.Math.FloatBetween(0.2, 0.7)
+        );
+      }
     }
 
     const titulo1 = AG.UI.texto(this, VIEW_W / 2, VIEW_H / 2 - 58, 'UN JARDÍN', {
@@ -47,6 +51,35 @@ AG.Title = class Title extends Phaser.Scene {
     this.input.once('pointerdown', () => this.desbloquear());
     this.input.keyboard.once('keydown-Z', () => this.desbloquear());
     this.input.keyboard.once('keydown-ENTER', () => this.desbloquear());
+  }
+
+  /** Sobre el pueblo dormido, puntitos tibios que se prenden, se apagan y van a la deriva. */
+  luciernagas() {
+    const { VIEW_W, VIEW_H, COLORES } = AG.CFG;
+    for (let i = 0; i < 18; i += 1) {
+      const luz = this.add
+        .rectangle(Phaser.Math.Between(8, VIEW_W - 8), Phaser.Math.Between(110, VIEW_H - 8), 2, 2,
+          AG.UI.color(i % 3 ? COLORES.amarilloClaro : COLORES.crema), 0)
+        .setOrigin(0);
+      this.tweens.add({
+        targets: luz,
+        alpha: { from: 0, to: Phaser.Math.FloatBetween(0.5, 0.95) },
+        duration: Phaser.Math.Between(900, 1700),
+        delay: Phaser.Math.Between(0, 2400),
+        yoyo: true,
+        repeat: -1,
+        repeatDelay: Phaser.Math.Between(400, 2200)
+      });
+      this.tweens.add({
+        targets: luz,
+        x: `+=${Phaser.Math.Between(-14, 14)}`,
+        y: `-=${Phaser.Math.Between(4, 12)}`,
+        duration: Phaser.Math.Between(3000, 6000),
+        yoyo: true,
+        repeat: -1,
+        ease: 'Sine.easeInOut'
+      });
+    }
   }
 
   desbloquear() {

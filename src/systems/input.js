@@ -41,9 +41,13 @@ window.AG = window.AG || {};
         .setInteractive();
       this.zonaDpad.setStrokeStyle(2, c(COLORES.blanco), 0.25);
 
-      [['izquierda', -16, 0], ['derecha', 16, 0], ['arriba', 0, -16], ['abajo', 0, 16]].forEach(([nombre, dx, dy]) => {
+      // Flechas de verdad (triángulos con borde oscuro): sobre los fondos pintados, los cuadraditos
+      // blancos de antes se perdían entre las nubes y las flores.
+      [['izquierda', -17, 0, 180], ['derecha', 17, 0, 0], ['arriba', 0, -17, 270], ['abajo', 0, 17, 90]].forEach(([nombre, dx, dy, angulo]) => {
         const flecha = this.scene.add
-          .rectangle(centro.x + dx, centro.y + dy, 7, 7, c(COLORES.blanco), 0.75)
+          .triangle(centro.x + dx, centro.y + dy, 0, 0, 0, 10, 8, 5, c(COLORES.blanco), 0.8)
+          .setStrokeStyle(1, c(COLORES.tinta), 0.7)
+          .setAngle(angulo)
           .setScrollFactor(0)
           .setDepth(1001);
         flecha.nombre = nombre;

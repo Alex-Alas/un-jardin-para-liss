@@ -18,6 +18,11 @@
 --inspeccionar` reporta cómo se lee; **todo** el arte nuevo se produce para encajar con ella:
 mismos contornos, misma densidad de detalle, misma luz.
 
+El estilo es **pintoresco**: pixel art de render suave, con muchos tonos por material, contornos
+oscuros tibios (nunca negro puro), cachetes rosados y brillo en los ojos. Es el de Liss y el de
+las ilustraciones de los mapas, y desde la unificación de estilo es el de todo el juego: no
+quedan sprites planos dibujados con rectángulos ni pantallas de formas geométricas.
+
 ### Reporte de la hoja (F1, 21.09)
 
 ```
@@ -45,9 +50,34 @@ sección: 6 poses quietas y 6 caminando por dirección. **E mira a la derecha de
 - **Caminata**: ciclo de 4 a 8 fps armado midiendo cuánto se separan los pies —paso abierto, paso
   junto, el otro paso abierto, paso junto—, porque la hoja no garantiza un orden de animación.
 - **Retratos**: 48 × 48, recortados de dos poses de frente elegidas a mano (una neutra y una
-  sonriendo). Los de los NPCs no se recortan de su sprite: a 16 px de ancho la cara no tiene
-  lugar para la expresión, así que se dibujan aparte a 24 × 24 y se duplican (`arte_extra.py`).
+  sonriendo). Los de los NPCs salen de los retratos pintados de la hoja de personajes (abajo).
 - **La sombra del piso no se importa**: el juego pone la suya; la de la hoja se descarta por color.
+
+## La hoja de personajes
+
+`assets/source/personajes-sheet.png` es la hoja pintada de todos los demás, en el mismo estilo
+que Liss: retratos, cuerpos de frente, Michi, el ramo, el corazón y la flor. `tools/arte_extra.py`
+la lee por bandas y columnas (como la de Liss, pero sobre fondo negro), recorta cada figura y la
+baja con la misma receta (`reducir()` de `generate_sprites.py`: alfa premultiplicado, nitidez y
+alpha duro). Cada asset sale con su propia paleta de ≤ 23 colores.
+
+La hoja no trae a los personajes tal como los pide el guion, así que a algunos se les retoca:
+
+| Personaje | De la hoja | Retoque |
+|---|---|---|
+| Alex | el chico rizado de suéter verde | los ojos se repintan iguales, con el brillo arriba a la izquierda |
+| Doña Flora | la chica de lentes | canas (el pelo se tiñe conservando luces y sombras) y la flor amarilla del icono en el pelo |
+| Don Beto | el chico de lentes | canoso y con bigote |
+| Sofi | la niña de la sudadera crema | castaña y con coletas de listón amarillo, para que no se confunda con Alex; su cuerpo se pinta a mano (la hoja no la trae de frente) con la cabeza bajada de su retrato |
+| Michi | el gato | — |
+
+Lo que se pinta a mano (el bigote, las coletas, el cuerpo de Sofi, los ojos de Alex) entra a la
+paleta como color fijo: la cuantización no lo mueve, y lo pintado de la hoja puede caer en esos
+colores, así la cabeza y el cuerpo de Sofi comparten tonos.
+
+Las partículas (pétalo y hoja seca) y el corazón chico de los cursores también están en el atlas:
+se pintan grandes con degradado y se bajan con la misma receta. `src/systems/fx.js` conserva sus
+texturas dibujadas por código solo de respaldo, para jugar sin el arte generado.
 
 ## Paleta
 
@@ -66,19 +96,24 @@ titila):
 #9a4a80   el corazón morado (se le reserva lugar a mano: es el único acento frío)
 ```
 
+Los NPCs, sus retratos y los iconos traen cada uno su paleta (≤ 23 colores más la transparencia),
+sacada de la hoja de personajes con corte por la mediana y unas vueltas de k-medias.
+
 Reglas:
 
-- Máximo **24 colores por asset**, contando la transparencia.
+- Máximo **24 colores por asset** (sprite, retrato o icono), contando la transparencia. Las
+  ilustraciones (mapas pintados, sus frentes y los fondos) van en 256 y no cuentan.
 - El amarillo es del jugador y de las flores: nada más en el mapa compite con ese tono.
 - Sombras con azul/morado frío, nunca con negro puro (el negro es solo contorno).
-- Contorno de 1 px en tinta (`#1b1420`) para personajes y objetos interactuables; los fondos no
-  llevan contorno.
+- Contorno oscuro y tibio (el de la propia pintura, de `#1b1420` a `#2c1c28`) para personajes y
+  objetos; los fondos no llevan contorno.
 
 ## Reglas de estilo
 
 - **Formas:** redondeadas y gorditas; siluetas legibles a 1×. Un objeto, una idea.
 - **Luz:** viene de arriba-izquierda, suave, sin degradados largos (2 tonos por material).
-- **Detalle:** caras simples (2 px de ojo), sin dientes, sin líneas de nariz.
+- **Detalle:** caras simples, ojos grandes con un brillo arriba a la izquierda (el mismo en los dos
+  ojos), cachetes rosados; sin dientes, sin líneas de nariz.
 - **Animación:** ciclo de caminata de 4 frames a 8 fps; quieta, respira con 2 frames a 1.4 fps.
   Al hablar, el retrato se mueve 1 px y el personaje hace un pequeño rebote.
 - **Nada de texto dentro del arte**: el texto lo pone el motor (fuente bitmap), nunca el PNG.
@@ -88,20 +123,22 @@ Reglas:
 
 | Asset | Tamaño | Cantidad | Uso | Origen |
 |---|---|---|---|---|
-| `atlas.png` / `atlas.json` | 256×237 hoy, 68 frames | 1 | sprites, iconos, retratos | `tools/generate_sprites.py` |
+| `atlas.png` / `atlas.json` | 256×237 hoy, 71 frames | 1 | sprites, iconos, retratos, partículas | `tools/generate_sprites.py` |
 | `font_pixel.png` / `.xml` | variable | 2 (8 px y 16 px) | todo el texto | `tools/generate_font.py` |
 | `mapa_casa.png` | 20×14 tiles | 1 | interior | `tools/render_maps.py` |
 | `mapa_pueblo.png` | 48×32 tiles | 1 | exterior principal | `tools/render_maps.py` |
-| `mapa_floreria.png` | 16×12 tiles | 1 | interior | `tools/render_maps.py` |
+| `mapa_floreria.png` | 20×15 tiles | 1 | interior pintado | `tools/render_maps.py` |
 | `mapa_colina.png` | 32×20 tiles | 1 | final, paleta de atardecer | `tools/render_maps.py` |
 | `recuerdo_r1..r6.jpg` | 720×720 | 6 | polaroids | `tools/prepare_photos.py` (✅) |
 | sprites de Liss | 16×34 | 8 direcciones × (2 idle + 4 caminata) | protagonista | `tools/generate_sprites.py` (✅ F1) |
-| sprites de los demás | 16×34 | Alex, Flora, Beto, Sofi, Michi × (1 quieto + 1 respiración) | NPCs | `tools/arte_extra.py` (✅ F2) |
-| retratos | 48×48 | Liss × 2 emociones + los 5 NPCs | diálogos | Liss: `generate_sprites.py`; el resto: `arte_extra.py` (✅) |
-| iconos UI | 16×16 | `ui_corazon`, `ui_flor` | HUD y punto de guardado | `tools/arte_extra.py` (✅) |
-| `ramo_0` | 16×24 | 1 | el ramo de la colina | `tools/arte_extra.py` (✅) |
-| pétalo y hoja seca | 5×6 y 6×5 | 2 | partículas del minijuego | `src/systems/fx.js` (por código, no atlas) |
-| terreno y objetos | 16×16 | 7 terrenos + 15 objetos | pintados dentro del PNG del mapa | `tools/tiles.py` (✅ F2) |
+| sprites de los demás | 16–20×34 (Michi 14×19) | Alex, Flora, Beto, Sofi, Michi × (1 quieto + 1 respiración) | NPCs | `tools/arte_extra.py`, desde `personajes-sheet.png` |
+| retratos | 48×48 | Liss × 2 emociones + los 5 NPCs | diálogos | Liss: `generate_sprites.py`; el resto: `arte_extra.py` |
+| iconos UI | 16×16 y 9×8 | `ui_corazon`, `ui_flor`, `ui_corazon_chico` | punto de guardado, cursores, latido | `tools/arte_extra.py` |
+| `ramo_0` | 16×24 | 1 | el ramo de la colina | `tools/arte_extra.py` |
+| pétalo y hoja seca | 6×7 y 8×6 | `fx_petalo`, `fx_hoja` | partículas y minijuego | `tools/arte_extra.py` (en `fx.js` queda el respaldo) |
+| `fondo_titulo.png` | 480×270 | 1 | título y créditos: el pueblo de noche | `tools/fondos.py` |
+| `fondo_petalos1/2.png` | 480×270 | 2 | las dos rondas de pétalos | `tools/fondos.py` |
+| terreno y objetos | 16×16 | 7 terrenos + 15 objetos | respaldo de los mapas ASCII | `tools/tiles.py` |
 
 ## Nombres de frames (contrato con el código)
 
@@ -115,12 +152,13 @@ liss_camina_<dirección>_0 .. _3       # ciclo de caminata            (32 frames
 retrato_liss_normal   retrato_liss_feliz                             ( 2 frames)
 ```
 
-Lo que aporta `tools/arte_extra.py` (F2), con el mismo contrato:
+Lo que aporta `tools/arte_extra.py`, con el mismo contrato:
 
 ```
 npc_<id>_abajo_0 / _1       # Alex, Flora, Beto, Sofi, Michi: quieto + respiración
 retrato_<id>_normal         # los cinco, 48×48
-ui_corazon   ui_flor   ramo_0
+ui_corazon   ui_flor   ui_corazon_chico   ramo_0
+fx_petalo   fx_hoja          # partículas: AG.FX.textura() las prefiere a las de fx.js
 ```
 
 Los NPCs traen una sola dirección porque en el juego nunca caminan. Si algún día uno se mueve,
@@ -147,9 +185,10 @@ script pinta el pasto con variación determinista, bordes de camino, sombras de 
 
 ### Mapas pintados
 
-La casa, el pueblo y la colina ya no se arman con tiles: son ilustraciones
-(`assets/source/escenarios/*.webp`) escaladas al tamaño de siempre (256×256, 768×512 y 512×320),
-así las distancias, los NPCs y las puertas quedaron donde estaban. Su `maps/<n>.txt` dice en
+Los cuatro mapas son ilustraciones (`assets/source/escenarios/*.webp`), ya no se arman con tiles:
+la casa (256×256), el pueblo (768×512), la florería (320×240) y la colina (512×320). La florería
+mide 20 × 15 tiles para que su puerta y sus macetas queden a la escala del cuarto de Liss, y
+entra entera en pantalla. Doña Flora atiende al final del mostrador, junto a la caja. Su `maps/<n>.txt` dice en
 píxeles lo que la imagen no dice (formato en `tools/escenarios.py`):
 
 - **colisión fina**: celdas de 4 px dibujadas con rectángulos, elipses y polígonos;
@@ -159,7 +198,23 @@ píxeles lo que la imagen no dice (formato en `tools/escenarios.py`):
   a la silueta pintada mirando colores (`#! ajuste: 3`);
 - **retoques**: se borraron las marcas de agua y los muñequitos que marcaban los guardados, y al
   cuarto se le pintaron lo que el guion pide y la ilustración no trae: el espejo (en el costado
-  del ropero), el 21 marcado en la libreta del escritorio y la nota junto a la puerta.
+  del ropero), el 21 marcado en la libreta del escritorio y la nota junto a la puerta. En la
+  florería, `interpolar` borra la marca de agua de la maceta y el nombre escrito del letrero
+  (nada de texto en el arte), que lleva una flor pintada en su lugar.
+
+### Fondos pintados
+
+El título, los créditos y las dos rondas de pétalos tenían fondos de rectángulos y círculos. Ahora
+`tools/fondos.py` los arma con la pintura del pueblo, a la misma escala que los mapas:
+
+- **título y créditos**: el pueblo de noche, con las ventanas de la casa de Liss prendidas y
+  luciérnagas que pone el motor; los créditos lo oscurecen para que el texto se lea;
+- **pétalos 1**: el patio de la florería de día, de costado (Liss corre de lado a lado): cielo y
+  pasto pintados con la paleta del pueblo, y la florería, sus barriles y los árboles recortados
+  de la pintura;
+- **pétalos 2**: el parque al atardecer, con pinos, el banco del pícnic y la luz de la colina.
+
+En el pasto de los fondos no hay flores amarillas: el amarillo es de los pétalos que se atrapan.
 
 `node tools/validar_contenido.js` recorre cada mapa con la caja de pies de Liss y falla si alguna
 puerta, objeto o NPC queda inalcanzable.
@@ -170,12 +225,14 @@ puerta, objeto o NPC queda inalcanzable.
 .venv/bin/python tools/generate_sprites.py --inspeccionar   # cómo se lee la hoja
 .venv/bin/python tools/generate_sprites.py --contacto       # atlas + hoja de contacto en dist/
 .venv/bin/python tools/arte_extra.py --contacto             # solo los NPCs, ampliados ×6
+.venv/bin/python tools/fondos.py --ver                      # los tres fondos juntos en dist/
 .venv/bin/python tools/qa_assets.py --json                  # tamaños, alpha, cantidad de colores
 ```
 
 `qa_assets.py` cuenta los colores **por frame del atlas**, no del PNG entero: el tope de 24 es
-por asset, y un atlas con Liss, cinco NPCs, siete retratos y los iconos suma 47 sin que ninguno
-de ellos incumpla la regla.
+por asset, y un atlas con Liss, cinco NPCs, siete retratos y los iconos suma cientos sin que
+ninguno de ellos incumpla la regla. Los mapas pintados y los fondos son ilustraciones y no tienen
+tope de colores; de ellos solo se revisa el tamaño y el alpha.
 
 Requisitos: cada sprite con su tamaño exacto, alpha de 0/255 (sin semitransparencias), ≤24 colores,
 sin bordes recortados y legible sobre el pasto del pueblo. Un asset no está listo hasta verse a

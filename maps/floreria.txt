@@ -1,25 +1,53 @@
 #! nombre: floreria
 #! tipo: interior
-
 #! titulo: Florería de Doña Flora
 
-#! objeto 1 npc flora pueblo.flora.saludo
+// Mapa pintado: la ilustración manda y este archivo dice lo que la imagen no dice.
+// Coordenadas en píxeles del mapa ya escalado (320 × 240). Formato: tools/escenarios.py.
+// Mide 20 × 15 tiles: a esa escala la puerta y las macetas quedan del tamaño de las del cuarto
+// de Liss, y el local entero entra en pantalla sin que la cámara tenga que moverse.
+#! pintura: escenarios/floreria.webp
+#! tamaño: 20 15
+#! inicio: 155 210                                 // recién entrada, frente a la puerta
+#! colores: 256
+#! ajuste: 3
 
-#! objeto 2 mostrador mostrador pueblo.floreria.mostrador
+// --- retoques
+#! retoque interpolar 282 201 296 215              // la marca de agua sobre la maceta de la palmera
+#! retoque interpolar 202 149 239 164              // el letrero traía el nombre escrito: se borra…
+#! retoque dibujo flor_cartel 216 152              // …y lleva una flor pintada
 
-#! objeto 3 estante estante pueblo.floreria.estante
+// --- lo que se toca (x y = el punto donde el objeto toca el piso)
+#! objeto npc flora pueblo.flora.saludo 268 150          // al final del mostrador, junto a la caja
+#! objeto mostrador mostrador pueblo.floreria.mostrador 160 166
+#! objeto estante estante pueblo.floreria.estante 258 86
 
-#! puerta D Pueblo 664 192
+// --- la puerta de abajo lleva al pueblo, frente a la florería
+#! puerta Pueblo 140 226 171 240 664 192
 
-################
-#bbbbbbbbbbbbbb#
-#bb1bbbbbbb3bbb#
-#bbbbbbbbbbbbbb#
-#bbb22222222bbb#
-#bbbbbbbbbbbbbb#
-#bbbbbbbbbbbbbb#
-#bbbbbbbbbbbbbb#
-#bbbbbbbbbbbbbb#
-#bbbbbbbbbbbbbb#
-#bbbbbbbbbbbbbb#
-#######D########
+// --- qué se puede pisar: el piso de baldosas, de la pared del fondo a la de adelante
+#! fondo: solido
+#! libre rect 24 84 296 219
+#! libre rect 140 212 171 240                      // el umbral de la puerta
+#! solido rect 24 84 80 104                        // macetas de arriba a la izquierda
+#! solido rect 82 84 220 97                        // los faroles al pie de la pared
+#! solido rect 80 118 244 163                      // el mostrador
+#! solido elipse 68 133 6 3                        // farol de la izquierda
+#! solido elipse 250 133 6 3                       // farol de la derecha
+#! solido rect 80 160 122 174                      // la canasta de lavanda y la suculenta
+#! solido rect 200 168 240 177                     // las patas del letrero
+#! solido rect 24 188 52 219                       // macetas de abajo
+#! solido rect 56 198 84 219
+#! solido rect 244 198 268 219
+#! solido rect 272 192 300 219
+
+// --- lo que tapa a Liss cuando pasa por detrás
+#! frente 163 rect 78 112 246 164 + rect 74 96 128 113 + rect 200 98 242 113   // mostrador, plantas y caja
+#! frente 136 rect 59 112 78 137                   // faroles
+#! frente 136 rect 241 112 260 137
+#! frente 174 rect 78 134 124 175                  // lavanda y suculenta
+#! frente 177 rect 197 140 243 178                 // el letrero
+#! frente 216 rect 18 150 56 217                   // las plantas grandes de abajo
+#! frente 216 rect 52 175 88 217
+#! frente 216 rect 238 170 270 217
+#! frente 218 rect 262 150 302 220
