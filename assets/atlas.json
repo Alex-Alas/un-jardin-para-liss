@@ -1104,7 +1104,7 @@
    "frame": {
     "x": 153,
     "y": 168,
-    "w": 20,
+    "w": 18,
     "h": 34
    },
    "rotated": false,
@@ -1112,19 +1112,19 @@
    "spriteSourceSize": {
     "x": 0,
     "y": 0,
-    "w": 20,
+    "w": 18,
     "h": 34
    },
    "sourceSize": {
-    "w": 20,
+    "w": 18,
     "h": 34
    }
   },
   "npc_alex_abajo_1": {
    "frame": {
-    "x": 174,
+    "x": 172,
     "y": 168,
-    "w": 20,
+    "w": 18,
     "h": 34
    },
    "rotated": false,
@@ -1132,19 +1132,19 @@
    "spriteSourceSize": {
     "x": 0,
     "y": 0,
-    "w": 20,
+    "w": 18,
     "h": 34
    },
    "sourceSize": {
-    "w": 20,
+    "w": 18,
     "h": 34
    }
   },
   "npc_beto_abajo_0": {
    "frame": {
-    "x": 195,
+    "x": 191,
     "y": 168,
-    "w": 20,
+    "w": 16,
     "h": 34
    },
    "rotated": false,
@@ -1152,19 +1152,19 @@
    "spriteSourceSize": {
     "x": 0,
     "y": 0,
-    "w": 20,
+    "w": 16,
     "h": 34
    },
    "sourceSize": {
-    "w": 20,
+    "w": 16,
     "h": 34
    }
   },
   "npc_beto_abajo_1": {
    "frame": {
-    "x": 216,
+    "x": 208,
     "y": 168,
-    "w": 20,
+    "w": 16,
     "h": 34
    },
    "rotated": false,
@@ -1172,19 +1172,19 @@
    "spriteSourceSize": {
     "x": 0,
     "y": 0,
-    "w": 20,
+    "w": 16,
     "h": 34
    },
    "sourceSize": {
-    "w": 20,
+    "w": 16,
     "h": 34
    }
   },
   "npc_flora_abajo_0": {
    "frame": {
-    "x": 237,
+    "x": 225,
     "y": 168,
-    "w": 18,
+    "w": 16,
     "h": 34
    },
    "rotated": false,
@@ -1192,11 +1192,11 @@
    "spriteSourceSize": {
     "x": 0,
     "y": 0,
-    "w": 18,
+    "w": 16,
     "h": 34
    },
    "sourceSize": {
-    "w": 18,
+    "w": 16,
     "h": 34
    }
   },
@@ -1204,7 +1204,7 @@
    "frame": {
     "x": 0,
     "y": 203,
-    "w": 18,
+    "w": 16,
     "h": 34
    },
    "rotated": false,
@@ -1212,17 +1212,17 @@
    "spriteSourceSize": {
     "x": 0,
     "y": 0,
-    "w": 18,
+    "w": 16,
     "h": 34
    },
    "sourceSize": {
-    "w": 18,
+    "w": 16,
     "h": 34
    }
   },
   "npc_sofi_abajo_0": {
    "frame": {
-    "x": 19,
+    "x": 17,
     "y": 203,
     "w": 20,
     "h": 34
@@ -1242,7 +1242,7 @@
   },
   "npc_sofi_abajo_1": {
    "frame": {
-    "x": 40,
+    "x": 38,
     "y": 203,
     "w": 20,
     "h": 34
@@ -1262,7 +1262,7 @@
   },
   "ramo_0": {
    "frame": {
-    "x": 61,
+    "x": 59,
     "y": 203,
     "w": 16,
     "h": 24
@@ -1282,47 +1282,47 @@
   },
   "npc_michi_abajo_0": {
    "frame": {
-    "x": 78,
+    "x": 76,
     "y": 203,
-    "w": 14,
-    "h": 19
+    "w": 16,
+    "h": 20
    },
    "rotated": false,
    "trimmed": false,
    "spriteSourceSize": {
     "x": 0,
     "y": 0,
-    "w": 14,
-    "h": 19
+    "w": 16,
+    "h": 20
    },
    "sourceSize": {
-    "w": 14,
-    "h": 19
+    "w": 16,
+    "h": 20
    }
   },
   "npc_michi_abajo_1": {
    "frame": {
     "x": 93,
     "y": 203,
-    "w": 14,
-    "h": 19
+    "w": 16,
+    "h": 20
    },
    "rotated": false,
    "trimmed": false,
    "spriteSourceSize": {
     "x": 0,
     "y": 0,
-    "w": 14,
-    "h": 19
+    "w": 16,
+    "h": 20
    },
    "sourceSize": {
-    "w": 14,
-    "h": 19
+    "w": 16,
+    "h": 20
    }
   },
   "ui_corazon": {
    "frame": {
-    "x": 108,
+    "x": 110,
     "y": 203,
     "w": 16,
     "h": 16
@@ -1342,7 +1342,7 @@
   },
   "ui_flor": {
    "frame": {
-    "x": 125,
+    "x": 127,
     "y": 203,
     "w": 16,
     "h": 16
@@ -1362,7 +1362,7 @@
   },
   "ui_corazon_chico": {
    "frame": {
-    "x": 142,
+    "x": 144,
     "y": 203,
     "w": 9,
     "h": 8
@@ -1382,7 +1382,7 @@
   },
   "fx_petalo": {
    "frame": {
-    "x": 152,
+    "x": 154,
     "y": 203,
     "w": 6,
     "h": 7
@@ -1402,7 +1402,7 @@
   },
   "fx_hoja": {
    "frame": {
-    "x": 159,
+    "x": 161,
     "y": 203,
     "w": 8,
     "h": 6

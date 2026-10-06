@@ -69,9 +69,17 @@ La hoja no trae a los personajes tal como los pide el guion, así que a algunos 
 | Doña Flora | la chica de lentes | canas (el pelo se tiñe conservando luces y sombras) y la flor amarilla del icono en el pelo |
 | Don Beto | el chico de lentes | canoso y con bigote |
 | Sofi | la niña de la sudadera crema | castaña y con coletas de listón amarillo, para que no se confunda con Alex; su cuerpo se pinta a mano (la hoja no la trae de frente) con la cabeza bajada de su retrato |
-| Michi | el gato | — |
+| Michi | el gato | la hoja lo trae parado en dos patas, como muñeco: se sienta como un gato de verdad (su cabeza sobre un cuerpo pintado a mano con sus grises) |
 
-Lo que se pinta a mano (el bigote, las coletas, el cuerpo de Sofi, los ojos de Alex) entra a la
+**Proporciones.** La hoja dibuja cabezones: la cabeza, con el pelo, es casi la mitad del alto.
+Liss tiene proporciones de verdad (la cabeza es un 37 % del alto) y los demás tienen que verse de
+su mismo mundo, así que `proporcionar()` corta cada figura en el mentón, la cadera y el tobillo,
+achica la cabeza a 0.75 alrededor del cuello y alarga el torso (× 1.12) y sobre todo las piernas
+(× 1.8), antes de bajar a escala de juego. El pelo largo de Doña Flora viaja con la cabeza para
+no despegarse. Sofi es una niña: su cabeza mide 10 de sus 26 px, más que la de un adulto pero
+lejos de la mitad.
+
+Lo que se pinta a mano (el bigote, las coletas, los cuerpos de Sofi y de Michi, los ojos de Alex) entra a la
 paleta como color fijo: la cuantización no lo mueve, y lo pintado de la hoja puede caer en esos
 colores, así la cabeza y el cuerpo de Sofi comparten tonos.
 
@@ -131,7 +139,7 @@ Reglas:
 | `mapa_colina.png` | 32×20 tiles | 1 | final, paleta de atardecer | `tools/render_maps.py` |
 | `recuerdo_r1..r6.jpg` | 720×720 | 6 | polaroids | `tools/prepare_photos.py` (✅) |
 | sprites de Liss | 16×34 | 8 direcciones × (2 idle + 4 caminata) | protagonista | `tools/generate_sprites.py` (✅ F1) |
-| sprites de los demás | 16–20×34 (Michi 14×19) | Alex, Flora, Beto, Sofi, Michi × (1 quieto + 1 respiración) | NPCs | `tools/arte_extra.py`, desde `personajes-sheet.png` |
+| sprites de los demás | 16–20×34 (Michi 16×20) | Alex, Flora, Beto, Sofi, Michi × (1 quieto + 1 respiración) | NPCs | `tools/arte_extra.py`, desde `personajes-sheet.png` |
 | retratos | 48×48 | Liss × 2 emociones + los 5 NPCs | diálogos | Liss: `generate_sprites.py`; el resto: `arte_extra.py` |
 | iconos UI | 16×16 y 9×8 | `ui_corazon`, `ui_flor`, `ui_corazon_chico` | punto de guardado, cursores, latido | `tools/arte_extra.py` |
 | `ramo_0` | 16×24 | 1 | el ramo de la colina | `tools/arte_extra.py` |

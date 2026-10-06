@@ -13,7 +13,11 @@ La hoja no trae a los personajes tal como los pide el guion, así que a algunos 
 - **Don Beto**: el chico de lentes, canoso y con bigote;
 - **Sofi**: la niña de la sudadera crema, castaña y con coletas de listón amarillo, para que no se
   confunda con Alex. Su cabeza sale del retrato y el cuerpo se pinta acá, porque la hoja no la
-  trae de cuerpo entero mirando al frente.
+  trae de cuerpo entero mirando al frente;
+- **Michi**: la hoja lo trae parado en dos patas; acá se sienta como un gato de verdad.
+
+Y a todos se les corrigen las proporciones: la hoja dibuja cabezones y Liss no, así que la cabeza
+se achica y el cuerpo se alarga hasta que se ven del mismo mundo (ver `proporcionar`).
 
 El pétalo, la hoja seca y el corazón chico del motor se pintan grandes con degradados y se bajan
 igual que todo lo demás: así una partícula de 7 px tiene el mismo modelado que Liss.
@@ -156,18 +160,36 @@ def _rampa(tramos, valor: float) -> tuple[int, int, int]:
     return tramos[-1][1]
 
 
-def teñir_pelo(figura: Image.Image, tramos, hasta: float, ojos: tuple[int, int, int, int]) -> Image.Image:
+def _apagado(color) -> bool:
+    """Poco color: el pelo largo de abajo lo es; la sombra de la piel y la ropa roja, no."""
+    return max(color[:3]) - min(color[:3]) < 50
+
+
+def teñir_pelo(figura: Image.Image, tramos, hasta: float, ojos: tuple[int, int, int, int],
+               abajo: float | None = None) -> Image.Image:
     """Cambia el color del pelo conservando su modelado.
 
     Es pelo lo oscuro y café que está conectado con la coronilla, de `hasta` (fracción del alto)
     para arriba: así no se tiñen la ropa oscura ni los zapatos. Los ojos también son oscuros y a
     veces tocan el flequillo por las cejas, así que su caja `ojos` (x0 y0 x1 y1, en píxeles del
     recorte) queda fuera.
+
+    Con `abajo`, el pelo largo que cae sobre los hombros se sigue tiñendo hasta esa fracción del
+    alto, pero ahí solo pasan los tonos apagados: más abajo del mentón hay ropa y cuello, y sus
+    sombras son oscuras pero con mucho más color que el pelo.
     """
     figura = figura.copy()
     ancho, alto = figura.size
     datos = figura.load()
     tope = int(alto * hasta)
+    fondo = int(alto * abajo) if abajo else tope
+
+    def entra(x: int, y: int) -> bool:
+        color = datos[x, y]
+        if y < tope:
+            return _es_pelo(color)
+        return y < fondo and _es_pelo(color) and _apagado(color)
+
     marca = [[False] * ancho for _ in range(alto)]
     cola = deque((x, y) for x in range(ancho) for y in range(max(2, alto // 12)) if _es_pelo(datos[x, y]))
     for x, y in cola:
@@ -175,7 +197,7 @@ def teñir_pelo(figura: Image.Image, tramos, hasta: float, ojos: tuple[int, int,
     while cola:
         x, y = cola.popleft()
         for nx, ny in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
-            if 0 <= nx < ancho and 0 <= ny < tope and not marca[ny][nx] and _es_pelo(datos[nx, ny]):
+            if 0 <= nx < ancho and 0 <= ny < alto and not marca[ny][nx] and entra(nx, ny):
                 marca[ny][nx] = True
                 cola.append((nx, ny))
     x0, y0, x1, y1 = ojos
@@ -270,20 +292,42 @@ CUERPO_SOFI = {
     "g": (140, 184, 96), "v": (88, 134, 74), "r": (156, 66, 60),
 }
 CUERPO_SOFI_DIBUJO = [      # brazos separados del torso por una línea, como en la hoja
-    "....oCCkCco....",
-    "..oCCCCkcccso..",
-    ".oCcoCCCccocso.",
-    ".oCcoCCcccocso.",
-    ".oCcoCccccocso.",
-    ".oppocccssoqqo.",
-    "...oGGGgggvo...",
-    "..oGGGggggvvo..",
-    "..oGGgggggvvo..",
-    "..ooooooooooo..",
-    "....oqo.oqo....",
-    "....oCo.oCo....",
-    "...orro.orro...",
-    "...ooo...ooo...",
+    "...ooCkcoo...",
+    "..oCCCkccso..",
+    ".oCCCCkcccso.",
+    "oCcoCCcccocso",
+    "oCcoCCcccocso",
+    "oCcoCccccocso",
+    "oCcoCcccsocso",
+    "oppoccccsoqqo",
+    "...oGGGgvo...",
+    "..oGGGggvvo..",
+    "..oGGgggvvo..",
+    "..ooooooooo..",
+    "...oqo.oqo...",
+    "...oqo.oqo...",
+    "...oCo.oCo...",
+    "..orro.orro..",
+    "..ooo...ooo..",
+]
+
+# Michi sentado como un gato de verdad (la hoja lo trae parado en dos patas, como muñeco): el
+# pecho blanco, las patas de adelante juntas, las ancas a los lados y la cola enroscada.
+CUERPO_MICHI = {"o": (44, 40, 58), "d": (92, 90, 110), "m": (130, 128, 148), "l": (168, 166, 184),
+                "W": (226, 224, 234)}
+CUERPO_MICHI_DIBUJO = [
+    "....ommmo.....",
+    "...omWWWmo....",
+    "..omlWWWmdo...",
+    "..omlWWWmdo...",
+    "..omlWWWmdo...",
+    ".omllWWWmmdo..",
+    ".omllWWWmmdo..",
+    ".omllWWWmmdo.o",
+    "omllmWoWmmddom",
+    "omllmWoWmmddmo",
+    "omllWWoWWmdddo",
+    ".oooooooooooo.",
 ]
 
 
@@ -376,15 +420,93 @@ def respiracion(imagen: Image.Image, cintura: int | None = None) -> Image.Image:
     return salida
 
 
+# --- proporciones ---------------------------------------------------------------------------
+
+# La hoja dibuja cabezones: la cabeza, con el pelo, es casi la mitad del alto. Liss tiene
+# proporciones de verdad (la cabeza es un poco más de un tercio) y los demás tienen que verse de
+# su mismo mundo. Así que antes de bajar a escala de juego la cabeza se achica y el cuerpo se
+# alarga: poco el torso, mucho las piernas (en los cabezones son lo más corto) y nada los pies.
+PROPORCION = {"cabeza": 0.75, "torso": 1.12, "piernas": 1.8}
+
+
+def _redimensionar(imagen: Image.Image, ancho: int, alto: int) -> Image.Image:
+    """Cambia el tamaño con alfa premultiplicado: el borde no se ensucia con el fondo."""
+    return imagen.convert("RGBa").resize((max(1, ancho), max(1, alto)), Image.LANCZOS).convert("RGBA")
+
+
+def _frontera_del_pelo(datos, ancho: int, y: int) -> int:
+    """Hasta dónde llega, desde la izquierda, el pelo largo que cae por detrás del hombro: hasta
+    el primer píxel de ropa o de piel (claro o con color), dejándole su contorno a la ropa."""
+    for x in range(ancho):
+        color = datos[x, y]
+        if color[3] and (_luz(color) > 140 or max(color[:3]) - min(color[:3]) > 70):
+            return max(0, x - 2)
+    return 0
+
+
+def proporcionar(figura: Image.Image, menton: int, cadera: int, tobillo: int, pelo_largo: bool = False):
+    """Achica la cabeza y alarga el cuerpo. Devuelve la figura nueva y una función que lleva un
+    punto del recorte original a la figura nueva (para pegar retoques en su lugar).
+
+    `menton`, `cadera` y `tobillo` son filas del recorte. La cabeza se achica alrededor del
+    cuello, así queda centrada sobre los hombros aunque el personaje esté de tres cuartos. Con
+    `pelo_largo`, el pelo que cae por detrás del hombro viaja con la cabeza y no se despega.
+    """
+    k = PROPORCION
+    ancho, alto = figura.size
+    datos = figura.load()
+    cabeza = Image.new("RGBA", (ancho, alto), (0, 0, 0, 0))
+    cuerpo_ = Image.new("RGBA", (ancho, alto), (0, 0, 0, 0))
+    cab, cue = cabeza.load(), cuerpo_.load()
+    for y in range(alto):
+        limite = ancho if y < menton else (_frontera_del_pelo(datos, ancho, y) if pelo_largo else 0)
+        for x in range(ancho):
+            (cab if x < limite else cue)[x, y] = datos[x, y]
+
+    # El cuello: el centro de la piel justo debajo del mentón.
+    piel = [x for y in range(max(0, menton - 4), min(alto, menton + 4)) for x in range(ancho)
+            if datos[x, y][3] and datos[x, y][0] > datos[x, y][1] + 25 and _luz(datos[x, y]) > 110]
+    cuello = sum(piel) / len(piel) if piel else ancho / 2
+
+    tramos = [(menton, cadera, k["torso"]), (cadera, tobillo, k["piernas"]), (tobillo, alto, 1.0)]
+    alturas = [round((y1 - y0) * f) for y0, y1, f in tramos]
+    menton_nuevo = round(menton * k["cabeza"])
+    nueva = Image.new("RGBA", (ancho, menton_nuevo + sum(alturas)), (0, 0, 0, 0))
+    y = menton_nuevo
+    for (y0, y1, _), h in zip(tramos, alturas):
+        nueva.alpha_composite(_redimensionar(cuerpo_.crop((0, y0, ancho, y1)), ancho, h), (0, y))
+        y += h
+
+    caja = cabeza.getbbox()
+    chica = _redimensionar(cabeza.crop(caja), round((caja[2] - caja[0]) * k["cabeza"]),
+                           round((caja[3] - caja[1]) * k["cabeza"]))
+    x_cabeza = round(cuello + (caja[0] - cuello) * k["cabeza"])
+    y_cabeza = round(menton_nuevo + (caja[1] - menton) * k["cabeza"])
+    nueva.alpha_composite(chica, (max(0, x_cabeza), max(0, y_cabeza)))
+
+    def a_nuevo(x: float, y: float) -> tuple[float, float]:
+        if y < menton:
+            return cuello + (x - cuello) * k["cabeza"], menton_nuevo + (y - menton) * k["cabeza"]
+        destino = menton_nuevo
+        for (y0, y1, f), h in zip(tramos, alturas):
+            if y < y1:
+                return x, destino + (y - y0) * f
+            destino += h
+        return x, destino
+
+    return nueva.crop(nueva.getbbox()), a_nuevo
+
+
 # --- personajes -----------------------------------------------------------------------------
 
 # Qué celda de la hoja es cada uno y a qué alto va. Los adultos miden lo que Liss (32) o casi;
 # Doña Flora es un poco más bajita y Sofi es una niña.
 PERSONAJES = {
-    "alex": {"cuerpo": (7, 0), "alto": 33, "retrato": (0, 0)},
-    "beto": {"cuerpo": (3, 0), "alto": 32, "retrato": (0, 1), "pelo": CANOSO,
+    "alex": {"cuerpo": (7, 0), "alto": 33, "retrato": (0, 0), "partes": (55, 88, 105)},
+    "beto": {"cuerpo": (3, 0), "alto": 32, "retrato": (0, 1), "pelo": CANOSO, "partes": (51, 80, 92),
              "ojos_cuerpo": (14, 27, 52, 40), "ojos_retrato": (45, 62, 140, 108)},
-    "flora": {"cuerpo": (4, 0), "alto": 30, "retrato": (0, 2), "pelo": CANAS,
+    "flora": {"cuerpo": (4, 0), "alto": 30, "retrato": (0, 2), "pelo": CANAS, "pelo_largo": True,
+              "partes": (53, 86, 98),
               "ojos_cuerpo": (22, 28, 58, 40), "ojos_retrato": (48, 66, 150, 104)},
     "sofi": {"alto": 26, "retrato": (0, 3), "pelo": CASTANO, "ojos_retrato": (45, 80, 140, 118)},
     "michi": {"cuerpo": (6, 0), "alto": 18, "retrato": (1, 0)},
@@ -397,7 +519,8 @@ def retrato(hoja: Hoja, ident: str) -> tuple[Image.Image, set]:
     fijos: set = set()
     figura = hoja.recortar(*receta["retrato"])
     if "pelo" in receta:
-        figura = teñir_pelo(figura, receta["pelo"], 0.68, receta["ojos_retrato"])
+        figura = teñir_pelo(figura, receta["pelo"], 0.68, receta["ojos_retrato"],
+                            abajo=1.0 if receta.get("pelo_largo") else None)
     imagen = a_escala(cuadrado(figura), RETRATO)
     if ident == "alex":
         for x in (17, 29):
@@ -420,15 +543,31 @@ def cuerpo_sofi(hoja: Hoja) -> tuple[Image.Image, set]:
     receta = PERSONAJES["sofi"]
     figura = teñir_pelo(hoja.recortar(*receta["retrato"]), receta["pelo"], 0.68, receta["ojos_retrato"])
     # Solo la cabeza: los hombros del retrato son de adulto, el cuerpo de una niña es más angosto.
-    cabeza = a_escala(figura.crop((0, 0, figura.width, round(figura.height * 0.74))), 13)
+    # La cabeza mide 10 de 26: una niña es más cabezona que un adulto, pero no la mitad del alto.
+    cabeza = a_escala(figura.crop((0, 0, figura.width, round(figura.height * 0.74))), 10)
     alto, ancho = receta["alto"], 20
     lienzo = Image.new("RGBA", (ancho, alto), (0, 0, 0, 0))
-    fijos = pintar(lienzo, 2, alto - len(CUERPO_SOFI_DIBUJO), CUERPO_SOFI_DIBUJO, CUERPO_SOFI)
+    cuerpo_x = (ancho - len(CUERPO_SOFI_DIBUJO[0])) // 2
+    fijos = pintar(lienzo, cuerpo_x, alto - len(CUERPO_SOFI_DIBUJO), CUERPO_SOFI_DIBUJO, CUERPO_SOFI)
     lienzo.alpha_composite(cabeza, ((ancho - cabeza.width) // 2, 0))
     # Las coletas salen de debajo del pelo y se asoman por los costados de la cabeza.
     izquierda = (ancho - cabeza.width) // 2 - 2
-    fijos |= pintar(lienzo, izquierda, 6, COLETA_SPRITE, COLETA)
-    fijos |= pintar(lienzo, izquierda + cabeza.width + 1, 6, espejo(COLETA_SPRITE), COLETA)
+    fijos |= pintar(lienzo, izquierda, 4, COLETA_SPRITE, COLETA)
+    fijos |= pintar(lienzo, izquierda + cabeza.width + 1, 4, espejo(COLETA_SPRITE), COLETA)
+    return lienzo, fijos
+
+
+def cuerpo_michi(hoja: Hoja) -> tuple[Image.Image, set]:
+    """Michi sentado: la cabeza de la hoja (orejas, ojos verdes y bigotes) sobre un cuerpo de gato
+    de verdad pintado acá con los grises de la hoja."""
+    gato = hoja.recortar(*PERSONAJES["michi"]["cuerpo"])
+    cabeza = a_escala(gato.crop((0, 0, gato.width, round(gato.height * 0.56))), 8)
+    ancho = max(cabeza.width, len(CUERPO_MICHI_DIBUJO[0])) + 1
+    alto = cabeza.height + len(CUERPO_MICHI_DIBUJO) - 1
+    lienzo = Image.new("RGBA", (ancho, alto), (0, 0, 0, 0))
+    cuerpo_x = (ancho - len(CUERPO_MICHI_DIBUJO[0])) // 2 + 1
+    fijos = pintar(lienzo, cuerpo_x, alto - len(CUERPO_MICHI_DIBUJO), CUERPO_MICHI_DIBUJO, CUERPO_MICHI)
+    lienzo.alpha_composite(cabeza, ((ancho - cabeza.width) // 2, 0))
     return lienzo, fijos
 
 
@@ -438,17 +577,32 @@ def cuerpo(hoja: Hoja, ident: str) -> tuple[Image.Image, set]:
     fijos: set = set()
     if ident == "sofi":
         imagen, fijos = cuerpo_sofi(hoja)
+    elif ident == "michi":
+        imagen, fijos = cuerpo_michi(hoja)
     else:
         figura = hoja.recortar(*receta["cuerpo"])
         if "pelo" in receta:
-            figura = teñir_pelo(figura, receta["pelo"], 0.5, receta["ojos_cuerpo"])
+            figura = teñir_pelo(figura, receta["pelo"], 0.5, receta["ojos_cuerpo"],
+                                abajo=0.85 if receta.get("pelo_largo") else None)
+        a_nuevo = None
+        if "partes" in receta:
+            figura, a_nuevo = proporcionar(figura, *receta["partes"], pelo_largo=receta.get("pelo_largo", False))
         imagen = a_escala(figura, receta["alto"])
-    if ident == "flora":
-        # Del lado del pelo, no de la cara: de tres cuartos, la cara queda a la derecha.
-        flor = flor_del_pelo(hoja, 5)
-        imagen.alpha_composite(flor, (1, 4))
-    elif ident == "beto":
-        fijos |= pintar(imagen, imagen.width // 2 - 2, 13, BIGOTE_SPRITE, BIGOTE)
+        escala = imagen.height / figura.height
+
+        def en_juego(x: float, y: float) -> tuple[int, int]:
+            """Un punto del recorte de la hoja, en píxeles del sprite ya bajado."""
+            nx, ny = a_nuevo(x, y) if a_nuevo else (x, y)
+            return round(nx * escala), round(ny * escala)
+
+        if ident == "flora":
+            # Del lado del pelo, no de la cara: de tres cuartos, la cara queda a la derecha.
+            flor = flor_del_pelo(hoja, 5)
+            x, y = en_juego(12, 16)
+            imagen.alpha_composite(flor, (max(0, x - flor.width // 2), max(0, y - flor.height // 2)))
+        elif ident == "beto":
+            x, y = en_juego(31, 44)                       # entre la nariz y la boca
+            fijos |= pintar(imagen, x - len(BIGOTE_SPRITE[0]) // 2, y, BIGOTE_SPRITE, BIGOTE)
     if ident == "michi":
         return en_caja(imagen, max(14, imagen.width + 1), imagen.height + 1), fijos
     return en_caja(imagen, max(16, imagen.width + (imagen.width % 2)), ALTO_CAJA), fijos
