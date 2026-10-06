@@ -29,7 +29,7 @@
 
 // --- puertas (zona x0 y0 x1 y1 · destino en las unidades del mapa destino)
 #! puerta Casa 136 156 157 170 68 202
-#! puerta Floreria 656 170 673 184 7 10
+#! puerta Floreria 656 170 673 184 155 210
 #! puerta Colina 726 14 747 30 258 292              // el camino de arriba a la derecha
 #! puerta Colina 386 0 414 10 258 292               // y el de arriba al centro, que sale del mapa
 

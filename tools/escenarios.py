@@ -180,6 +180,9 @@ def retocar(imagen: Image.Image, retoques: list[list[str]]) -> None:
     - `copiar x0 y0 x1 y1 a dx dy`   tapa algo con un parche de la misma pintura
     - `espejar x0 y0 x1 y1 a dx dy`  igual, pero dado vuelta (para objetos simétricos)
     - `rellenar x0 y0 x1 y1 #rrggbb`
+    - `interpolar x0 y0 x1 y1`       cada fila pasa del color de su borde izquierdo al del derecho:
+                                     borra algo puesto encima de una superficie con franjas
+                                     horizontales (una maceta, una tabla) sin dejar costura
     - `dibujo <nombre> x y`          uno de los dibujitos de DIBUJOS (abajo)
     """
     for partes in retoques:
@@ -194,6 +197,14 @@ def retocar(imagen: Image.Image, retoques: list[list[str]]) -> None:
         elif orden == "rellenar":
             x0, y0, x1, y1 = _numeros(partes[1:5])
             ImageDraw.Draw(imagen).rectangle([x0, y0, x1 - 1, y1 - 1], fill=_color(partes[5]))
+        elif orden == "interpolar":
+            x0, y0, x1, y1 = _numeros(partes[1:5])
+            datos = imagen.load()
+            for y in range(y0, y1):
+                izquierda, derecha = datos[x0 - 1, y], datos[x1, y]
+                for x in range(x0, x1):
+                    t = (x - x0 + 1) / (x1 - x0 + 1)
+                    datos[x, y] = tuple(round(a + (b - a) * t) for a, b in zip(izquierda, derecha))
         elif orden == "dibujo":
             x, y = _numeros(partes[2:4])
             DIBUJOS[partes[1]](ImageDraw.Draw(imagen), x, y)
@@ -250,7 +261,31 @@ def _espejo_ropero(dib: ImageDraw.ImageDraw, x: int, y: int) -> None:
         dib.point((x + dx, y + dy), fill=brillo)
 
 
-DIBUJOS = {"nota": _nota, "marca_calendario": _marca_calendario, "espejo_ropero": _espejo_ropero}
+def _flor_cartel(dib: ImageDraw.ImageDraw, x: int, y: int) -> None:
+    """La flor pintada en el letrero de la florería, donde la ilustración traía el nombre escrito.
+
+    (x, y) es la esquina de arriba a la izquierda; mide 9 × 9 con dos hojitas a los lados. Los
+    amarillos son los de las flores de la propia pintura.
+    """
+    claro, amarillo, ambar, centro = (255, 228, 120), (242, 196, 64), (206, 140, 44), (168, 84, 40)
+    borde, hoja, hoja_luz = (88, 46, 30), (64, 112, 58), (104, 152, 76)
+    for dx, dy in ((3, 0), (0, 3), (6, 3), (3, 6)):                    # cuatro pétalos en cruz
+        dib.rectangle([x + dx, y + dy, x + dx + 2, y + dy + 2], fill=amarillo)
+        dib.point((x + dx, y + dy), fill=claro)
+        dib.point((x + dx + 2, y + dy + 2), fill=ambar)
+    dib.rectangle([x + 3, y + 3, x + 5, y + 5], fill=ambar)
+    dib.point((x + 4, y + 4), fill=centro)
+    for px, py in ((x + 3, y - 1), (x + 5, y - 1), (x - 1, y + 3), (x - 1, y + 5),
+                   (x + 9, y + 3), (x + 9, y + 5), (x + 3, y + 9), (x + 5, y + 9)):
+        dib.point((px, py), fill=borde)
+    dib.line([x - 4, y + 4, x - 2, y + 4], fill=hoja)                   # las hojitas
+    dib.point((x - 3, y + 3), fill=hoja_luz)
+    dib.line([x + 10, y + 4, x + 12, y + 4], fill=hoja)
+    dib.point((x + 11, y + 3), fill=hoja_luz)
+
+
+DIBUJOS = {"nota": _nota, "marca_calendario": _marca_calendario, "espejo_ropero": _espejo_ropero,
+           "flor_cartel": _flor_cartel}
 
 
 def pintura(mapa: dict) -> Image.Image:

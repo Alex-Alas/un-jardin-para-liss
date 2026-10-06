@@ -1104,7 +1104,7 @@
    "frame": {
     "x": 153,
     "y": 168,
-    "w": 16,
+    "w": 18,
     "h": 34
    },
    "rotated": false,
@@ -1112,19 +1112,19 @@
    "spriteSourceSize": {
     "x": 0,
     "y": 0,
-    "w": 16,
+    "w": 18,
     "h": 34
    },
    "sourceSize": {
-    "w": 16,
+    "w": 18,
     "h": 34
    }
   },
   "npc_alex_abajo_1": {
    "frame": {
-    "x": 170,
+    "x": 172,
     "y": 168,
-    "w": 16,
+    "w": 18,
     "h": 34
    },
    "rotated": false,
@@ -1132,17 +1132,17 @@
    "spriteSourceSize": {
     "x": 0,
     "y": 0,
-    "w": 16,
+    "w": 18,
     "h": 34
    },
    "sourceSize": {
-    "w": 16,
+    "w": 18,
     "h": 34
    }
   },
   "npc_beto_abajo_0": {
    "frame": {
-    "x": 187,
+    "x": 191,
     "y": 168,
     "w": 16,
     "h": 34
@@ -1162,7 +1162,7 @@
   },
   "npc_beto_abajo_1": {
    "frame": {
-    "x": 204,
+    "x": 208,
     "y": 168,
     "w": 16,
     "h": 34
@@ -1182,7 +1182,7 @@
   },
   "npc_flora_abajo_0": {
    "frame": {
-    "x": 221,
+    "x": 225,
     "y": 168,
     "w": 16,
     "h": 34
@@ -1202,47 +1202,7 @@
   },
   "npc_flora_abajo_1": {
    "frame": {
-    "x": 238,
-    "y": 168,
-    "w": 16,
-    "h": 34
-   },
-   "rotated": false,
-   "trimmed": false,
-   "spriteSourceSize": {
     "x": 0,
-    "y": 0,
-    "w": 16,
-    "h": 34
-   },
-   "sourceSize": {
-    "w": 16,
-    "h": 34
-   }
-  },
-  "npc_michi_abajo_0": {
-   "frame": {
-    "x": 0,
-    "y": 203,
-    "w": 16,
-    "h": 34
-   },
-   "rotated": false,
-   "trimmed": false,
-   "spriteSourceSize": {
-    "x": 0,
-    "y": 0,
-    "w": 16,
-    "h": 34
-   },
-   "sourceSize": {
-    "w": 16,
-    "h": 34
-   }
-  },
-  "npc_michi_abajo_1": {
-   "frame": {
-    "x": 17,
     "y": 203,
     "w": 16,
     "h": 34
@@ -1262,9 +1222,9 @@
   },
   "npc_sofi_abajo_0": {
    "frame": {
-    "x": 34,
+    "x": 17,
     "y": 203,
-    "w": 16,
+    "w": 20,
     "h": 34
    },
    "rotated": false,
@@ -1272,19 +1232,19 @@
    "spriteSourceSize": {
     "x": 0,
     "y": 0,
-    "w": 16,
+    "w": 20,
     "h": 34
    },
    "sourceSize": {
-    "w": 16,
+    "w": 20,
     "h": 34
    }
   },
   "npc_sofi_abajo_1": {
    "frame": {
-    "x": 51,
+    "x": 38,
     "y": 203,
-    "w": 16,
+    "w": 20,
     "h": 34
    },
    "rotated": false,
@@ -1292,17 +1252,17 @@
    "spriteSourceSize": {
     "x": 0,
     "y": 0,
-    "w": 16,
+    "w": 20,
     "h": 34
    },
    "sourceSize": {
-    "w": 16,
+    "w": 20,
     "h": 34
    }
   },
   "ramo_0": {
    "frame": {
-    "x": 68,
+    "x": 59,
     "y": 203,
     "w": 16,
     "h": 24
@@ -1320,9 +1280,49 @@
     "h": 24
    }
   },
+  "npc_michi_abajo_0": {
+   "frame": {
+    "x": 76,
+    "y": 203,
+    "w": 16,
+    "h": 20
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 20
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 20
+   }
+  },
+  "npc_michi_abajo_1": {
+   "frame": {
+    "x": 93,
+    "y": 203,
+    "w": 16,
+    "h": 20
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 20
+   },
+   "sourceSize": {
+    "w": 16,
+    "h": 20
+   }
+  },
   "ui_corazon": {
    "frame": {
-    "x": 85,
+    "x": 110,
     "y": 203,
     "w": 16,
     "h": 16
@@ -1342,7 +1342,7 @@
   },
   "ui_flor": {
    "frame": {
-    "x": 102,
+    "x": 127,
     "y": 203,
     "w": 16,
     "h": 16
@@ -1358,6 +1358,66 @@
    "sourceSize": {
     "w": 16,
     "h": 16
+   }
+  },
+  "ui_corazon_chico": {
+   "frame": {
+    "x": 144,
+    "y": 203,
+    "w": 9,
+    "h": 8
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 9,
+    "h": 8
+   },
+   "sourceSize": {
+    "w": 9,
+    "h": 8
+   }
+  },
+  "fx_petalo": {
+   "frame": {
+    "x": 154,
+    "y": 203,
+    "w": 6,
+    "h": 7
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 6,
+    "h": 7
+   },
+   "sourceSize": {
+    "w": 6,
+    "h": 7
+   }
+  },
+  "fx_hoja": {
+   "frame": {
+    "x": 161,
+    "y": 203,
+    "w": 8,
+    "h": 6
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 8,
+    "h": 6
+   },
+   "sourceSize": {
+    "w": 8,
+    "h": 6
    }
   }
  },

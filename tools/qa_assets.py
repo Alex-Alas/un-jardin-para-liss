@@ -28,7 +28,7 @@ PESO_MAX_FOTO = 320 * 1024
 ACENTOS = "áéíóúüñÁÉÍÓÚÜÑ¿¡«»"
 
 
-def revisar_png(ruta: Path, informe: list, avisos: list, max_colores: int = MAX_COLORES) -> None:
+def revisar_png(ruta: Path, informe: list, avisos: list, max_colores: int | None = MAX_COLORES) -> None:
     with Image.open(ruta) as imagen:
         modo = imagen.mode
         ancho, alto = imagen.size
@@ -38,7 +38,7 @@ def revisar_png(ruta: Path, informe: list, avisos: list, max_colores: int = MAX_
         sucio = sorted(a for a in alfas if a not in (0, 255))
         informe.append({"archivo": str(ruta.relative_to(RAIZ)), "tamano": [ancho, alto], "modo": modo,
                         "colores": cantidad, "alfaSucio": sucio[:6]})
-        if cantidad > max_colores:
+        if max_colores is not None and cantidad > max_colores:
             avisos.append(f"{ruta.name}: {cantidad} colores (máximo {max_colores})")
         if sucio:
             avisos.append(f"{ruta.name}: alpha con valores intermedios ({sucio[:4]})")
@@ -136,7 +136,10 @@ def main() -> int:
     for png in sorted(ASSETS.glob("*.png")):
         if png.name.startswith("fuente_prueba") or png.name == "atlas.png":
             continue
-        revisar_png(png, informe, avisos)
+        # Los mapas pintados, sus frentes y los fondos son ilustraciones, no sprites: el tope de
+        # colores de docs/arte.md no va con ellos (se guardan en 256 a propósito). El alpha sí.
+        ilustracion = png.name.startswith(("mapa_", "fondo_"))
+        revisar_png(png, informe, avisos, None if ilustracion else MAX_COLORES)
 
     revisar_atlas(informe, avisos, errores)
     revisar_fuente(informe, avisos, errores)

@@ -153,7 +153,7 @@ Object.entries(AG.MAPAS).forEach(([nombre, mapa]) => {
 
 /* Que todo se pueda alcanzar: desde el inicio de cada mapa (y desde cada lugar donde una puerta
  * deja a Liss) se recorre lo pisable y se revisa cada puerta y cada cosa que se toca. */
-const INICIOS = { casa: { x: 9, y: 11 }, pueblo: { x: 6, y: 9 }, floreria: { x: 7, y: 10 }, colina: { x: 16, y: 17 } };
+const INICIOS = { casa: { x: 9, y: 11 }, pueblo: { x: 6, y: 9 }, floreria: { px: 155, py: 210 }, colina: { x: 16, y: 17 } };
 Object.entries(AG.MAPAS).forEach(([nombre, mapa]) => {
   const { bloqueado } = grillaDe(mapa);
   const llegadas = [aPixeles(mapa.inicio || INICIOS[nombre])];
@@ -183,6 +183,23 @@ Object.entries(AG.MAPAS).forEach(([nombre, mapa]) => {
   llegadas.slice(1).forEach((llegada) => {
     if (!posiciones.some(([px, py]) => Math.abs(px - llegada.x) <= 3 && Math.abs(py - llegada.y) <= 3)) {
       errores.push(`mapa ${nombre}: desde (${llegada.x},${llegada.y}) no se llega al resto del mapa`);
+    }
+  });
+});
+
+/* Al terminar un minijuego, Liss vuelve a un punto de otro mapa: tiene que ser un lugar pisable. */
+Object.entries(AG.DIALOGOS).forEach(([clave, lineas]) => {
+  [].concat(...(Array.isArray(lineas[0]) ? lineas : [lineas])).forEach((linea) => {
+    const datos = linea.lanzarEscena && linea.lanzarEscena.datos;
+    if (!datos || !datos.volver || !datos.inicio) return;
+    const mapa = AG.MAPAS[datos.volver.toLowerCase()];
+    if (!mapa) {
+      errores.push(`${clave}: el minijuego vuelve a un mapa desconocido: ${datos.volver}`);
+      return;
+    }
+    const { x, y } = aPixeles(datos.inicio);
+    if (grillaDe(mapa).bloqueado(x, y)) {
+      errores.push(`${clave}: al volver a ${datos.volver}, Liss queda dentro de algo sólido en (${x},${y})`);
     }
   });
 });

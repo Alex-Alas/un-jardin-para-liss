@@ -16,7 +16,8 @@ Python. Todo el texto está en español (El Salvador), tuteando.
 - **F0 ✅** repo, scaffold, Phaser 4.2.1 vendorizado, docs, esqueleto ejecutable.
 - **F1 ✅** la hoja de Liss llegó, está normalizada y Liss camina en 8 direcciones (ver
   `docs/arte.md § La hoja de Liss manda`).
-- **F2 🟡** falta el arte de los demás: NPCs, objetos, tiles e iconos (hoy los pinta el mapa).
+- **F2 ✅** el arte de los demás sale de `assets/source/personajes-sheet.png`, en el estilo pintado
+  de Liss; los cuatro mapas son ilustraciones y el título y los pétalos tienen fondos pintados.
 - F3, F6 ✅ · F4, F5, F7 🟡 (faltan fotos, la 2ª escena de pétalos y publicar en Pages).
 
 El manifiesto (`assets/manifest.js`, generado por `tools/actualizar_manifest.py`) dice qué arte
@@ -146,10 +147,10 @@ Nombres exactos en `docs/arte.md` § Nombres de frames. Regla: `{personaje}_{acc
 direcciones en español y en ocho sentidos (`abajo`, `abajo_derecha`, `derecha`, `arriba_derecha`,
 `arriba`, `arriba_izquierda`, `izquierda`, `abajo_izquierda`).
 
-Hoy el atlas es solo de Liss: `liss_idle_<dir>_0/_1`, `liss_camina_<dir>_0..3`,
-`retrato_liss_normal` y `retrato_liss_feliz` (50 frames, 16×34 px el sprite y 48×48 el retrato).
-El código pide los frames que faltan con guardas (`AG.tieneFrame`), así que agregar personajes es
-agregar frames, sin tocar escenas.
+El atlas trae a Liss (`liss_idle_<dir>_0/_1`, `liss_camina_<dir>_0..3`, `retrato_liss_normal` y
+`retrato_liss_feliz`), a los cinco NPCs (`npc_<id>_abajo_0/_1`, `retrato_<id>_normal`), el ramo, los
+iconos y las partículas: 71 frames. El código pide los frames que faltan con guardas
+(`AG.tieneFrame`), así que agregar personajes es agregar frames, sin tocar escenas.
 
 ## Reglas de ingeniería
 

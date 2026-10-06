@@ -75,7 +75,7 @@ AG.DIALOGOS = {
     { quien: 'flora', texto: '¡Liss! Justo a quien necesitaba.' },
     { quien: 'flora', texto: 'Se me volaron los pétalos del ramo más bonito del año.' },
     { quien: 'flora', texto: '¿Me ayudas a juntarlos antes de que el viento se los lleve?' },
-    { lanzarEscena: { clave: 'Petalos', datos: { tipo: 'petalos1', volver: 'Floreria', inicio: { x: 7, y: 10 } } } }
+    { lanzarEscena: { clave: 'Petalos', datos: { tipo: 'petalos1', volver: 'Floreria', inicio: { px: 248, py: 178 } } } }
   ],
   'pueblo.flora.post': [
     { quien: 'flora', texto: '¡Bien hecho, mi niña! Este ramo ya tiene dueña.' },

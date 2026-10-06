@@ -14,7 +14,13 @@
   "frentes": [
     "casa",
     "pueblo",
+    "floreria",
     "colina"
+  ],
+  "fondos": [
+    "titulo",
+    "petalos1",
+    "petalos2"
   ],
   "fotos": [
     "r1",

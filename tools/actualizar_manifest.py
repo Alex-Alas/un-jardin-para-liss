@@ -15,6 +15,7 @@ from pathlib import Path
 RAIZ = Path(__file__).resolve().parent.parent
 ASSETS = RAIZ / "assets"
 MAPAS = ["casa", "pueblo", "floreria", "colina"]
+FONDOS = ["titulo", "petalos1", "petalos2"]       # tools/fondos.py
 
 
 def detectar() -> dict:
@@ -29,6 +30,7 @@ def detectar() -> dict:
         "atlas": (ASSETS / "atlas.png").exists() and (ASSETS / "atlas.json").exists(),
         "mapas": mapas,
         "frentes": frentes,
+        "fondos": [f for f in FONDOS if (ASSETS / f"fondo_{f}.png").exists()],
         "fotos": fotos,
         "fotosPendientes": [
             f"r{i}" for i in range(1, 7) if f"r{i}" not in fotos

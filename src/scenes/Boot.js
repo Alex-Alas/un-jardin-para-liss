@@ -18,6 +18,10 @@ AG.Boot = class Boot extends Phaser.Scene {
       console.info('[Boot] Sin fuente bitmap todavía: se usa la fuente del sistema.');
     }
 
+    (AG.MANIFIESTO.fondos || []).forEach((clave) => {
+      this.load.image(`fondo_${clave}`, AG.ASSETS.fondo(clave));
+    });
+
     if (AG.hayAtlas()) {
       this.load.atlas('arte', AG.ASSETS.atlas(), AG.ASSETS.atlasDatos());
     } else {

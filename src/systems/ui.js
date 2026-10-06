@@ -73,6 +73,14 @@ window.AG = window.AG || {};
     },
 
     corazon(scene, x, y, escala = 1) {
+      // El corazón pintado del atlas: el chico (9 × 8) para cursores e indicadores y el grande
+      // (16 × 16) cuando se dibuja enorme, que si no se le notan los píxeles al chico.
+      if (escala >= 3 && AG.tieneFrame(scene, 'ui_corazon')) {
+        return scene.add.image(x, y, 'arte', 'ui_corazon').setScale(escala / 2);
+      }
+      if (AG.tieneFrame(scene, 'ui_corazon_chico')) {
+        return scene.add.image(x, y, 'arte', 'ui_corazon_chico').setScale(escala);
+      }
       if (scene.textures.exists('corazon')) {
         return scene.add.image(x, y, 'corazon').setScale(escala);
       }

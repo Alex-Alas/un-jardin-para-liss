@@ -6,7 +6,7 @@ AG.Floreria = class Floreria extends AG.Mundo {
       clave: 'Floreria',
       mapa: 'floreria',
       musica: 'pueblo',
-      inicio: { x: 7, y: 10 },
+      inicio: { px: 155, py: 210 },
       petalos: 0
     });
   }

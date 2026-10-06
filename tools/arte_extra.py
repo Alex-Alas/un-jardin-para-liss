@@ -1,19 +1,29 @@
 #!/usr/bin/env python3
-"""Dibuja a mano (con código) todo el arte que no sale de la hoja de Liss.
+"""Todo el arte de personajes y objetos que no sale de la hoja de Liss.
 
-NPCs, sus retratos, el ramo y los iconos de la UI. `tools/generate_sprites.py` importa
-`piezas()` y los empaca en el mismo atlas que los frames de Liss, así el juego sigue cargando
-un solo PNG.
+NPCs, sus retratos, el ramo y los iconos de la UI salen de `assets/source/personajes-sheet.png`,
+una hoja pintada en el mismo estilo que Liss (pixel art de render suave, contornos tibios, cachetes
+rosados). Se recortan y se bajan a la escala del juego con la misma receta que Liss, así todos
+parecen del mismo dibujo. `tools/generate_sprites.py` importa `piezas()` y los empaca en el mismo
+atlas que los frames de Liss, así el juego sigue cargando un solo PNG.
 
-Reglas que manda `docs/arte.md` y que este módulo respeta:
+La hoja no trae a los personajes tal como los pide el guion, así que a algunos se les retoca:
 
-- caja de personaje 16 × 34, con los pies apoyados en la última fila (origen 0.5, 1 en el motor);
-- las proporciones de Liss: cabezota (filas 2–15), torso (16–28), piernas (29–31), pies (32–33);
-- contorno de 1 px en tinta, luz desde arriba-izquierda, 2 tonos por material;
-- alpha duro (0 o 255) y ≤ 24 colores por asset;
-- nada de texto dentro del arte.
+- **Doña Flora**: la chica de lentes, con canas y una flor amarilla en el pelo;
+- **Don Beto**: el chico de lentes, canoso y con bigote;
+- **Sofi**: la niña de la sudadera crema, castaña y con coletas de listón amarillo, para que no se
+  confunda con Alex. Su cabeza sale del retrato y el cuerpo se pinta acá, porque la hoja no la
+  trae de cuerpo entero mirando al frente;
+- **Michi**: la hoja lo trae parado en dos patas; acá se sienta como un gato de verdad.
 
-No depende de la hoja de Liss: es determinista y se puede correr solo para mirar el resultado.
+Y a todos se les corrigen las proporciones: la hoja dibuja cabezones y Liss no, así que la cabeza
+se achica y el cuerpo se alarga hasta que se ven del mismo mundo (ver `proporcionar`).
+
+El pétalo, la hoja seca y el corazón chico del motor se pintan grandes con degradados y se bajan
+igual que todo lo demás: así una partícula de 7 px tiene el mismo modelado que Liss.
+
+Reglas que manda `docs/arte.md` y que este módulo respeta: pies apoyados en la última fila
+(origen 0.5, 1 en el motor), alpha duro (0 o 255) y ≤ 24 colores por asset.
 
     .venv/bin/python tools/arte_extra.py --contacto   # dist/contacto_extra.png
 """
@@ -22,407 +32,387 @@ from __future__ import annotations
 
 import argparse
 import sys
+from collections import deque
 from pathlib import Path
 
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFilter
 
 sys.path.insert(0, str(Path(__file__).parent))
-from paleta import hex_a_rgb, rgb  # noqa: E402
 
 RAIZ = Path(__file__).resolve().parent.parent
+HOJA = RAIZ / "assets" / "source" / "personajes-sheet.png"
 
-CAJA_W, CAJA_H = 16, 34
-RETRATO = 48          # el retrato se dibuja a 24 y se duplica: mismo píxel, sin inventar detalle
+ALTO_CAJA = 34        # la caja de Liss: los personajes de pie miden lo mismo de alto
+RETRATO = 48
+FONDO_MAXIMO = 10     # el fondo de la hoja es negro: hasta este valor de canal es fondo
+TINTA_HOJA = 14       # para encontrar bandas y columnas basta con "no es negro"
 
-# Tonos de piel y pelo: los mismos hexadecimales que salieron de la hoja de Liss, para que los
-# NPCs y ella parezcan del mismo dibujo (ver docs/arte.md § Paleta).
-PIEL = {
-    "clara":  ("#fbc3ae", "#f1af9a", "#cc9a8f"),
-    "media":  ("#f1af9a", "#ed8f6e", "#c07967"),
-    "morena": ("#ed8f6e", "#c07967", "#9c5347"),
+
+# --- leer la hoja -------------------------------------------------------------------------------
+
+class Hoja:
+    """La hoja de personajes, leída por bandas horizontales y columnas, como la de Liss.
+
+    Bandas (de arriba abajo): 0 retratos de gente, 1 retrato del gato + Liss, 2 Alex, 3 el chico
+    de lentes, 4 la chica de lentes, 5 la niña de vestido, 6 el gato, 7 Alex de frente + objetos.
+    """
+
+    def __init__(self, ruta: Path = HOJA):
+        if not ruta.exists():
+            raise SystemExit(f"Falta la hoja de personajes en {ruta.relative_to(RAIZ)}.")
+        self.imagen = Image.open(ruta).convert("RGB")
+        self.px = self.imagen.load()
+        self._bandas = None
+        self._columnas = {}
+
+    def _oscuro(self, x: int, y: int) -> bool:
+        return max(self.px[x, y]) < TINTA_HOJA
+
+    def bandas(self) -> list[tuple[int, int]]:
+        if self._bandas is None:
+            ancho, alto = self.imagen.size
+            filas = [sum(1 for x in range(ancho) if not self._oscuro(x, y)) for y in range(alto)]
+            self._bandas = _tramos(filas, minimo=2, largo=8)
+        return self._bandas
+
+    def columnas(self, banda: int) -> list[tuple[int, int]]:
+        if banda not in self._columnas:
+            y0, y1 = self.bandas()[banda]
+            cuentas = [sum(1 for y in range(y0, y1 + 1) if not self._oscuro(x, y))
+                       for x in range(self.imagen.width)]
+            self._columnas[banda] = _tramos(cuentas, minimo=0, largo=6)
+        return self._columnas[banda]
+
+    def recortar(self, banda: int, columna: int) -> Image.Image:
+        """La figura de una celda con el fondo negro vuelto transparente.
+
+        El fondo se inunda desde el borde de la celda: así el contorno oscuro de la figura, que
+        también es casi negro, se queda (solo se va lo que toca el borde sin cruzar color).
+        """
+        y0, y1 = self.bandas()[banda]
+        x0, x1 = self.columnas(banda)[columna]
+        celda = self.imagen.crop((x0 - 3, y0 - 3, x1 + 4, y1 + 4))
+        ancho, alto = celda.size
+        datos = celda.load()
+
+        def fondo(x: int, y: int) -> bool:
+            return max(datos[x, y]) < FONDO_MAXIMO
+
+        fuera = [[False] * ancho for _ in range(alto)]
+        cola = deque((x, y) for x in range(ancho) for y in (0, alto - 1))
+        cola.extend((x, y) for y in range(alto) for x in (0, ancho - 1))
+        cola = deque(p for p in cola if fondo(*p))
+        for x, y in cola:
+            fuera[y][x] = True
+        while cola:
+            x, y = cola.popleft()
+            for nx, ny in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
+                if 0 <= nx < ancho and 0 <= ny < alto and not fuera[ny][nx] and fondo(nx, ny):
+                    fuera[ny][nx] = True
+                    cola.append((nx, ny))
+
+        figura = Image.new("RGBA", (ancho, alto))
+        figura.putdata([datos[x, y] + ((0,) if fuera[y][x] else (255,))
+                        for y in range(alto) for x in range(ancho)])
+        return figura.crop(figura.getbbox())
+
+
+def _tramos(cuentas: list[int], minimo: int, largo: int) -> list[tuple[int, int]]:
+    """Tramos seguidos donde la cuenta supera `minimo`, de al menos `largo` de largo."""
+    tramos, inicio = [], None
+    for i, cuenta in enumerate(cuentas + [0]):
+        if cuenta > minimo and inicio is None:
+            inicio = i
+        elif cuenta <= minimo and inicio is not None:
+            if i - inicio > largo:
+                tramos.append((inicio, i - 1))
+            inicio = None
+    return tramos
+
+
+# --- pelo -----------------------------------------------------------------------------------
+
+# Rampas por luminosidad: el tono más oscuro (el contorno) se queda casi igual de oscuro para que
+# la silueta no pierda su borde; el resto sube al color nuevo con las mismas luces y sombras.
+CANAS = [(0, (28, 20, 32)), (16, (64, 58, 76)), (34, (124, 118, 136)), (54, (174, 170, 186)),
+         (80, (220, 216, 230))]
+CANOSO = [(0, (24, 18, 28)), (16, (46, 42, 54)), (34, (90, 86, 100)), (54, (134, 130, 144)),
+          (80, (176, 172, 186))]
+CASTANO = [(0, (30, 16, 22)), (16, (60, 32, 30)), (34, (114, 62, 42)), (54, (160, 98, 58)),
+           (80, (202, 140, 86))]
+
+
+def _luz(color) -> float:
+    return 0.3 * color[0] + 0.59 * color[1] + 0.11 * color[2]
+
+
+def _es_pelo(color) -> bool:
+    """El pelo de la hoja es café oscuro tirando a morado: más rojo que verde y nada claro."""
+    r, g, _ = color[:3]
+    return color[3] > 0 and _luz(color) < 112 and r - g > 2 and r < 160
+
+
+def _rampa(tramos, valor: float) -> tuple[int, int, int]:
+    for (l0, c0), (l1, c1) in zip(tramos, tramos[1:]):
+        if valor <= l1:
+            t = max(0.0, min(1.0, (valor - l0) / max(1, l1 - l0)))
+            return tuple(round(a + (b - a) * t) for a, b in zip(c0, c1))
+    return tramos[-1][1]
+
+
+def _apagado(color) -> bool:
+    """Poco color: el pelo largo de abajo lo es; la sombra de la piel y la ropa roja, no."""
+    return max(color[:3]) - min(color[:3]) < 50
+
+
+def teñir_pelo(figura: Image.Image, tramos, hasta: float, ojos: tuple[int, int, int, int],
+               abajo: float | None = None) -> Image.Image:
+    """Cambia el color del pelo conservando su modelado.
+
+    Es pelo lo oscuro y café que está conectado con la coronilla, de `hasta` (fracción del alto)
+    para arriba: así no se tiñen la ropa oscura ni los zapatos. Los ojos también son oscuros y a
+    veces tocan el flequillo por las cejas, así que su caja `ojos` (x0 y0 x1 y1, en píxeles del
+    recorte) queda fuera.
+
+    Con `abajo`, el pelo largo que cae sobre los hombros se sigue tiñendo hasta esa fracción del
+    alto, pero ahí solo pasan los tonos apagados: más abajo del mentón hay ropa y cuello, y sus
+    sombras son oscuras pero con mucho más color que el pelo.
+    """
+    figura = figura.copy()
+    ancho, alto = figura.size
+    datos = figura.load()
+    tope = int(alto * hasta)
+    fondo = int(alto * abajo) if abajo else tope
+
+    def entra(x: int, y: int) -> bool:
+        color = datos[x, y]
+        if y < tope:
+            return _es_pelo(color)
+        return y < fondo and _es_pelo(color) and _apagado(color)
+
+    marca = [[False] * ancho for _ in range(alto)]
+    cola = deque((x, y) for x in range(ancho) for y in range(max(2, alto // 12)) if _es_pelo(datos[x, y]))
+    for x, y in cola:
+        marca[y][x] = True
+    while cola:
+        x, y = cola.popleft()
+        for nx, ny in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
+            if 0 <= nx < ancho and 0 <= ny < alto and not marca[ny][nx] and entra(nx, ny):
+                marca[ny][nx] = True
+                cola.append((nx, ny))
+    x0, y0, x1, y1 = ojos
+    for y in range(alto):
+        for x in range(ancho):
+            if marca[y][x] and not (x0 <= x < x1 and y0 <= y < y1):
+                datos[x, y] = _rampa(tramos, _luz(datos[x, y])) + (datos[x, y][3],)
+    return figura
+
+
+# --- retoques a escala de juego ---------------------------------------------------------------
+
+def pintar(imagen: Image.Image, x: int, y: int, dibujo: list[str], colores: dict[str, tuple]) -> set:
+    """Pega un dibujito de píxeles: cada letra es un color de `colores` y el punto no pinta.
+
+    Devuelve los colores que usó: la paleta los tiene que conservar tal cual (ver `cuantizar`).
+    """
+    datos = imagen.load()
+    usados = set()
+    for fila, linea in enumerate(dibujo):
+        for col, letra in enumerate(linea):
+            if letra == "." or not (0 <= x + col < imagen.width and 0 <= y + fila < imagen.height):
+                continue
+            datos[x + col, y + fila] = tuple(colores[letra]) + (255,)
+            usados.add(tuple(colores[letra]))
+    return usados
+
+
+def espejo(dibujo: list[str]) -> list[str]:
+    return [linea[::-1] for linea in dibujo]
+
+
+AMARILLOS = {"Y": (255, 236, 150), "y": (255, 210, 63), "a": (232, 160, 32), "c": (176, 96, 32),
+             "o": (96, 52, 38)}
+
+BIGOTE = {"o": (36, 30, 42), "m": (88, 84, 98), "l": (140, 136, 150)}
+BIGOTE_RETRATO = [mitad + mitad[::-1] for mitad in (   # simétrico: la mitad y su espejo
+    "..ommo",
+    ".omllm",
+    "ommmmm",
+    "oo....",
+)]
+BIGOTE_SPRITE = [
+    "mmmm",
+]
+
+TINTA_SOFI = (44, 28, 40)
+# Los ojos de Alex, repintados a la manera de los de Liss: línea de pestañas arriba, iris café
+# tibio (no negro), un blanco suave a los lados y un solo píxel de brillo. Los de la hoja eran un
+# bloque oscuro de 4 × 5 que, al bajar el retrato, se veía amenazante y con el brillo desparejo.
+# El mismo dibujo va en los dos ojos (corrido, no espejado): el brillo queda en el mismo lugar.
+OJO = {"k": (30, 18, 30), "d": (72, 44, 54), "i": (120, 78, 70), "W": (255, 248, 236),
+       "w": (222, 200, 192), "p": (252, 196, 154), "q": (240, 168, 132), "s": (214, 140, 112)}
+OJO_RETRATO = [
+    "ppppppp",
+    "ppkkkpp",
+    "pkddikp",
+    "pwdWiwp",
+    "ppiiipp",
+    "ppqsqpp",
+    "ppppppp",
+]
+
+COLETA = {"o": TINTA_SOFI, "d": (100, 54, 38), "m": (148, 88, 54), "l": (196, 134, 82),
+          **{k: v for k, v in AMARILLOS.items() if k in "Yya"}}
+COLETA_RETRATO = [      # cuelga por delante del hombro: a los lados de la cara no hay lugar
+    "..oooo..",
+    ".oYYyao.",
+    ".oyyaao.",
+    "..oaao..",
+    "..odmo..",
+    ".odmlmo.",
+    ".odmllmo",
+    "odmmlmo.",
+    "odmlmmo.",
+    "odmmlmo.",
+    "odmmmmo.",
+    ".odmmo..",
+    ".odmmo..",
+    "..odmo..",
+    "..odo...",
+    "...o....",
+]
+COLETA_SPRITE = [
+    ".oy",
+    "odm",
+    "odm",
+    "odl",
+    ".od",
+]
+
+# El cuerpo de Sofi: sudadera crema como la del retrato, falda verde (su color en los diálogos) y
+# zapatitos. Luz de arriba a la izquierda, contorno tibio como el de la hoja.
+CUERPO_SOFI = {
+    "o": TINTA_SOFI, "C": (244, 234, 216), "c": (214, 200, 184), "s": (168, 146, 142),
+    "k": (46, 50, 66), "p": (238, 176, 136), "q": (198, 128, 104), "G": (190, 222, 132),
+    "g": (140, 184, 96), "v": (88, 134, 74), "r": (156, 66, 60),
 }
-TINTA = hex_a_rgb("#1b1420")
+CUERPO_SOFI_DIBUJO = [      # brazos separados del torso por una línea, como en la hoja
+    "...ooCkcoo...",
+    "..oCCCkccso..",
+    ".oCCCCkcccso.",
+    "oCcoCCcccocso",
+    "oCcoCCcccocso",
+    "oCcoCccccocso",
+    "oCcoCcccsocso",
+    "oppoccccsoqqo",
+    "...oGGGgvo...",
+    "..oGGGggvvo..",
+    "..oGGgggvvo..",
+    "..ooooooooo..",
+    "...oqo.oqo...",
+    "...oqo.oqo...",
+    "...oCo.oCo...",
+    "..orro.orro..",
+    "..ooo...ooo..",
+]
+
+# Michi sentado como un gato de verdad (la hoja lo trae parado en dos patas, como muñeco): el
+# pecho blanco, las patas de adelante juntas, las ancas a los lados y la cola enroscada.
+CUERPO_MICHI = {"o": (44, 40, 58), "d": (92, 90, 110), "m": (130, 128, 148), "l": (168, 166, 184),
+                "W": (226, 224, 234)}
+CUERPO_MICHI_DIBUJO = [
+    "....ommmo.....",
+    "...omWWWmo....",
+    "..omlWWWmdo...",
+    "..omlWWWmdo...",
+    "..omlWWWmdo...",
+    ".omllWWWmmdo..",
+    ".omllWWWmmdo..",
+    ".omllWWWmmdo.o",
+    "omllmWoWmmddom",
+    "omllmWoWmmddmo",
+    "omllWWoWWmdddo",
+    ".oooooooooooo.",
+]
 
 
-def c(valor: str) -> tuple[int, int, int]:
-    """Color desde hexadecimal o desde un nombre de la paleta maestra."""
-    return hex_a_rgb(valor) if valor.startswith("#") else rgb(valor)
+# --- reducción y paleta -------------------------------------------------------------------------
+
+def a_escala(figura: Image.Image, alto: int) -> Image.Image:
+    """Baja una figura a `alto` píxeles con la misma receta que Liss (alfa premultiplicado)."""
+    from generate_sprites import reducir
+
+    ancho = max(1, round(figura.width * alto / figura.height))
+    return reducir(figura, ancho, alto)
 
 
-class Lienzo:
-    """Un PNG chiquito con dibujo por píxel. Todo en coordenadas inclusivas, como el pixel art."""
-
-    def __init__(self, ancho: int, alto: int):
-        self.imagen = Image.new("RGBA", (ancho, alto), (0, 0, 0, 0))
-        self.dib = ImageDraw.Draw(self.imagen)
-        self.ancho = ancho
-        self.alto = alto
-
-    def rect(self, x0: int, y0: int, x1: int, y1: int, color) -> None:
-        if x1 < x0 or y1 < y0:
-            return
-        self.dib.rectangle([x0, y0, x1, y1], fill=color)
-
-    def px(self, x: int, y: int, color) -> None:
-        if 0 <= x < self.ancho and 0 <= y < self.alto:
-            self.imagen.putpixel((x, y), tuple(color) + (255,))
-
-    def contorno(self, color=TINTA) -> None:
-        """Rodea la silueta con 1 px de tinta, sin tapar lo que ya está dibujado."""
-        opaco = [[self.imagen.getpixel((x, y))[3] > 0 for x in range(self.ancho)]
-                 for y in range(self.alto)]
-        for y in range(self.alto):
-            for x in range(self.ancho):
-                if opaco[y][x]:
-                    continue
-                vecino = any(
-                    0 <= y + dy < self.alto and 0 <= x + dx < self.ancho and opaco[y + dy][x + dx]
-                    for dx, dy in ((0, -1), (0, 1), (-1, 0), (1, 0))
-                )
-                if vecino:
-                    self.px(x, y, color)
-
-    def sombra_piso(self, cx: int, y: int, radio: int = 4) -> None:
-        """La sombrita elíptica que apoya al personaje en el pasto."""
-        self.dib.ellipse([cx - radio, y - 1, cx + radio, y + 1], fill=hex_a_rgb("#2f6b3a"))
+def en_caja(imagen: Image.Image, ancho: int, alto: int) -> Image.Image:
+    """Centra horizontalmente y apoya en la última fila: los pies van abajo de la caja."""
+    caja = Image.new("RGBA", (ancho, alto), (0, 0, 0, 0))
+    caja.paste(imagen, ((ancho - imagen.width) // 2, alto - imagen.height), imagen)
+    return caja
 
 
-# --- personajes -----------------------------------------------------------------------------
+def cuadrado(figura: Image.Image) -> Image.Image:
+    """Un retrato va en un cuadrado apoyado abajo: hombros en el borde, la cabeza centrada."""
+    lado = max(figura.size)
+    caja = Image.new("RGBA", (lado, lado), (0, 0, 0, 0))
+    caja.paste(figura, ((lado - figura.width) // 2, lado - figura.height))
+    return caja
 
-def cuerpo(
-    piel: str = "media",
-    pelo: str = "#271d2e",
-    pelo_luz: str = "#362233",
-    ropa: str = "crema",
-    ropa_sombra: str = "marronClaro",
-    pantalon: str = "tintaSuave",
-    peinado: str = "corto",
-    accesorio: str | None = None,
-    delantal: str | None = None,
-    nino: bool = False,
-) -> Lienzo:
-    """Un personaje de frente en la caja de 16 × 34, con las proporciones de Liss.
 
-    `peinado` cambia la masa de pelo (corto, rizado, chongo, coletas, gorra) y `delantal` pinta
-    un mandil encima del torso. `nino` baja y encoge todo tres píxeles: Sofi es más chiquita.
+def cuantizar(*imagenes: Image.Image, colores: int = 23, fijos: set = frozenset()) -> list[Image.Image]:
+    """Una paleta de ≤ 23 colores (más la transparencia) compartida por las imágenes de un asset.
+
+    Corte por la mediana para empezar y unas vueltas de k-medias para acomodar la paleta, con
+    cada píxel al color más cercano de verdad. La conversión a paleta de Pillow es aproximada y,
+    en las zonas planas (la sudadera de Sofi), mezclaba crema, verde y piel en diagonales.
+
+    `fijos` son los colores de los retoques pintados a mano: entran a la paleta tal cual y no se
+    mueven, y lo pintado de la hoja también puede caer en ellos (la piel y el pelo de Sofi).
     """
-    lz = Lienzo(CAJA_W, CAJA_H)
-    claro, base, sombra = (c(v) for v in PIEL[piel])
-    pelo_c, pelo_l = c(pelo), c(pelo_luz)
-    ropa_c, ropa_s = c(ropa), c(ropa_sombra)
-    pant = c(pantalon)
+    from generate_sprites import pixeles
 
-    d = 3 if nino else 0           # desplazamiento vertical: los niños ocupan menos caja
-    estrecho = 1 if nino else 0    # y son un píxel más angostos de cada lado
+    cuenta: dict[tuple, int] = {}
+    for imagen in imagenes:
+        for color in pixeles(imagen):
+            if color[3] == 255:
+                cuenta[color[:3]] = cuenta.get(color[:3], 0) + 1
+    if len(cuenta) <= colores:
+        return list(imagenes)
 
-    cabeza_y0, cabeza_y1 = 2 + d, 15
-    torso_y0, torso_y1 = 16, 27
-    piernas_y0, piernas_y1 = 28, 31
+    fijos = [tuple(c) for c in sorted(fijos)]
+    libres = colores - len(fijos)
+    muestras = [c for c, n in cuenta.items() if c not in fijos for _ in range(max(1, round(n ** 0.5)))]
+    tira = Image.new("RGB", (len(muestras), 1))
+    tira.putdata(muestras)
+    crudo = tira.quantize(colors=libres, method=Image.Quantize.MEDIANCUT,
+                          dither=Image.Dither.NONE).getpalette()
+    paleta = fijos + [tuple(crudo[i:i + 3]) for i in range(0, libres * 3, 3)]
 
-    # --- cabeza
-    cx0, cx1 = 3 + estrecho, 12 - estrecho
-    lz.rect(cx0, cabeza_y0 + 2, cx1, cabeza_y1, base)
-    lz.rect(cx0, cabeza_y0 + 2, cx1, cabeza_y0 + 6, pelo_c)          # nacimiento del pelo
-    lz.rect(cx0 + 1, cabeza_y0 + 2, cx1 - 1, cabeza_y0 + 3, pelo_l)  # brillo de arriba-izquierda
-    lz.rect(cx0, cabeza_y0 + 2, cx0 + 1, cabeza_y1 - 3, pelo_c)      # patillas
-    lz.rect(cx1 - 1, cabeza_y0 + 2, cx1, cabeza_y1 - 3, pelo_c)
-    lz.rect(cx0 + 2, cabeza_y1 - 1, cx1 - 2, cabeza_y1, claro)       # mentón iluminado
+    def cercano(color, paleta_):
+        return min(range(len(paleta_)), key=lambda i: (
+            (color[0] - paleta_[i][0]) ** 2 * 3 + (color[1] - paleta_[i][1]) ** 2 * 4 +
+            (color[2] - paleta_[i][2]) ** 2 * 2))
 
-    if peinado == "rizado":
-        for x in range(cx0 - 1, cx1 + 2, 2):
-            lz.rect(x, cabeza_y0, x + 1, cabeza_y0 + 3, pelo_c)
-            lz.px(x, cabeza_y0 + 1, pelo_l)
-        lz.rect(cx0 - 1, cabeza_y0 + 2, cx0, cabeza_y1 - 5, pelo_c)
-        lz.rect(cx1, cabeza_y0 + 2, cx1 + 1, cabeza_y1 - 5, pelo_c)
-    elif peinado == "chongo":
-        lz.rect(cx0 + 3, cabeza_y0 - 1, cx1 - 3, cabeza_y0 + 2, pelo_c)
-        lz.rect(cx0 + 4, cabeza_y0 - 1, cx0 + 5, cabeza_y0, pelo_l)
-    elif peinado == "coletas":
-        lz.rect(cx0 - 1, cabeza_y0 + 4, cx0, cabeza_y1 - 4, pelo_c)
-        lz.rect(cx1, cabeza_y0 + 4, cx1 + 1, cabeza_y1 - 4, pelo_c)
-        lz.px(cx0 - 1, cabeza_y0 + 4, pelo_l)
-    elif peinado == "gorra":
-        lz.rect(cx0 - 1, cabeza_y0 + 1, cx1 + 1, cabeza_y0 + 4, c("naranja"))
-        lz.rect(cx0 - 1, cabeza_y0 + 5, cx1 + 1, cabeza_y0 + 5, c("ambar"))   # visera
-        lz.rect(cx0, cabeza_y0 + 1, cx1 - 3, cabeza_y0 + 2, c("amarillo"))
+    for _ in range(6):
+        sumas = [[0.0, 0.0, 0.0, 0.0] for _ in paleta]
+        for color, n in cuenta.items():
+            peso = n ** 0.75
+            s_ = sumas[cercano(color, paleta)]
+            for canal in range(3):
+                s_[canal] += color[canal] * peso
+            s_[3] += peso
+        paleta = [paleta[i] if i < len(fijos) or not s_[3] else tuple(round(s_[k] / s_[3]) for k in range(3))
+                  for i, s_ in enumerate(sumas)]
 
-    # --- cara: dos píxeles de ojo y nada más (docs/arte.md § Reglas de estilo)
-    ojo_y = cabeza_y1 - 4
-    lz.rect(cx0 + 2, ojo_y, cx0 + 2, ojo_y + 1, TINTA)
-    lz.rect(cx1 - 2, ojo_y, cx1 - 2, ojo_y + 1, TINTA)
-    medio = (cx0 + cx1) // 2
-    lz.rect(medio, ojo_y + 3, medio + 1, ojo_y + 3, sombra)          # sonrisa
-    if accesorio == "bigote":
-        lz.rect(cx0 + 2, ojo_y + 2, cx1 - 2, ojo_y + 2, c("#65454a"))
-    if accesorio == "flor":
-        lz.rect(cx1 - 1, cabeza_y0 + 3, cx1, cabeza_y0 + 4, c("amarillo"))
-        lz.px(cx1, cabeza_y0 + 3, c("ambar"))
-    if accesorio == "lentes":
-        lz.rect(cx0 + 1, ojo_y - 1, cx1 - 1, ojo_y - 1, c("grisOscuro"))
-
-    # --- torso y brazos
-    tx0, tx1 = 4 + estrecho, 11 - estrecho
-    lz.rect(tx0, torso_y0 + d, tx1, torso_y1, ropa_c)
-    lz.rect(tx0, torso_y0 + d, tx0 + 1, torso_y1, ropa_s)            # pliegue del lado en sombra
-    lz.rect(tx0, torso_y0 + d, tx1, torso_y0 + d, ropa_s)            # cuello
-    lz.rect(tx0 - 2, torso_y0 + 1 + d, tx0 - 1, torso_y1 - 2, ropa_c)
-    lz.rect(tx1 + 1, torso_y0 + 1 + d, tx1 + 2, torso_y1 - 2, ropa_c)
-    lz.rect(tx0 - 2, torso_y1 - 2, tx0 - 1, torso_y1 - 1, base)      # manos
-    lz.rect(tx1 + 1, torso_y1 - 2, tx1 + 2, torso_y1 - 1, base)
-
-    if delantal:
-        del_c = c(delantal)
-        lz.rect(tx0 + 1, torso_y0 + 3 + d, tx1 - 1, torso_y1, del_c)
-        lz.rect(tx0 + 2, torso_y0 + 2 + d, tx0 + 2, torso_y0 + 3 + d, del_c)
-        lz.rect(tx1 - 2, torso_y0 + 2 + d, tx1 - 2, torso_y0 + 3 + d, del_c)
-        lz.rect(tx0 + 3, torso_y1 - 2, tx1 - 3, torso_y1 - 2, c("blanco"))   # bolsillo
-
-    # --- piernas y pies
-    lz.rect(tx0 + 1, piernas_y0, tx1 - 1, piernas_y1, pant)
-    lz.rect(7, piernas_y0, 8, piernas_y1, c("tinta"))                # separación de las piernas
-    lz.rect(tx0 + 1, piernas_y1 + 1, tx0 + 2, piernas_y1 + 2, c("marron"))
-    lz.rect(tx1 - 2, piernas_y1 + 1, tx1 - 1, piernas_y1 + 2, c("marron"))
-
-    lz.contorno()
-    return lz
-
-
-def gato() -> Lienzo:
-    """Michi, sentado y con cara de que sabe algo. Ocupa el fondo de la caja de 16 × 34."""
-    lz = Lienzo(CAJA_W, CAJA_H)
-    gris, claro, oscuro = c("gris"), c("#c4c4d4"), c("grisOscuro")
-    base_y = 33
-
-    lz.rect(4, base_y - 10, 11, base_y - 1, gris)          # cuerpo
-    lz.rect(4, base_y - 10, 5, base_y - 1, oscuro)         # lado en sombra
-    lz.rect(11, base_y - 4, 13, base_y - 3, gris)          # cola
-    lz.rect(13, base_y - 7, 13, base_y - 4, gris)
-    lz.rect(4, base_y - 1, 6, base_y, oscuro)              # patitas
-    lz.rect(9, base_y - 1, 11, base_y, oscuro)
-
-    lz.rect(4, base_y - 17, 11, base_y - 10, gris)         # cabeza
-    lz.rect(5, base_y - 17, 9, base_y - 15, claro)
-    lz.rect(4, base_y - 19, 5, base_y - 17, gris)          # orejas
-    lz.rect(10, base_y - 19, 11, base_y - 17, gris)
-    lz.px(5, base_y - 18, c("rosa"))
-    lz.px(10, base_y - 18, c("rosa"))
-    lz.rect(5, base_y - 14, 5, base_y - 13, TINTA)         # ojos
-    lz.rect(10, base_y - 14, 10, base_y - 13, TINTA)
-    lz.px(7, base_y - 12, c("rosa"))                       # naricita
-    lz.rect(6, base_y - 11, 9, base_y - 11, claro)         # hocico
-
-    lz.contorno()
-    return lz
-
-
-def aclarar(color: tuple[int, int, int], cuanto: int = 26) -> tuple[int, int, int]:
-    """Sube un tono el color: sirve igual para pelo negro que para canas."""
-    return tuple(min(255, v + cuanto) for v in color)
-
-
-def retrato(
-    personaje: Lienzo,
-    piel: str,
-    pelo: str,
-    peinado: str = "corto",
-    accesorio: str | None = None,
-) -> Image.Image:
-    """Cabeza y hombros a 24 × 24, duplicados a 48: el mismo píxel, más grande.
-
-    Se dibuja aparte y no se recorta del sprite: a 16 px de ancho la cara no tiene lugar para la
-    expresión, y el retrato es justamente donde se lee. Lleva el mismo peinado y el mismo
-    accesorio que el cuerpo, para que se reconozca a quién se está oyendo hablar.
-    """
-    lz = Lienzo(24, 24)
-    claro, base, sombra = (c(v) for v in PIEL[piel])
-    pelo_c = c(pelo)
-    pelo_l = aclarar(pelo_c)
-
-    # Hombros: el color sale del torso del sprite, así el retrato y el muñequito visten igual.
-    torso = personaje.imagen.getpixel((8, 24))
-    ropa = torso[:3] if torso[3] > 0 else c("tintaSuave")
-    lz.rect(3, 20, 20, 23, ropa)
-    lz.rect(5, 19, 18, 19, ropa)
-    lz.rect(9, 18, 14, 19, base)                            # cuello
-
-    lz.rect(5, 5, 18, 18, base)                             # cara
-    lz.rect(6, 4, 17, 4, base)                              # frente redondeada
-    lz.rect(5, 18, 6, 18, (0, 0, 0, 0))                     # mentón en punta, no cuadrado
-    lz.rect(17, 18, 18, 18, (0, 0, 0, 0))
-
-    lz.rect(6, 3, 17, 8, pelo_c)                            # masa de pelo
-    lz.rect(5, 5, 6, 15, pelo_c)
-    lz.rect(17, 5, 18, 15, pelo_c)
-    lz.rect(7, 4, 12, 5, pelo_l)                            # luz de arriba-izquierda
-
-    if peinado == "rizado":
-        # Masa maciza primero y los rulos encima: con los rulos sueltos, entre uno y otro se veía
-        # el fondo y el pelo parecía una corona.
-        lz.rect(5, 2, 18, 8, pelo_c)
-        for x in range(4, 20, 3):
-            lz.rect(x, 0, x + 2, 3, pelo_c)
-            if x < 11:       # la luz viene de arriba-izquierda: brillan los rulos de ese lado,
-                lz.px(x, 1, pelo_l)   # no todos, que si no parece una tiara de puntitos
-        lz.rect(4, 4, 5, 13, pelo_c)
-        lz.rect(18, 4, 19, 13, pelo_c)
-    elif peinado == "chongo":
-        lz.rect(9, 0, 14, 3, pelo_c)
-        lz.rect(10, 0, 12, 1, pelo_l)
-    elif peinado == "coletas":
-        lz.rect(3, 7, 5, 14, pelo_c)
-        lz.rect(18, 7, 20, 14, pelo_c)
-        lz.rect(3, 7, 4, 8, pelo_l)
-    elif peinado == "gorra":
-        lz.rect(5, 2, 18, 6, c("naranja"))
-        lz.rect(4, 7, 19, 7, c("ambar"))                    # visera
-        lz.rect(6, 3, 12, 4, c("amarillo"))
-
-    lz.rect(8, 11, 9, 13, TINTA)                            # ojos
-    lz.rect(14, 11, 15, 13, TINTA)
-    lz.px(8, 11, c("blanco"))
-    lz.px(14, 11, c("blanco"))
-    lz.rect(7, 10, 9, 10, pelo_c)                           # cejas
-    lz.rect(14, 10, 16, 10, pelo_c)
-    lz.rect(10, 16, 13, 16, sombra)                         # boca
-    lz.px(9, 15, sombra)
-    lz.px(14, 15, sombra)
-    lz.rect(6, 13, 7, 14, c("#f2a8b8"))                     # cachetes
-    lz.rect(16, 13, 17, 14, c("#f2a8b8"))
-
-    if accesorio == "bigote":
-        lz.rect(8, 14, 15, 15, c("#65454a"))
-        lz.rect(10, 16, 13, 16, c("#65454a"))
-    if accesorio == "flor":
-        lz.rect(17, 3, 19, 5, c("amarillo"))
-        lz.px(18, 4, c("ambar"))
-        lz.px(17, 3, c("amarilloClaro"))
-
-    lz.contorno()
-    return lz.imagen.resize((RETRATO, RETRATO), Image.NEAREST)
-
-
-# --- objetos e iconos -------------------------------------------------------------------------
-
-def ramo() -> Lienzo:
-    """El ramo de la colina: papel crema, tallos verdes y flores amarillas."""
-    lz = Lienzo(16, 24)
-    lz.rect(5, 14, 10, 23, c("crema"))                      # papel
-    lz.rect(5, 14, 6, 23, c("marronClaro"))
-    lz.rect(6, 8, 9, 15, c("verdeOscuro"))                  # tallos
-    for cx, cy in ((4, 6), (11, 7), (7, 3), (2, 10), (13, 11)):
-        lz.rect(cx - 1, cy - 1, cx + 1, cy + 1, c("amarillo"))
-        lz.px(cx - 1, cy - 1, c("amarilloClaro"))
-        lz.px(cx, cy, c("ambar"))
-    lz.rect(5, 18, 10, 18, c("amarillo"))                   # lacito
-    lz.contorno()
-    return lz
-
-
-def corazon_ui() -> Lienzo:
-    """El corazón del punto de guardado, más gordito que el de partículas."""
-    lz = Lienzo(16, 16)
-    am, cl, ox = c("amarillo"), c("amarilloClaro"), c("ambar")
-    lz.rect(3, 4, 6, 5, am)
-    lz.rect(9, 4, 12, 5, am)
-    lz.rect(2, 5, 13, 8, am)
-    lz.rect(3, 9, 12, 9, am)
-    lz.rect(4, 10, 11, 10, ox)
-    lz.rect(5, 11, 10, 11, ox)
-    lz.rect(6, 12, 9, 12, ox)
-    lz.rect(7, 13, 8, 13, ox)
-    lz.rect(4, 5, 6, 6, cl)                                  # brillo arriba-izquierda
-    lz.contorno()
-    return lz
-
-
-def flor_ui() -> Lienzo:
-    """El icono de flor del HUD: cinco pétalos y un centro ámbar."""
-    lz = Lienzo(16, 16)
-    am, cl, ox = c("amarillo"), c("amarilloClaro"), c("ambar")
-    for cx, cy in ((7, 3), (3, 6), (11, 6), (5, 10), (10, 10)):
-        lz.rect(cx - 1, cy - 1, cx + 2, cy + 2, am)
-        lz.px(cx - 1, cy - 1, cl)
-    lz.rect(6, 6, 9, 9, ox)
-    lz.rect(7, 11, 8, 14, c("verdeOscuro"))
-    lz.rect(9, 12, 11, 12, c("verde"))
-    lz.contorno()
-    return lz
-
-
-def piezas() -> dict[str, Image.Image]:
-    """Todos los frames que este módulo aporta al atlas, listos para empacar."""
-    gente = {
-        # Alex: pelo negro rizado y camiseta del color con el que habla (cielo).
-        "alex": dict(
-            args=dict(piel="morena", peinado="rizado", ropa="cielo", ropa_sombra="cieloOscuro",
-                      pantalon="tintaSuave"),
-            piel="morena", pelo="#271d2e",
-        ),
-        # Doña Flora: canas en chongo, delantal verde y una flor amarilla en el pelo.
-        "flora": dict(
-            args=dict(piel="clara", peinado="chongo", pelo="#c8c2cc", pelo_luz="#e6e2e8",
-                      ropa="crema", ropa_sombra="marronClaro", delantal="verde",
-                      accesorio="flor", pantalon="marron"),
-            piel="clara", pelo="#c8c2cc",
-        ),
-        # Don Beto: gorra de kiosquero, bigote y camisa naranja.
-        "beto": dict(
-            args=dict(piel="media", peinado="gorra", ropa="naranja", ropa_sombra="#b9531a",
-                      delantal="crema", accesorio="bigote", pantalon="grisOscuro"),
-            piel="media", pelo="#271d2e",
-        ),
-        # Sofi: niña, coletas y vestido verde claro.
-        "sofi": dict(
-            args=dict(piel="media", peinado="coletas", ropa="verdeClaro", ropa_sombra="verde",
-                      pantalon="verdeOscuro", nino=True),
-            piel="media", pelo="#271d2e",
-        ),
-    }
-
-    salida: dict[str, Image.Image] = {}
-    for ident, receta in gente.items():
-        lz = cuerpo(**receta["args"])
-        salida[f"npc_{ident}_abajo_0"] = lz.imagen
-        salida[f"npc_{ident}_abajo_1"] = respiracion(lz.imagen)
-        salida[f"retrato_{ident}_normal"] = retrato(
-            lz,
-            receta["piel"],
-            receta["pelo"],
-            peinado=receta["args"].get("peinado", "corto"),
-            accesorio=receta["args"].get("accesorio"),
-        )
-
-    michi = gato()
-    salida["npc_michi_abajo_0"] = michi.imagen
-    salida["npc_michi_abajo_1"] = respiracion(michi.imagen, cintura=26)
-    salida["retrato_michi_normal"] = retrato_gato()
-
-    salida["ramo_0"] = ramo().imagen
-    salida["ui_corazon"] = corazon_ui().imagen
-    salida["ui_flor"] = flor_ui().imagen
+    mapa = {color: paleta[cercano(color, paleta)] for color in cuenta}
+    salida = []
+    for imagen in imagenes:
+        nueva = imagen.copy()
+        nueva.putdata([mapa[c[:3]] + (255,) if c[3] == 255 else (0, 0, 0, 0) for c in pixeles(imagen)])
+        salida.append(nueva)
     return salida
-
-
-def retrato_gato() -> Image.Image:
-    """Michi de cerca. Mismo tratamiento que los retratos de gente, pero con orejas."""
-    lz = Lienzo(24, 24)
-    gris, claro, oscuro = c("gris"), c("#c4c4d4"), c("grisOscuro")
-    lz.rect(4, 7, 19, 21, gris)
-    lz.rect(4, 7, 8, 21, oscuro)
-    lz.rect(4, 3, 8, 8, gris)                                # orejas
-    lz.rect(15, 3, 19, 8, gris)
-    lz.rect(5, 5, 7, 8, c("rosa"))
-    lz.rect(16, 5, 18, 8, c("rosa"))
-    lz.rect(8, 12, 10, 15, TINTA)                            # ojos
-    lz.rect(13, 12, 15, 15, TINTA)
-    lz.rect(9, 12, 9, 13, c("verdeClaro"))
-    lz.rect(14, 12, 14, 13, c("verdeClaro"))
-    lz.rect(10, 17, 13, 18, claro)                           # hocico
-    lz.rect(11, 16, 12, 16, c("rosa"))                       # nariz
-    lz.rect(2, 17, 7, 17, claro)                             # bigotes
-    lz.rect(16, 17, 21, 17, claro)
-    lz.contorno()
-    return lz.imagen.resize((RETRATO, RETRATO), Image.NEAREST)
 
 
 def respiracion(imagen: Image.Image, cintura: int | None = None) -> Image.Image:
@@ -435,8 +425,304 @@ def respiracion(imagen: Image.Image, cintura: int | None = None) -> Image.Image:
     return salida
 
 
+# --- proporciones ---------------------------------------------------------------------------
+
+# La hoja dibuja cabezones: la cabeza, con el pelo, es casi la mitad del alto. Liss tiene
+# proporciones de verdad (la cabeza es un poco más de un tercio) y los demás tienen que verse de
+# su mismo mundo. Así que antes de bajar a escala de juego la cabeza se achica y el cuerpo se
+# alarga: poco el torso, mucho las piernas (en los cabezones son lo más corto) y nada los pies.
+PROPORCION = {"cabeza": 0.75, "torso": 1.12, "piernas": 1.8}
+
+
+def _redimensionar(imagen: Image.Image, ancho: int, alto: int) -> Image.Image:
+    """Cambia el tamaño con alfa premultiplicado: el borde no se ensucia con el fondo."""
+    return imagen.convert("RGBa").resize((max(1, ancho), max(1, alto)), Image.LANCZOS).convert("RGBA")
+
+
+def _frontera_del_pelo(datos, ancho: int, y: int) -> int:
+    """Hasta dónde llega, desde la izquierda, el pelo largo que cae por detrás del hombro: hasta
+    el primer píxel de ropa o de piel (claro o con color), dejándole su contorno a la ropa."""
+    for x in range(ancho):
+        color = datos[x, y]
+        if color[3] and (_luz(color) > 140 or max(color[:3]) - min(color[:3]) > 70):
+            return max(0, x - 2)
+    return 0
+
+
+def proporcionar(figura: Image.Image, menton: int, cadera: int, tobillo: int, pelo_largo: bool = False):
+    """Achica la cabeza y alarga el cuerpo. Devuelve la figura nueva y una función que lleva un
+    punto del recorte original a la figura nueva (para pegar retoques en su lugar).
+
+    `menton`, `cadera` y `tobillo` son filas del recorte. La cabeza se achica alrededor del
+    cuello, así queda centrada sobre los hombros aunque el personaje esté de tres cuartos. Con
+    `pelo_largo`, el pelo que cae por detrás del hombro viaja con la cabeza y no se despega.
+    """
+    k = PROPORCION
+    ancho, alto = figura.size
+    datos = figura.load()
+    cabeza = Image.new("RGBA", (ancho, alto), (0, 0, 0, 0))
+    cuerpo_ = Image.new("RGBA", (ancho, alto), (0, 0, 0, 0))
+    cab, cue = cabeza.load(), cuerpo_.load()
+    for y in range(alto):
+        limite = ancho if y < menton else (_frontera_del_pelo(datos, ancho, y) if pelo_largo else 0)
+        for x in range(ancho):
+            (cab if x < limite else cue)[x, y] = datos[x, y]
+
+    # El cuello: el centro de la piel justo debajo del mentón.
+    piel = [x for y in range(max(0, menton - 4), min(alto, menton + 4)) for x in range(ancho)
+            if datos[x, y][3] and datos[x, y][0] > datos[x, y][1] + 25 and _luz(datos[x, y]) > 110]
+    cuello = sum(piel) / len(piel) if piel else ancho / 2
+
+    tramos = [(menton, cadera, k["torso"]), (cadera, tobillo, k["piernas"]), (tobillo, alto, 1.0)]
+    alturas = [round((y1 - y0) * f) for y0, y1, f in tramos]
+    menton_nuevo = round(menton * k["cabeza"])
+    nueva = Image.new("RGBA", (ancho, menton_nuevo + sum(alturas)), (0, 0, 0, 0))
+    y = menton_nuevo
+    for (y0, y1, _), h in zip(tramos, alturas):
+        nueva.alpha_composite(_redimensionar(cuerpo_.crop((0, y0, ancho, y1)), ancho, h), (0, y))
+        y += h
+
+    caja = cabeza.getbbox()
+    chica = _redimensionar(cabeza.crop(caja), round((caja[2] - caja[0]) * k["cabeza"]),
+                           round((caja[3] - caja[1]) * k["cabeza"]))
+    x_cabeza = round(cuello + (caja[0] - cuello) * k["cabeza"])
+    y_cabeza = round(menton_nuevo + (caja[1] - menton) * k["cabeza"])
+    nueva.alpha_composite(chica, (max(0, x_cabeza), max(0, y_cabeza)))
+
+    def a_nuevo(x: float, y: float) -> tuple[float, float]:
+        if y < menton:
+            return cuello + (x - cuello) * k["cabeza"], menton_nuevo + (y - menton) * k["cabeza"]
+        destino = menton_nuevo
+        for (y0, y1, f), h in zip(tramos, alturas):
+            if y < y1:
+                return x, destino + (y - y0) * f
+            destino += h
+        return x, destino
+
+    return nueva.crop(nueva.getbbox()), a_nuevo
+
+
+# --- personajes -----------------------------------------------------------------------------
+
+# Qué celda de la hoja es cada uno y a qué alto va. Los adultos miden lo que Liss (32) o casi;
+# Doña Flora es un poco más bajita y Sofi es una niña.
+PERSONAJES = {
+    "alex": {"cuerpo": (7, 0), "alto": 33, "retrato": (0, 0), "partes": (55, 88, 105)},
+    "beto": {"cuerpo": (3, 0), "alto": 32, "retrato": (0, 1), "pelo": CANOSO, "partes": (51, 80, 92),
+             "ojos_cuerpo": (14, 27, 52, 40), "ojos_retrato": (45, 62, 140, 108)},
+    "flora": {"cuerpo": (4, 0), "alto": 30, "retrato": (0, 2), "pelo": CANAS, "pelo_largo": True,
+              "partes": (53, 86, 98),
+              "ojos_cuerpo": (22, 28, 58, 40), "ojos_retrato": (48, 66, 150, 104)},
+    "sofi": {"alto": 26, "retrato": (0, 3), "pelo": CASTANO, "ojos_retrato": (45, 80, 140, 118)},
+    "michi": {"cuerpo": (6, 0), "alto": 18, "retrato": (1, 0)},
+}
+
+
+def retrato(hoja: Hoja, ident: str) -> tuple[Image.Image, set]:
+    """El retrato de 48 × 48 y los colores pintados a mano que lleva encima."""
+    receta = PERSONAJES[ident]
+    fijos: set = set()
+    figura = hoja.recortar(*receta["retrato"])
+    if "pelo" in receta:
+        figura = teñir_pelo(figura, receta["pelo"], 0.68, receta["ojos_retrato"],
+                            abajo=1.0 if receta.get("pelo_largo") else None)
+    imagen = a_escala(cuadrado(figura), RETRATO)
+    if ident == "alex":
+        for x in (15, 28):                                 # eje de la cara: x = 24.5
+            fijos |= pintar(imagen, x, 22, OJO_RETRATO, OJO)
+    elif ident == "flora":
+        flor = flor_del_pelo(hoja, 11)
+        imagen.alpha_composite(flor, (32, 3))
+    elif ident == "beto":
+        # Centrado en la boca (x 24.5) y justo encima: las puntas caen a los lados de la sonrisa.
+        fijos |= pintar(imagen, 19, 27, BIGOTE_RETRATO, BIGOTE)
+    elif ident == "sofi":
+        fijos |= pintar(imagen, 1, 23, COLETA_RETRATO, COLETA)
+        fijos |= pintar(imagen, RETRATO - 9, 23, espejo(COLETA_RETRATO), COLETA)
+    return imagen, fijos
+
+
+def cuerpo_sofi(hoja: Hoja) -> tuple[Image.Image, set]:
+    """Sofi de cuerpo entero: su cabeza sale del retrato (así se le reconoce la cara) y el cuerpo
+    se pinta con el dibujo de arriba."""
+    receta = PERSONAJES["sofi"]
+    figura = teñir_pelo(hoja.recortar(*receta["retrato"]), receta["pelo"], 0.68, receta["ojos_retrato"])
+    # Solo la cabeza: los hombros del retrato son de adulto, el cuerpo de una niña es más angosto.
+    # La cabeza mide 10 de 26: una niña es más cabezona que un adulto, pero no la mitad del alto.
+    cabeza = a_escala(figura.crop((0, 0, figura.width, round(figura.height * 0.74))), 10)
+    alto, ancho = receta["alto"], 20
+    lienzo = Image.new("RGBA", (ancho, alto), (0, 0, 0, 0))
+    cuerpo_x = (ancho - len(CUERPO_SOFI_DIBUJO[0])) // 2
+    fijos = pintar(lienzo, cuerpo_x, alto - len(CUERPO_SOFI_DIBUJO), CUERPO_SOFI_DIBUJO, CUERPO_SOFI)
+    lienzo.alpha_composite(cabeza, ((ancho - cabeza.width) // 2, 0))
+    # Las coletas salen de debajo del pelo y se asoman por los costados de la cabeza.
+    izquierda = (ancho - cabeza.width) // 2 - 2
+    fijos |= pintar(lienzo, izquierda, 4, COLETA_SPRITE, COLETA)
+    fijos |= pintar(lienzo, izquierda + cabeza.width + 1, 4, espejo(COLETA_SPRITE), COLETA)
+    return lienzo, fijos
+
+
+def cuerpo_michi(hoja: Hoja) -> tuple[Image.Image, set]:
+    """Michi sentado: la cabeza de la hoja (orejas, ojos verdes y bigotes) sobre un cuerpo de gato
+    de verdad pintado acá con los grises de la hoja."""
+    gato = hoja.recortar(*PERSONAJES["michi"]["cuerpo"])
+    cabeza = a_escala(gato.crop((0, 0, gato.width, round(gato.height * 0.56))), 8)
+    ancho = max(cabeza.width, len(CUERPO_MICHI_DIBUJO[0])) + 1
+    alto = cabeza.height + len(CUERPO_MICHI_DIBUJO) - 1
+    lienzo = Image.new("RGBA", (ancho, alto), (0, 0, 0, 0))
+    cuerpo_x = (ancho - len(CUERPO_MICHI_DIBUJO[0])) // 2 + 1
+    fijos = pintar(lienzo, cuerpo_x, alto - len(CUERPO_MICHI_DIBUJO), CUERPO_MICHI_DIBUJO, CUERPO_MICHI)
+    lienzo.alpha_composite(cabeza, ((ancho - cabeza.width) // 2, 0))
+    return lienzo, fijos
+
+
+def cuerpo(hoja: Hoja, ident: str) -> tuple[Image.Image, set]:
+    """El personaje de pie en su caja y los colores pintados a mano que lleva encima."""
+    receta = PERSONAJES[ident]
+    fijos: set = set()
+    if ident == "sofi":
+        imagen, fijos = cuerpo_sofi(hoja)
+    elif ident == "michi":
+        imagen, fijos = cuerpo_michi(hoja)
+    else:
+        figura = hoja.recortar(*receta["cuerpo"])
+        if "pelo" in receta:
+            figura = teñir_pelo(figura, receta["pelo"], 0.5, receta["ojos_cuerpo"],
+                                abajo=0.85 if receta.get("pelo_largo") else None)
+        a_nuevo = None
+        if "partes" in receta:
+            figura, a_nuevo = proporcionar(figura, *receta["partes"], pelo_largo=receta.get("pelo_largo", False))
+        imagen = a_escala(figura, receta["alto"])
+        escala = imagen.height / figura.height
+
+        def en_juego(x: float, y: float) -> tuple[int, int]:
+            """Un punto del recorte de la hoja, en píxeles del sprite ya bajado."""
+            nx, ny = a_nuevo(x, y) if a_nuevo else (x, y)
+            return round(nx * escala), round(ny * escala)
+
+        if ident == "flora":
+            # Del lado del pelo, no de la cara: de tres cuartos, la cara queda a la derecha.
+            flor = flor_del_pelo(hoja, 5)
+            x, y = en_juego(12, 16)
+            imagen.alpha_composite(flor, (max(0, x - flor.width // 2), max(0, y - flor.height // 2)))
+        elif ident == "beto":
+            x, y = en_juego(31, 44)                       # entre la nariz y la boca
+            fijos |= pintar(imagen, x - len(BIGOTE_SPRITE[0]) // 2, y, BIGOTE_SPRITE, BIGOTE)
+    if ident == "michi":
+        return en_caja(imagen, max(14, imagen.width + 1), imagen.height + 1), fijos
+    return en_caja(imagen, max(16, imagen.width + (imagen.width % 2)), ALTO_CAJA), fijos
+
+
+# --- objetos e iconos -------------------------------------------------------------------------
+
+OBJETOS = {
+    # nombre: (celda, alto de la figura, caja)
+    "ramo_0": ((7, 2), 24, (16, 24)),
+    "ui_corazon": ((7, 3), 13, (16, 16)),
+    "ui_flor": ((7, 4), 15, (16, 16)),
+    "ui_corazon_chico": ((7, 3), 7, (9, 8)),
+}
+
+
+def flor_del_pelo(hoja: Hoja, alto: int) -> Image.Image:
+    """La flor amarilla de Doña Flora: la flor del icono sin el tallo.
+
+    El pétalo de abajo de la flor de la hoja está tapado por el tallo, así que se toma la mitad
+    de arriba (hasta el centro naranja) y se completa con su espejo: queda entera y simétrica.
+    """
+    flor = hoja.recortar(*OBJETOS["ui_flor"][0])
+    datos = flor.load()
+    naranjas = [y for y in range(flor.height) for x in range(flor.width)
+                if datos[x, y][3] and datos[x, y][0] > 200 and 90 < datos[x, y][1] < 170 and datos[x, y][2] < 90]
+    centro = round(sum(naranjas) / len(naranjas)) if naranjas else flor.height // 2
+    mitad = flor.crop((0, 0, flor.width, centro + 1))
+    entera = Image.new("RGBA", (flor.width, 2 * centro + 1), (0, 0, 0, 0))
+    entera.paste(mitad, (0, 0))
+    entera.paste(mitad.transpose(Image.Transpose.FLIP_TOP_BOTTOM), (0, centro))
+    return a_escala(entera, alto)
+
+
+def objeto(hoja: Hoja, celda: tuple[int, int], alto: int, caja: tuple[int, int]) -> Image.Image:
+    imagen = a_escala(hoja.recortar(*celda), alto)
+    lienzo = Image.new("RGBA", caja, (0, 0, 0, 0))
+    lienzo.paste(imagen, ((caja[0] - imagen.width) // 2, (caja[1] - imagen.height) // 2), imagen)
+    return lienzo
+
+
+# --- partículas -------------------------------------------------------------------------------
+
+def _degradado(mascara: Image.Image, luz: tuple, sombra: tuple, borde: tuple) -> Image.Image:
+    """Rellena una silueta grande con luz de arriba-izquierda y un borde tibio.
+
+    Se pinta a 8× y se baja con la receta de siempre: a 7 px queda el modelado, no el dibujo.
+    """
+    ancho, alto = mascara.size
+    imagen = Image.new("RGBA", (ancho, alto), (0, 0, 0, 0))
+    datos, m = imagen.load(), mascara.load()
+    interior = mascara.filter(ImageFilter.MinFilter(9))
+    adentro = interior.load()
+    for y in range(alto):
+        for x in range(ancho):
+            if not m[x, y]:
+                continue
+            t = min(1.0, max(0.0, (x / ancho * 0.45 + y / alto * 0.75)))
+            color = tuple(round(a + (b - a) * t) for a, b in zip(luz, sombra))
+            datos[x, y] = (color if adentro[x, y] else borde) + (255,)
+    return imagen
+
+
+def petalo() -> Image.Image:
+    """Pétalo amarillo en gota, con la vena del centro apenas marcada."""
+    mascara = Image.new("L", (48, 56), 0)
+    dib = ImageDraw.Draw(mascara)
+    dib.ellipse([4, 14, 44, 54], fill=255)
+    dib.polygon([(24, 0), (8, 26), (40, 26)], fill=255)
+    imagen = _degradado(mascara, (255, 244, 170), (236, 162, 30), (150, 86, 30))
+    ImageDraw.Draw(imagen).line([(24, 14), (25, 46)], fill=(232, 168, 44, 255), width=4)
+    from generate_sprites import reducir
+    return reducir(imagen, 6, 7)
+
+
+def hoja_seca() -> Image.Image:
+    """La trampa del minijuego: hoja café, ancha y con nervadura, que no se confunde con un pétalo."""
+    mascara = Image.new("L", (64, 48), 0)
+    ImageDraw.Draw(mascara).ellipse([2, 6, 62, 44], fill=255)
+    ImageDraw.Draw(mascara).polygon([(0, 24), (10, 16), (10, 32)], fill=255)
+    imagen = _degradado(mascara, (196, 140, 88), (110, 64, 42), (58, 34, 34))
+    dib = ImageDraw.Draw(imagen)
+    dib.line([(6, 25), (56, 25)], fill=(84, 48, 36, 255), width=4)
+    for x in (22, 38):
+        dib.line([(x, 25), (x + 10, 14)], fill=(84, 48, 36, 255), width=3)
+        dib.line([(x, 25), (x + 10, 36)], fill=(84, 48, 36, 255), width=3)
+    from generate_sprites import reducir
+    return reducir(imagen, 8, 6)
+
+
+# --- todo junto -------------------------------------------------------------------------------
+
+def piezas() -> dict[str, Image.Image]:
+    """Todos los frames que este módulo aporta al atlas, listos para empacar."""
+    hoja = Hoja()
+    salida: dict[str, Image.Image] = {}
+    for ident in PERSONAJES:
+        quieto, fijos = cuerpo(hoja, ident)
+        cintura = round(quieto.height * (0.5 if ident == "michi" else 0.52))
+        quieto, = cuantizar(quieto, fijos=fijos)
+        salida[f"npc_{ident}_abajo_0"] = quieto
+        salida[f"npc_{ident}_abajo_1"] = respiracion(quieto, cintura)
+        cara, fijos = retrato(hoja, ident)
+        salida[f"retrato_{ident}_normal"], = cuantizar(cara, fijos=fijos)
+
+    for nombre, (celda, alto, caja) in OBJETOS.items():
+        salida[nombre], = cuantizar(objeto(hoja, celda, alto, caja))
+
+    salida["fx_petalo"], = cuantizar(petalo())
+    salida["fx_hoja"], = cuantizar(hoja_seca())
+    return salida
+
+
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Arte dibujado por código: NPCs, retratos, iconos.")
+    parser = argparse.ArgumentParser(description="NPCs, retratos e iconos desde la hoja de personajes.")
     parser.add_argument("--contacto", action="store_true", help="guarda dist/contacto_extra.png")
     args = parser.parse_args()
 

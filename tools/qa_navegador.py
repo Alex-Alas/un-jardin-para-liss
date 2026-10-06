@@ -165,7 +165,7 @@ async def main() -> None:
         print("  estado:", estado)
 
         await pagina.evaluate(
-            "() => AG.debug.ir('Petalos', { tipo: 'petalos1', volver: 'Floreria', inicio: { x: 7, y: 10 } })"
+            "() => AG.debug.ir('Petalos', { tipo: 'petalos1', volver: 'Floreria', inicio: { px: 248, py: 178 } })"
         )
         await pagina.wait_for_timeout(900)
         await captura(pagina, "06-petalos-intro")

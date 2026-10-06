@@ -524,8 +524,9 @@ def generar(contacto: bool) -> int:
     paleta = paleta_comun(list(piezas.values()))
     piezas = {nombre: aplicar_paleta(imagen, paleta) for nombre, imagen in piezas.items()}
 
-    # El arte dibujado por código (NPCs, retratos, ramo, iconos) entra después de cuantizar: ya
-    # nace con los colores de la paleta maestra y pasarlo por la de Liss lo teñiría de rosa.
+    # Los NPCs, sus retratos, el ramo, los iconos y las partículas (tools/arte_extra.py, desde la
+    # hoja de personajes) entran después de cuantizar: cada uno trae su propia paleta de ≤ 23
+    # colores, y pasarlos por la de Liss los teñiría de rosa.
     extra = arte_extra.piezas()
     piezas.update(extra)
 
@@ -538,7 +539,7 @@ def generar(contacto: bool) -> int:
 
     usados = set(pixeles(atlas))
     print(f"  · atlas.png  {atlas.width}×{atlas.height}, {len(piezas)} frames, {len(usados)} colores")
-    print(f"  · arte dibujado por código: {len(extra)} frames (NPCs, retratos, ramo, iconos)")
+    print(f"  · hoja de personajes: {len(extra)} frames (NPCs, retratos, ramo, iconos, partículas)")
     print(f"  · sprite de juego: {ancho_destino}×{alto_destino} px (alto objetivo {ALTO_OBJETIVO})")
     print(f"  · retratos: {ALTO_RETRATO}×{ALTO_RETRATO} px ({', '.join(sorted(RETRATOS))})")
     if contacto:
