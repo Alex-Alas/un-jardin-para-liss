@@ -245,15 +245,20 @@ BIGOTE_SPRITE = [
 ]
 
 TINTA_SOFI = (44, 28, 40)
-# Los ojos de Alex, repintados: al bajar el retrato, el brillo de un ojo quedaba a un lado y el del
-# otro al otro (y la paleta lo teñía de verde). Los dos iguales, con la luz de arriba a la izquierda.
-OJO = {"k": (22, 12, 26), "n": (74, 46, 66), "W": (252, 246, 236), "w": (196, 186, 198)}
+# Los ojos de Alex, repintados a la manera de los de Liss: línea de pestañas arriba, iris café
+# tibio (no negro), un blanco suave a los lados y un solo píxel de brillo. Los de la hoja eran un
+# bloque oscuro de 4 × 5 que, al bajar el retrato, se veía amenazante y con el brillo desparejo.
+# El mismo dibujo va en los dos ojos (corrido, no espejado): el brillo queda en el mismo lugar.
+OJO = {"k": (30, 18, 30), "d": (72, 44, 54), "i": (120, 78, 70), "W": (255, 248, 236),
+       "w": (222, 200, 192), "p": (252, 196, 154), "q": (240, 168, 132), "s": (214, 140, 112)}
 OJO_RETRATO = [
-    "kkkk",
-    "kWwk",
-    "kWkk",
-    "kkkk",
-    "knnk",
+    "ppppppp",
+    "ppkkkpp",
+    "pkddikp",
+    "pwdWiwp",
+    "ppiiipp",
+    "ppqsqpp",
+    "ppppppp",
 ]
 
 COLETA = {"o": TINTA_SOFI, "d": (100, 54, 38), "m": (148, 88, 54), "l": (196, 134, 82),
@@ -523,8 +528,8 @@ def retrato(hoja: Hoja, ident: str) -> tuple[Image.Image, set]:
                             abajo=1.0 if receta.get("pelo_largo") else None)
     imagen = a_escala(cuadrado(figura), RETRATO)
     if ident == "alex":
-        for x in (17, 29):
-            fijos |= pintar(imagen, x, 24, OJO_RETRATO, OJO)
+        for x in (15, 28):                                 # eje de la cara: x = 24.5
+            fijos |= pintar(imagen, x, 22, OJO_RETRATO, OJO)
     elif ident == "flora":
         flor = flor_del_pelo(hoja, 11)
         imagen.alpha_composite(flor, (32, 3))

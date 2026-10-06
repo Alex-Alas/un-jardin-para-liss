@@ -65,7 +65,7 @@ La hoja no trae a los personajes tal como los pide el guion, así que a algunos 
 
 | Personaje | De la hoja | Retoque |
 |---|---|---|
-| Alex | el chico rizado de suéter verde | los ojos se repintan iguales, con el brillo arriba a la izquierda |
+| Alex | el chico rizado de suéter verde | los ojos se repintan como los de Liss: pestañas arriba, iris café tibio, un blanco suave y un solo píxel de brillo, el mismo dibujo en los dos (los de la hoja eran un bloque oscuro que se veía amenazante) |
 | Doña Flora | la chica de lentes | canas (el pelo se tiñe conservando luces y sombras) y la flor amarilla del icono en el pelo |
 | Don Beto | el chico de lentes | canoso y con bigote |
 | Sofi | la niña de la sudadera crema | castaña y con coletas de listón amarillo, para que no se confunda con Alex; su cuerpo se pinta a mano (la hoja no la trae de frente) con la cabeza bajada de su retrato |
@@ -223,6 +223,13 @@ El título, los créditos y las dos rondas de pétalos tenían fondos de rectán
 - **pétalos 2**: el parque al atardecer, con pinos, el banco del pícnic y la luz de la colina.
 
 En el pasto de los fondos no hay flores amarillas: el amarillo es de los pétalos que se atrapan.
+
+Contra un cielo se ve cada resto de pasto, así que los recortes de los fondos no son los de los
+frentes: `recorte()` decide cada píxel por color (lo del núcleo de la forma contra lo del anillo
+de afuera), en el tronco deja solo madera, corta derecho la base de las casas, se queda con la
+parte más grande sin pelos ni agujeros y le pone un contorno oscuro. Solo se usan los árboles que
+salen limpios (el roble grande y tres redondos): los pinos del pueblo están montados de a dos y
+se llevan ramas del vecino.
 
 `node tools/validar_contenido.js` recorre cada mapa con la caja de pies de Liss y falla si alguna
 puerta, objeto o NPC queda inalcanzable.

@@ -22,9 +22,10 @@ from __future__ import annotations
 
 import argparse
 import sys
+from collections import deque
 from pathlib import Path
 
-from PIL import Image, ImageDraw
+from PIL import Image, ImageChops, ImageDraw, ImageFilter
 
 sys.path.insert(0, str(Path(__file__).parent))
 import escenarios  # noqa: E402
@@ -66,20 +67,176 @@ def mapa(nombre: str) -> Image.Image:
     return Image.open(ruta).convert("RGB")
 
 
-def recorte(imagen: Image.Image, formas: list[tuple], ajuste: int = 3) -> Image.Image:
-    """Un pedazo de la pintura con fondo transparente, con el borde pegado a la silueta pintada
-    (la misma receta que los frentes de los mapas)."""
-    mascara = escenarios.mascara_frente({"formas": formas}, imagen, ajuste)
-    caja = mascara.getbbox()
-    pieza = imagen.crop(caja).convert("RGBA")
-    pieza.putalpha(mascara.crop(caja).point(lambda v: 255 if v > 127 else 0))
-    return pieza
+def _luz(color) -> float:
+    return 0.3 * color[0] + 0.59 * color[1] + 0.11 * color[2]
+
+
+def _distancia(a, b) -> int:
+    return 3 * (a[0] - b[0]) ** 2 + 4 * (a[1] - b[1]) ** 2 + 2 * (a[2] - b[2]) ** 2
+
+
+def _vecinos4(x: int, y: int):
+    return ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1))
+
+
+def recorte(imagen: Image.Image, formas: list[tuple], tronco: tuple | None = None,
+            base: int | None = None, contorno: bool = True) -> Image.Image:
+    """Un pedazo de la pintura listo para ir contra el cielo: sin un píxel del suelo que tenía.
+
+    Los frentes de los mapas se recortan con una forma y un ajuste de borde, y algo de pasto
+    les queda pegado: no importa, porque se dibujan encima del mismo pasto. Contra un cielo, en
+    cambio, cada resto se ve. Así que acá:
+
+    1. los colores del objeto salen de su núcleo (la forma achicada) y los del suelo de un anillo
+       por fuera de la forma; cada color se queda del lado donde es más común;
+    2. el suelo es lo que se alcanza desde el borde pasando solo por colores de suelo, así un
+       verde de pasto adentro de la copa (rodeado de hojas) no se pierde;
+    3. en `tronco` (x, desde, piso, medio ancho) manda otra regla: solo sobrevive la madera, que
+       tira a rojo, y no el pasto de al lado ni la sombra del piso;
+    4. con `base`, todo lo de abajo de esa fila se corta derecho (una casa apoya en una línea);
+    5. limpieza: se abre la silueta (fuera lo de menos de 3 px de grueso), queda solo la parte
+       más grande y sin agujeros, y se le pone un contorno oscuro con el tono más hondo del
+       objeto, para que el borde se lea pintado y no recortado.
+
+    No todo sale bien recortado: los pinos del pueblo están montados de a dos o tres y se llevan
+    ramas del vecino. Por eso los fondos usan solo los árboles que quedan limpios.
+    """
+    mascara_forma = Image.new("L", imagen.size, 0)
+    for forma in formas:
+        escenarios.dibujar_forma(ImageDraw.Draw(mascara_forma), forma, 255)
+    if tronco:
+        tx, desde, piso, medio = tronco
+        escenarios.dibujar_forma(ImageDraw.Draw(mascara_forma), ("rect", tx - medio, desde, tx + medio + 1, piso + 1), 255)
+    x0, y0, x1, y1 = mascara_forma.getbbox()
+    margen = 12
+    caja = (max(0, x0 - margen), max(0, y0 - margen), min(imagen.width, x1 + margen),
+            min(imagen.height, y1 + margen))
+    zona = imagen.crop(caja).convert("RGB")
+    ancho, alto = zona.size
+    px = zona.load()
+    forma = mascara_forma.crop(caja)
+    lado = max(2, round(min(x1 - x0, y1 - y0) * 0.22))
+    nucleo = forma.filter(ImageFilter.MinFilter(2 * lado + 1)).load()
+    cerca = forma.filter(ImageFilter.MaxFilter(5)).load()        # la forma, 2 px más ancha
+    lejos = forma.filter(ImageFilter.MaxFilter(9)).load()        # de acá para afuera es suelo
+
+    def en_tronco(x: int, y: int) -> bool:
+        if not tronco:
+            return False
+        gx, gy = x + caja[0], y + caja[1]
+        return tx - medio - 2 <= gx <= tx + medio + 2 and gy >= desde
+
+    del_objeto, del_suelo = {}, {}
+    for y in range(alto):
+        for x in range(ancho):
+            if nucleo[x, y]:
+                del_objeto[px[x, y]] = del_objeto.get(px[x, y], 0) + 1
+            elif not lejos[x, y]:
+                del_suelo[px[x, y]] = del_suelo.get(px[x, y], 0) + 1
+    total_o, total_s = sum(del_objeto.values()) or 1, sum(del_suelo.values()) or 1
+    conocidos = list(del_objeto) + list(del_suelo)
+    clase: dict = {}
+
+    def es_objeto(color) -> bool:
+        if color not in clase:
+            o, s_ = del_objeto.get(color, 0), del_suelo.get(color, 0)
+            if o + s_ == 0:
+                vecino = min(conocidos, key=lambda k: _distancia(k, color))
+                o, s_ = del_objeto.get(vecino, 0), del_suelo.get(vecino, 0)
+            clase[color] = (o + 0.3) / total_o >= (s_ + 0.3) / total_s
+        return clase[color]
+
+    def es_madera(color) -> bool:
+        return color[0] >= color[1] - 2 or _luz(color) < 40
+
+    def es_suelo(x: int, y: int) -> bool:
+        if base is not None and y + caja[1] > base:
+            return True
+        if not cerca[x, y]:
+            return True
+        if en_tronco(x, y):
+            return not es_madera(px[x, y])
+        if nucleo[x, y]:
+            return False
+        return not es_objeto(px[x, y])
+
+    suelo = [[False] * ancho for _ in range(alto)]
+    cola = deque(p for p in [(x, y) for x in range(ancho) for y in (0, alto - 1)] +
+                 [(x, y) for y in range(alto) for x in (0, ancho - 1)] if es_suelo(*p))
+    for x, y in cola:
+        suelo[y][x] = True
+    while cola:
+        x, y = cola.popleft()
+        for nx, ny in _vecinos4(x, y):
+            if 0 <= nx < ancho and 0 <= ny < alto and not suelo[ny][nx] and es_suelo(nx, ny):
+                suelo[ny][nx] = True
+                cola.append((nx, ny))
+
+    marca = Image.new("L", (ancho, alto), 0)
+    marca.putdata([0 if suelo[y][x] or not cerca[x, y] else 255 for y in range(alto) for x in range(ancho)])
+    marca = limpiar(marca)
+
+    pieza = Image.new("RGBA", (ancho, alto), (0, 0, 0, 0))
+    pieza.paste(zona, (0, 0), marca)
+    if contorno:
+        hondos = sorted(del_objeto, key=_luz)[:max(1, len(del_objeto) // 12)]
+        tinta = tuple(round(sum(c[i] for c in hondos) / len(hondos) * 0.65) for i in range(3))
+        borde = ImageChops.subtract(marca.filter(ImageFilter.MaxFilter(3)), marca)
+        pieza.paste(tinta + (255,), (0, 0), borde)
+    return pieza.crop(pieza.getbbox())
+
+
+def limpiar(marca: Image.Image) -> Image.Image:
+    """La silueta sin basura: abierta (fuera los pelos y los grumos de menos de 3 px), la parte
+    más grande sola y sin agujeros."""
+    abierta = marca.filter(ImageFilter.MinFilter(3)).filter(ImageFilter.MaxFilter(3))
+    ancho, alto = abierta.size
+    datos = abierta.load()
+    visto = [[False] * ancho for _ in range(alto)]
+    mejor: list = []
+    for y in range(alto):
+        for x in range(ancho):
+            if datos[x, y] and not visto[y][x]:
+                parte, cola = [], deque([(x, y)])
+                visto[y][x] = True
+                while cola:
+                    a, b = cola.popleft()
+                    parte.append((a, b))
+                    for na, nb in _vecinos4(a, b):
+                        if 0 <= na < ancho and 0 <= nb < alto and datos[na, nb] and not visto[nb][na]:
+                            visto[nb][na] = True
+                            cola.append((na, nb))
+                if len(parte) > len(mejor):
+                    mejor = parte
+    sola = Image.new("L", (ancho, alto), 0)
+    sd = sola.load()
+    for x, y in mejor:
+        sd[x, y] = 255
+    # Sin agujeros: lo vacío que no se alcanza desde el borde pasa a ser parte de la silueta.
+    afuera = [[False] * ancho for _ in range(alto)]
+    cola = deque(p for p in [(x, y) for x in range(ancho) for y in (0, alto - 1)] +
+                 [(x, y) for y in range(alto) for x in (0, ancho - 1)] if not sd[p[0], p[1]])
+    for x, y in cola:
+        afuera[y][x] = True
+    while cola:
+        a, b = cola.popleft()
+        for na, nb in _vecinos4(a, b):
+            if 0 <= na < ancho and 0 <= nb < alto and not sd[na, nb] and not afuera[nb][na]:
+                afuera[nb][na] = True
+                cola.append((na, nb))
+    for y in range(alto):
+        for x in range(ancho):
+            if not afuera[y][x]:
+                sd[x, y] = 255
+    return sola
 
 
 def arbol(imagen: Image.Image, tronco: int, piso: int, medio: int, cx: int, cy: int, rx: int, ry: int) -> Image.Image:
     """Un árbol del pueblo recortado entero: copa y tronco. Mismos números que `#! arbol` en
     maps/pueblo.txt."""
-    return recorte(imagen, [("elipse", cx, cy, rx, ry), ("rect", tronco - medio, cy, tronco + medio + 1, piso + 1)])
+    # La regla del tronco (solo madera) empieza abajo de la copa: si empezara adentro, se comería
+    # las hojas que tapan el tronco y el tronco quedaría suelto.
+    return recorte(imagen, [("elipse", cx, cy, rx, ry)], tronco=(tronco, cy + round(ry * 0.85), piso, medio))
 
 
 def a_lo_lejos(pieza: Image.Image, cielo: tuple, cuanto: float) -> Image.Image:
@@ -97,6 +254,21 @@ def a_lo_lejos(pieza: Image.Image, cielo: tuple, cuanto: float) -> Image.Image:
 def apoyar(lienzo: Image.Image, pieza: Image.Image, x: int, piso: int) -> None:
     """Pega una pieza con su base en la línea `piso` y centrada en `x`."""
     lienzo.alpha_composite(pieza, (x - pieza.width // 2, piso - pieza.height))
+
+
+def arboles(imagen: Image.Image) -> dict[str, Image.Image]:
+    """Los árboles del pueblo que se recortan limpios: el roble grande y tres redondos. (Los mismos
+    números que sus `#! arbol` en maps/pueblo.txt.)"""
+    return {
+        "roble": arbol(imagen, 298, 110, 10, 298, 38, 40, 36),
+        "redondo": arbol(imagen, 744, 208, 4, 744, 188, 12, 18),
+        "alto": arbol(imagen, 360, 52, 4, 360, 27, 12, 17),
+        "claro": arbol(imagen, 230, 52, 4, 230, 27, 12, 17),
+    }
+
+
+def espejo(pieza: Image.Image) -> Image.Image:
+    return pieza.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
 
 
 # --- cielo y pasto ------------------------------------------------------------------------------
@@ -229,12 +401,12 @@ def fondo_petalos1() -> Image.Image:
         nube(lienzo, x, y, w, sal, tonos_nube)
 
     verdes = paleta_de_pasto(pueblo)
-    lejanos = [arbol(pueblo, 744, 208, 4, 744, 188, 12, 18), arbol(pueblo, 40, 205, 4, 41, 185, 13, 16),
-               arbol(pueblo, 360, 52, 4, 360, 27, 12, 17), arbol(pueblo, 230, 52, 4, 230, 27, 12, 17)]
+    arbol_ = arboles(pueblo)
+    lejanos = [arbol_["redondo"], arbol_["alto"], arbol_["claro"]]
     for i, x in enumerate(range(-6, ANCHO + 20, 22)):
-        pieza = a_lo_lejos(lejanos[(i * 3) % len(lejanos)], celeste, 0.5)
+        pieza = a_lo_lejos(lejanos[(i * 2) % len(lejanos)], celeste, 0.5)
         if ruido(i, 0, 73) > 0.5:                            # espejados, para que no se repitan
-            pieza = pieza.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
+            pieza = espejo(pieza)
         apoyar(lienzo, pieza, x + int(ruido(i, 0, 71) * 8), HORIZONTE + 1 - int(ruido(i, 0, 72) * 4))
 
     lienzo.paste(pasto(verdes, [(214, 82, 72), (240, 236, 228), (122, 150, 214), (196, 132, 196)], 5),
@@ -242,26 +414,23 @@ def fondo_petalos1() -> Image.Image:
     tierra = [(122, 86, 52), (168, 124, 76), (190, 146, 92), (206, 166, 110), (226, 198, 150)]
     camino(lienzo, (256, 278), (206, 334), tierra)
 
-    floreria = recorte(pueblo, [("rect", 606, 77, 723, 176)])
-    barriles = recorte(pueblo, [("rect", 720, 145, 738, 179)])
+    # El techo llega a la columna 720 y la pared a la 718; justo al lado empieza un seto, que no va.
+    floreria = recorte(pueblo, [("rect", 606, 77, 721, 138), ("rect", 606, 138, 719, 176)], base=174,
+                       contorno=False)
+    barriles = recorte(pueblo, [("rect", 722, 145, 738, 179)], base=178, contorno=False)
     sombra_al_pie(lienzo, 196, 340, HORIZONTE + 4, verdes[0])
     apoyar(lienzo, floreria, 268, HORIZONTE + 6)
     apoyar(lienzo, barriles, 338, HORIZONTE + 7)
 
-    roble = arbol(pueblo, 298, 110, 10, 298, 38, 40, 36)
-    pino = recorte(pueblo, [("poli", [(466, 44), (480, 56), (490, 80), (494, 96), (486, 106), (470, 108),
-                                       (470, 126), (462, 126), (462, 108), (448, 106), (444, 96), (448, 76),
-                                       (456, 56)])])
-    redondo = arbol(pueblo, 744, 208, 4, 744, 188, 12, 18)
-    for pieza, x, piso in ((roble, 70, HORIZONTE + 14), (redondo, 150, HORIZONTE + 6),
-                           (pino, 410, HORIZONTE + 10), (redondo, 452, HORIZONTE + 8)):
+    for pieza, x, piso in ((arbol_["roble"], 70, HORIZONTE + 14), (arbol_["redondo"], 150, HORIZONTE + 6),
+                           (espejo(arbol_["alto"]), 404, HORIZONTE + 8), (arbol_["claro"], 446, HORIZONTE + 10)):
         sombra_al_pie(lienzo, x - pieza.width // 3, x + pieza.width // 3, piso - 1, verdes[0])
         apoyar(lienzo, pieza, x, piso)
     return lienzo.convert("RGB")
 
 
 def fondo_petalos2() -> Image.Image:
-    """El parque a las seis de la tarde: pinos, el banco del pícnic y el sol bajando."""
+    """El parque a las seis de la tarde: árboles, el banco del pícnic y el sol bajando."""
     pueblo = mapa("pueblo")
     horizonte_cielo = (244, 178, 98)
     lienzo = Image.new("RGBA", (ANCHO, ALTO), (0, 0, 0, 255))
@@ -276,27 +445,20 @@ def fondo_petalos2() -> Image.Image:
         nube(lienzo, x, y, w, sal, tonos_nube)
 
     verdes = paleta_de_pasto(pueblo)
-    lejanos = [arbol(pueblo, 744, 208, 4, 744, 188, 12, 18), arbol(pueblo, 360, 52, 4, 360, 27, 12, 17)]
-    pinos = [recorte(pueblo, [("poli", puntos)]) for puntos in (
-        [(580, 266), (598, 290), (604, 318), (600, 340), (592, 346), (592, 352), (580, 352), (580, 346),
-         (566, 342), (560, 318), (564, 292)],
-        [(708, 394), (718, 410), (728, 428), (738, 448), (740, 462), (724, 468), (716, 470), (716, 481),
-         (706, 481), (706, 470), (690, 466), (674, 460), (676, 444), (688, 428), (698, 410)],
-    )]
+    arbol_ = arboles(pueblo)
+    lejanos = [arbol_["alto"], arbol_["redondo"], arbol_["claro"]]
     suelo = Image.new("RGBA", (ANCHO, ALTO), (0, 0, 0, 0))
-    for i, x in enumerate(range(-8, ANCHO + 20, 20)):
-        pieza = a_lo_lejos((lejanos + pinos)[(i * 3) % 4], (200, 140, 130), 0.45)
+    for i, x in enumerate(range(-8, ANCHO + 20, 18)):
+        pieza = a_lo_lejos(lejanos[(i * 2) % len(lejanos)], (200, 140, 130), 0.45)
         if ruido(i, 1, 73) > 0.5:
-            pieza = pieza.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
+            pieza = espejo(pieza)
         apoyar(suelo, pieza, x + int(ruido(i, 1, 71) * 8), HORIZONTE + 1 - int(ruido(i, 1, 72) * 5))
     suelo.paste(pasto(verdes, [(214, 82, 72), (240, 236, 228), (196, 132, 196)], 9), (0, HORIZONTE))
 
-    banco = recorte(pueblo, [("rect", 545, 358, 588, 387)])
-    canasta = recorte(pueblo, [("rect", 586, 372, 606, 396)])
-    roble = arbol(pueblo, 537, 158, 10, 535, 92, 40, 36)
-    for pieza, x, piso in ((roble, 92, HORIZONTE + 16), (pinos[0], 196, HORIZONTE + 10),
-                           (banco, 272, HORIZONTE + 14), (canasta, 304, HORIZONTE + 16),
-                           (pinos[1], 404, HORIZONTE + 12)):
+    banco = recorte(pueblo, [("rect", 545, 358, 588, 387)], base=386, contorno=False)
+    for pieza, x, piso in ((espejo(arbol_["roble"]), 404, HORIZONTE + 16), (arbol_["claro"], 70, HORIZONTE + 8),
+                           (arbol_["alto"], 122, HORIZONTE + 12), (banco, 250, HORIZONTE + 14),
+                           (espejo(arbol_["redondo"]), 316, HORIZONTE + 9)):
         sombra_al_pie(suelo, x - pieza.width // 3, x + pieza.width // 3, piso - 1, verdes[0])
         apoyar(suelo, pieza, x, piso)
 
