@@ -65,7 +65,7 @@ La hoja no trae a los personajes tal como los pide el guion, así que a algunos 
 
 | Personaje | De la hoja | Retoque |
 |---|---|---|
-| Alex | el chico rizado de suéter verde | los ojos se repintan como los de Liss: pestañas arriba, iris café tibio, un blanco suave y un solo píxel de brillo, el mismo dibujo en los dos (los de la hoja eran un bloque oscuro que se veía amenazante) |
+| Alex | el chico rizado de suéter verde | los ojos del retrato se repintan tal como los trae su retrato en la hoja: grandes y oscuros, pestañas arriba con la puntita hacia afuera, una barra de brillo crema del lado de afuera de cada ojo y un punto blanco arriba a la izquierda (al bajar, la paleta teñía de verde un brillo y el borde dejaba manchas claras). En el sprite, el ojo derecho quedaba gris y chiquito: va el izquierdo espejado |
 | Doña Flora | la chica de lentes | canas (el pelo se tiñe conservando luces y sombras) y la flor amarilla del icono en el pelo |
 | Don Beto | el chico de lentes | canoso y con bigote |
 | Sofi | la niña de la sudadera crema | castaña y con coletas de listón amarillo, para que no se confunda con Alex; su cuerpo se pinta a mano (la hoja no la trae de frente) con la cabeza bajada de su retrato |
