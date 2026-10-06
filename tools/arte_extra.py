@@ -245,20 +245,30 @@ BIGOTE_SPRITE = [
 ]
 
 TINTA_SOFI = (44, 28, 40)
-# Los ojos de Alex, repintados a la manera de los de Liss: línea de pestañas arriba, iris café
-# tibio (no negro), un blanco suave a los lados y un solo píxel de brillo. Los de la hoja eran un
-# bloque oscuro de 4 × 5 que, al bajar el retrato, se veía amenazante y con el brillo desparejo.
-# El mismo dibujo va en los dos ojos (corrido, no espejado): el brillo queda en el mismo lugar.
-OJO = {"k": (30, 18, 30), "d": (72, 44, 54), "i": (120, 78, 70), "W": (255, 248, 236),
-       "w": (222, 200, 192), "p": (252, 196, 154), "q": (240, 168, 132), "s": (214, 140, 112)}
-OJO_RETRATO = [
-    "ppppppp",
-    "ppkkkpp",
-    "pkddikp",
-    "pwdWiwp",
-    "ppiiipp",
-    "ppqsqpp",
-    "ppppppp",
+# Los ojos del retrato de Alex, repintados tal como los trae su retrato en la hoja: grandes y
+# oscuros, con la línea de pestañas arriba que se estira un píxel hacia afuera, una barra de brillo
+# crema del lado de afuera de cada ojo y un punto blanco arriba a la izquierda. Al bajar el retrato
+# la paleta teñía de verde el brillo de un ojo y el borde suave de la barra dejaba manchas claras;
+# acá cada píxel queda en su lugar. `p` es la piel de la hoja: limpia el borde sin dejar parche.
+OJO = {"k": (37, 21, 40), "W": (249, 241, 222), "w": (223, 203, 185), "G": (236, 235, 240),
+       "p": (248, 169, 129)}
+OJO_IZQUIERDO = [
+    "..ppppp",
+    "..kkkkk",
+    "kkwGkkk",
+    "ppWkkkk",
+    ".pWkkkk",
+    ".pWkkkk",
+    ".pWkkkk",
+]
+OJO_DERECHO = [
+    "ppppp..",
+    "kkkkk..",
+    "Gkkkwkk",
+    "kkkkWpp",
+    "kkkkWp.",
+    "kkkkWp.",
+    "kkkkWp.",
 ]
 
 COLETA = {"o": TINTA_SOFI, "d": (100, 54, 38), "m": (148, 88, 54), "l": (196, 134, 82),
@@ -528,8 +538,8 @@ def retrato(hoja: Hoja, ident: str) -> tuple[Image.Image, set]:
                             abajo=1.0 if receta.get("pelo_largo") else None)
     imagen = a_escala(cuadrado(figura), RETRATO)
     if ident == "alex":
-        for x in (15, 28):                                 # eje de la cara: x = 24.5
-            fijos |= pintar(imagen, x, 22, OJO_RETRATO, OJO)
+        fijos |= pintar(imagen, 15, 22, OJO_IZQUIERDO, OJO)  # eje de la cara: x = 24.5
+        fijos |= pintar(imagen, 28, 22, OJO_DERECHO, OJO)
     elif ident == "flora":
         flor = flor_del_pelo(hoja, 11)
         imagen.alpha_composite(flor, (32, 3))
@@ -608,6 +618,11 @@ def cuerpo(hoja: Hoja, ident: str) -> tuple[Image.Image, set]:
         elif ident == "beto":
             x, y = en_juego(31, 44)                       # entre la nariz y la boca
             fijos |= pintar(imagen, x - len(BIGOTE_SPRITE[0]) // 2, y, BIGOTE_SPRITE, BIGOTE)
+        elif ident == "alex":
+            # Al bajar, el ojo derecho queda gris y chiquito, como si lo entrecerrara: va el
+            # izquierdo espejado sobre el eje de la cara (x = 8), con el brillo crema afuera.
+            ojo = imagen.crop((4, 7, 8, 10)).transpose(Image.Transpose.FLIP_LEFT_RIGHT)
+            imagen.paste(ojo, (9, 7))
     if ident == "michi":
         return en_caja(imagen, max(14, imagen.width + 1), imagen.height + 1), fijos
     return en_caja(imagen, max(16, imagen.width + (imagen.width % 2)), ALTO_CAJA), fijos
