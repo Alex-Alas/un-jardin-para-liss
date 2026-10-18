@@ -18,6 +18,8 @@ módulo. El formato está explicado en docs/handoff.md § Mapas pintados; en cor
     #! tamaño: 48 32                          tiles de 16 px: la pintura se escala hasta cubrirlo
     #! inicio: 146 180                        dónde aparece Liss si nadie dice otra cosa
     #! objeto banco banco pueblo.banco 548 380       tipo, id, diálogo y el punto donde toca el piso
+    #! objeto banco banco pueblo.banco 548 380 foto 574 368    + dónde se ve su polaroid (centro);
+                                                    `colgada` al final la cuelga y la hace girar
     #! guardado 216 250
     #! puerta Casa 136 138 160 160 70 196     zona x0 y0 x1 y1 y destino (en unidades del destino)
     #! solido rect 48 110 232 157             también: elipse cx cy rx ry · poli x,y x,y …
@@ -117,8 +119,16 @@ def leer(ruta: Path) -> dict:
             elif clave == "objeto":
                 tipo, ident, dialogo = partes[:3]
                 x, y = _numeros(partes[3:5])
-                mapa["objetos"].append({"tipo": tipo, "id": ident,
-                                        "dialogo": None if dialogo == "-" else dialogo, "px": x, "py": y})
+                objeto = {"tipo": tipo, "id": ident,
+                          "dialogo": None if dialogo == "-" else dialogo, "px": x, "py": y}
+                if len(partes) > 5:
+                    if partes[5] != "foto":
+                        raise ValueError(f"después del punto solo va `foto x y [colgada]`: {partes[5]}")
+                    fx, fy = _numeros(partes[6:8])
+                    objeto["foto"] = {"px": fx, "py": fy}
+                    if "colgada" in partes[8:]:
+                        objeto["foto"]["colgada"] = True
+                mapa["objetos"].append(objeto)
             elif clave == "guardado":
                 x, y = _numeros(partes[:2])
                 mapa["objetos"].append({"tipo": "guardado", "id": "guardado",

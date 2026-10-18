@@ -1360,9 +1360,49 @@
     "h": 16
    }
   },
-  "ui_corazon_chico": {
+  "fx_polaroid": {
    "frame": {
     "x": 144,
+    "y": 203,
+    "w": 9,
+    "h": 11
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 9,
+    "h": 11
+   },
+   "sourceSize": {
+    "w": 9,
+    "h": 11
+   }
+  },
+  "fx_polaroid_atras": {
+   "frame": {
+    "x": 154,
+    "y": 203,
+    "w": 9,
+    "h": 11
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 9,
+    "h": 11
+   },
+   "sourceSize": {
+    "w": 9,
+    "h": 11
+   }
+  },
+  "ui_corazon_chico": {
+   "frame": {
+    "x": 164,
     "y": 203,
     "w": 9,
     "h": 8
@@ -1382,7 +1422,7 @@
   },
   "fx_petalo": {
    "frame": {
-    "x": 154,
+    "x": 174,
     "y": 203,
     "w": 6,
     "h": 7
@@ -1402,7 +1442,7 @@
   },
   "fx_hoja": {
    "frame": {
-    "x": 161,
+    "x": 181,
     "y": 203,
     "w": 8,
     "h": 6
@@ -1418,6 +1458,66 @@
    "sourceSize": {
     "w": 8,
     "h": 6
+   }
+  },
+  "fx_destello_0": {
+   "frame": {
+    "x": 190,
+    "y": 203,
+    "w": 5,
+    "h": 5
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 5,
+    "h": 5
+   },
+   "sourceSize": {
+    "w": 5,
+    "h": 5
+   }
+  },
+  "fx_destello_1": {
+   "frame": {
+    "x": 196,
+    "y": 203,
+    "w": 5,
+    "h": 5
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 5,
+    "h": 5
+   },
+   "sourceSize": {
+    "w": 5,
+    "h": 5
+   }
+  },
+  "fx_destello_2": {
+   "frame": {
+    "x": 202,
+    "y": 203,
+    "w": 5,
+    "h": 5
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 5,
+    "h": 5
+   },
+   "sourceSize": {
+    "w": 5,
+    "h": 5
    }
   }
  },

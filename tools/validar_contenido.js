@@ -20,7 +20,7 @@ function cargar(ruta) {
   new Function(codigo)();
 }
 
-['src/config.js', 'src/data/personajes.js', 'src/data/dialogos.js', 'src/data/mapas.js'].forEach(cargar);
+['src/config.js', 'src/systems/ui.js', 'src/data/personajes.js', 'src/data/dialogos.js', 'src/data/mapas.js'].forEach(cargar);
 
 const AG = globalThis.AG;
 const errores = [];
@@ -58,6 +58,41 @@ Object.entries(AG.DIALOGOS).forEach(([clave, valor]) => {
       }
     });
   });
+});
+
+/* Que los textos de cada recuerdo quepan en el polaroid y en su tarjeta del álbum, partidos igual
+ * que en src/systems/memories.js. */
+const { POLAROID } = AG.CFG;
+const renglones = AG.UI.envolver;
+AG.RECUERDOS.forEach((r) => {
+  const marco = renglones(r.titulo, POLAROID.LETRAS_MARCO).length + renglones(r.pie, POLAROID.LETRAS_MARCO).length;
+  if (marco > POLAROID.RENGLONES_MARCO) {
+    errores.push(`recuerdo ${r.id}: título y pie ocupan ${marco} renglones bajo la foto (caben ${POLAROID.RENGLONES_MARCO})`);
+  }
+  const mensaje = renglones(r.mensaje, POLAROID.LETRAS_MENSAJE).length;
+  if (mensaje > POLAROID.RENGLONES_MENSAJE) {
+    errores.push(`recuerdo ${r.id}: el mensaje ocupa ${mensaje} renglones (caben ${POLAROID.RENGLONES_MENSAJE})`);
+  }
+  [r.titulo, r.pie, r.mensaje].join(' ').split(' ').forEach((palabra) => {
+    if (palabra.length > POLAROID.LETRAS_MARCO) errores.push(`recuerdo ${r.id}: "${palabra}" no entra en un renglón`);
+  });
+  if (renglones(r.titulo, POLAROID.LETRAS_ALBUM).length > POLAROID.RENGLONES_ALBUM) {
+    avisos.push(`recuerdo ${r.id}: el título se corta con "…" en el álbum`);
+  }
+});
+
+/* Cada polaroid que se encuentra en un mapa se ve en él (`foto x y` en maps/*.txt), y solo los
+ * objetos que entregan un recuerdo llevan foto. */
+Object.entries(AG.MAPAS).forEach(([nombre, mapa]) => {
+  (mapa.objetos || []).forEach((o) => {
+    const recuerdo = AG.recuerdoDeDialogo(o.dialogo);
+    if (recuerdo && !o.foto) errores.push(`mapa ${nombre}: "${o.id}" entrega ${recuerdo} pero su polaroid no se ve (falta \`foto x y\`)`);
+    if (o.foto && !recuerdo) errores.push(`mapa ${nombre}: "${o.id}" tiene foto pero su diálogo no entrega ningún recuerdo`);
+  });
+});
+const entregados = new Set(Object.keys(AG.DIALOGOS).map(AG.recuerdoDeDialogo).filter(Boolean));
+AG.RECUERDOS.forEach((r) => {
+  if (!entregados.has(r.id)) errores.push(`recuerdo ${r.id}: ningún diálogo lo entrega, nunca se ve en la partida`);
 });
 
 /* ---------------------------------------------------------------- mapas

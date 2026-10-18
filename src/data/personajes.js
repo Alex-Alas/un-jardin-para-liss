@@ -13,47 +13,56 @@ AG.RECUERDOS = [
   {
     id: 'r1',
     titulo: 'Pegaditos bien gonitos',
-    pie: 'La primera vez q te tuve tan cómoda cerca de mí',
-    mensaje: 'Antes de esta foto yo ya estaba nervioso. Después también :P',
+    pie: 'Tan preciosa con tu overol :>',
+    mensaje: 'Tu estilazo siempre hace q nuestras fotos juntos brillen.',
     foto: 'assets/fotos/recuerdo_r1.jpg'
   },
   {
     id: 'r2',
-    titulo: 'Tu carita',
-    pie: 'Aquí te burlabas de mí',
-    mensaje: 'No es la mejor foto que te he tomado, pero es mi favorita.',
+    titulo: 'Nuestra plantita de amor',
+    pie: 'Crecimos tanto ese día',
+    mensaje: 'Desde ese día siento que hemos crecido tantísimo juntos y siento que nuestro compromiso ha tomado más fuerza.',
     foto: 'assets/fotos/recuerdo_r2.jpg'
   },
   {
     id: 'r3',
-    titulo: 'Tu risa',
-    pie: 'Esa noche, entre las luces',
-    mensaje: 'No nos importó nada. Volvería a esa noche contigo.',
+    titulo: 'Entre las luces',
+    pie: 'Tú siempre brillas más',
+    mensaje: 'Un bello recuerdo de una salida juntos inolvidable, con tu risa siendo siempre la luz más brillante q acompaña a la mía <3',
     foto: 'assets/fotos/recuerdo_r3.jpg'
   },
   {
     id: 'r4',
-    titulo: 'El lugar de siempre',
-    pie: 'Ya nos conocen y todo',
-    mensaje: 'Aquí quiero volver contigo mil veces más.',
+    titulo: 'Más sonrisitas',
+    pie: 'Más amorsss',
+    mensaje: 'Otro día que recuerdo con mucha felicidad y cariño de nosotros compartiendo una bella noche nuestro bello amor.',
     foto: 'assets/fotos/recuerdo_r4.jpg'
   },
   {
     id: 'r5',
-    titulo: 'Nosotros',
-    pie: 'Un día cualquiera, contigo',
-    mensaje: 'Los días normales contigo no tienen nada de normales.',
+    titulo: 'En mi pecho',
+    pie: 'Lo más cerca de mí <3',
+    mensaje: 'Siempre me encanta tenerte cerca mío, pero esta posición es mi favorita pq es cuando más cerca te siento de mí.',
     foto: 'assets/fotos/recuerdo_r5.jpg'
   },
   {
     id: 'r6',
     titulo: 'Bajo las flores',
-    pie: 'Un jardín entero para vos',
-    mensaje: 'Te beso y se prenden todas las luces.',
+    pie: 'Besando la flor más bella',
+    mensaje: 'Mil jardines llenos de flores he visto y aun así sólo quiero contemplar la flor más bella que es tu ser completo y el amor q compartimos.',
     foto: 'assets/fotos/recuerdo_r6.jpg'
   }
 ];
 
 AG.recuerdoPorId = function (id) {
   return AG.RECUERDOS.filter((r) => r.id === id)[0] || null;
+};
+
+/** El recuerdo que entrega un diálogo (su línea `darRecuerdo`), o null si no entrega ninguno. */
+AG.recuerdoDeDialogo = function (clave) {
+  const dato = clave && AG.DIALOGOS && AG.DIALOGOS[clave];
+  if (!dato) return null;
+  const lineas = [].concat(...(Array.isArray(dato[0]) ? dato : [dato]));
+  const linea = lineas.find((l) => l.darRecuerdo);
+  return linea ? linea.darRecuerdo : null;
 };

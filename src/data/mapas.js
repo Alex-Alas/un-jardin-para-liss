@@ -83,11 +83,15 @@ AG.MAPAS = {
         "py": 128
       },
       {
-        "tipo": "escritorio",
-        "id": "escritorio",
-        "dialogo": "casa.escritorio",
-        "px": 64,
-        "py": 150
+        "tipo": "mesita",
+        "id": "mesita",
+        "dialogo": "casa.mesita",
+        "px": 128,
+        "py": 102,
+        "foto": {
+          "px": 120,
+          "py": 87
+        }
       },
       {
         "tipo": "cuadro",
@@ -596,7 +600,11 @@ AG.MAPAS = {
         "id": "mostrador",
         "dialogo": "pueblo.floreria.mostrador",
         "px": 160,
-        "py": 166
+        "py": 166,
+        "foto": {
+          "px": 160,
+          "py": 150
+        }
       },
       {
         "tipo": "estante",
@@ -868,21 +876,34 @@ AG.MAPAS = {
         "id": "lampara",
         "dialogo": "pueblo.lampara",
         "px": 500,
-        "py": 196
+        "py": 196,
+        "foto": {
+          "px": 500,
+          "py": 166,
+          "colgada": true
+        }
       },
       {
         "tipo": "banco",
         "id": "banco",
         "dialogo": "pueblo.banco",
         "px": 566,
-        "py": 388
+        "py": 388,
+        "foto": {
+          "px": 575,
+          "py": 367
+        }
       },
       {
         "tipo": "arbol_tallado",
         "id": "arbol_tallado",
         "dialogo": "pueblo.arbol",
         "px": 711,
-        "py": 370
+        "py": 370,
+        "foto": {
+          "px": 720,
+          "py": 356
+        }
       },
       {
         "tipo": "npc",

@@ -18,9 +18,9 @@
 // --- lo que se toca (x y = el punto donde el objeto toca el piso)
 #! objeto buzon buzon pueblo.buzon 254 126               // la casilla de madera con ranura
 #! objeto cartel cartel pueblo.cartel 244 224
-#! objeto lampara lampara pueblo.lampara 500 196
-#! objeto banco banco pueblo.banco 566 388              // el banco del pícnic
-#! objeto arbol_tallado arbol_tallado pueblo.arbol 711 370   // el tronco con las iniciales
+#! objeto lampara lampara pueblo.lampara 500 196 foto 500 166 colgada   // atado al poste, gira con el viento
+#! objeto banco banco pueblo.banco 566 388 foto 575 367    // el banco del pícnic: el polaroid, en la mesa
+#! objeto arbol_tallado arbol_tallado pueblo.arbol 711 370 foto 720 356   // el tronco con las iniciales
 #! objeto npc michi pueblo.michi 334 206
 #! objeto npc beto pueblo.beto.saludo 558 276           // junto al pozo, donde estaba el kiosco
 #! objeto npc sofi pueblo.sofi.saludo 512 322

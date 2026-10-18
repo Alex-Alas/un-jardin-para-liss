@@ -212,10 +212,12 @@ window.AG = window.AG || {};
           letra: dato.letra,
           tipo: dato.tipo,
           dialogo: dato.dialogo,
+          recuerdo: AG.recuerdoDeDialogo(dato.dialogo),
           x,
           y,
           visual
         };
+        if (dato.foto && objeto.recuerdo) this.crearPolaroid(objeto, dato.foto);
         this.objetos.push(objeto);
       });
 
@@ -231,6 +233,109 @@ window.AG = window.AG || {};
         const y0 = this.desfase.y + p.y * TILE;
         return { ...p, x0, y0, x1: x0 + TILE, y1: y0 + TILE + 6 };
       });
+    }
+
+    /**
+     * El polaroid que espera en el mapa (`foto x y` en maps/*.txt, su centro): el pixeleado de
+     * tools/arte_extra.py, con un brillo tibio que respira y un destello de vez en cuando, para que
+     * se encuentre sin gritar. El que cuelga gira sobre su hilo. Una vez visto, el brillo se apaga.
+     *
+     * Nada se rota ni se escala en fracciones: con vecino más cercano un sprite de 9 px se rompe.
+     * El giro va por anchos enteros (como una moneda) y el destello, por cuadros.
+     */
+    crearPolaroid(objeto, foto) {
+      const { COLORES } = AG.CFG;
+      const ANCHO = 9;
+      const ALTO = 11;
+      const frente = AG.FX.textura(this, 'polaroid');
+      const atras = AG.FX.textura(this, 'polaroid_atras');
+      // Anclado por la esquina en un píxel entero: centrado, un ancho impar caería en medio píxel.
+      const x0 = Math.round(this.desfase.x + foto.px - ANCHO / 2);
+      const y0 = Math.round(this.desfase.y + foto.py - ALTO / 2);
+      const centro = { x: x0 + ANCHO / 2, y: y0 + ALTO / 2 };
+      // Se ordena con Liss como el objeto al que pertenece: si ella pasa por delante, lo tapa.
+      const profundidad = objeto.y;
+      const imagen = this.add.image(x0, y0, frente.clave, frente.frame).setOrigin(0).setDepth(profundidad + 0.2);
+
+      if (foto.colgada) {
+        // El hilo del diálogo (ámbar, para no competir con el amarillo de las flores). Gira hasta
+        // mostrar el revés, se queda un momento y vuelve, como si el viento lo retorciera.
+        this.add.rectangle(x0 + 4, y0 - 4, 1, 4, c(COLORES.ambar)).setOrigin(0).setDepth(profundidad + 0.2);
+        const giro = { t: 0 };
+        this.tweens.add({
+          targets: giro,
+          t: Math.PI,
+          duration: 1600,
+          hold: 900,
+          yoyo: true,
+          repeat: -1,
+          repeatDelay: 1400,
+          ease: 'Sine.easeInOut',
+          onUpdate: () => {
+            const coseno = Math.cos(giro.t);
+            const ancho = Math.max(1, 2 * Math.round((Math.abs(coseno) * ANCHO - 1) / 2) + 1);
+            const cara = coseno >= 0 ? frente : atras;
+            imagen.setTexture(cara.clave, cara.frame).setScale(ancho / ANCHO, 1);
+            imagen.x = x0 + (ANCHO - ancho) / 2;
+          }
+        });
+      } else {
+        // Sombra de contacto de un píxel, abajo y a la derecha (la luz viene de arriba a la izquierda).
+        this.add.rectangle(x0 + 1, y0 + ALTO, ANCHO - 1, 1, c(COLORES.tinta), 0.35).setOrigin(0).setDepth(profundidad + 0.15);
+        this.add.rectangle(x0 + ANCHO, y0 + 1, 1, ALTO, c(COLORES.tinta), 0.35).setOrigin(0).setDepth(profundidad + 0.15);
+      }
+
+      // Tres anillos que se apagan hacia afuera, el degradé escalonado del pixel art: con un solo
+      // círculo, sobre la madera oscura se veía un disco de borde duro. Blanco tibio: el amarillo
+      // es de Liss y de las flores (docs/arte.md).
+      const brillo = [
+        this.add.circle(centro.x, centro.y, 12, c(COLORES.crema), 0.25),
+        this.add.circle(centro.x, centro.y, 9, c(COLORES.crema), 0.35),
+        this.add.circle(centro.x, centro.y, 6, c(COLORES.blanco), 0.45)
+      ].map((circulo) => circulo.setDepth(profundidad + 0.1));
+      this.tweens.add({
+        targets: brillo,
+        alpha: { from: 0.15, to: 0.42 },
+        scale: { from: 0.85, to: 1.1 },
+        duration: 1200,
+        yoyo: true,
+        repeat: -1,
+        ease: 'Sine.easeInOut'
+      });
+
+      // El destello asoma en la esquina de arriba a la derecha: chico, grande y de vuelta.
+      const cuadros = [0, 1, 2, 2, 1, 0].map((i) => AG.FX.textura(this, `destello_${i}`));
+      const destello = this.add.image(x0 + 6, y0 - 2, cuadros[0].clave, cuadros[0].frame)
+        .setOrigin(0)
+        .setDepth(profundidad + 0.3)
+        .setVisible(false);
+      const destellar = () => {
+        if (!destello.active) return;
+        cuadros.forEach((cuadro, i) =>
+          this.time.delayedCall(i * 70, () => destello.active && destello.setTexture(cuadro.clave, cuadro.frame).setVisible(true))
+        );
+        this.time.delayedCall(cuadros.length * 70, () => destello.active && destello.setVisible(false));
+        this.time.delayedCall(2200 + Math.random() * 1200, destellar);
+      };
+      this.time.delayedCall(Math.random() * 1500, destellar);
+
+      objeto.polaroid = { imagen, efectos: [...brillo, destello] };
+      if (AG.Guardado.tieneRecuerdo(objeto.recuerdo)) this.apagarPolaroid(objeto);
+    }
+
+    apagarPolaroid(objeto) {
+      objeto.polaroid.efectos.forEach((efecto) => {
+        this.tweens.killTweensOf(efecto);
+        efecto.destroy();
+      });
+      objeto.polaroid.efectos = [];
+    }
+
+    /** Lo llama AG.Recuerdos al abrir un polaroid: el del mapa deja de brillar. */
+    alVerRecuerdo(id) {
+      this.objetos
+        .filter((objeto) => objeto.recuerdo === id && objeto.polaroid)
+        .forEach((objeto) => this.apagarPolaroid(objeto));
     }
 
     /** Marca como sólidas las celdas que toca la caja [x0, x1) × [y0, y1), en píxeles del mundo. */

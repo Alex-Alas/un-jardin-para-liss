@@ -4,7 +4,17 @@ window.AG = window.AG || {};
   const c = (v) => AG.UI.color(v);
 
   /** Los frames pintados del atlas (tools/arte_extra.py) que reemplazan a las texturas de acá. */
-  const PINTADAS = { petalo: 'fx_petalo', hoja_seca: 'fx_hoja' };
+  const PINTADAS = {
+    petalo: 'fx_petalo',
+    hoja_seca: 'fx_hoja',
+    polaroid: 'fx_polaroid',
+    polaroid_atras: 'fx_polaroid_atras',
+    destello_0: 'fx_destello_0',
+    destello_1: 'fx_destello_1',
+    destello_2: 'fx_destello_2'
+  };
+  // Sin el arte generado, los que no tienen respaldo propio usan el de su pariente.
+  const RESPALDOS = { polaroid_atras: 'polaroid', destello_0: 'destello', destello_1: 'destello', destello_2: 'destello' };
 
   AG.FX = {
     /**
@@ -14,7 +24,7 @@ window.AG = window.AG || {};
     textura(scene, nombre) {
       const frame = PINTADAS[nombre];
       if (frame && AG.tieneFrame(scene, frame)) return { clave: 'arte', frame };
-      return { clave: nombre, frame: undefined };
+      return { clave: RESPALDOS[nombre] || nombre, frame: undefined };
     },
 
     /** Configuración de partículas con su textura: el `frame` solo va si es un frame del atlas. */
@@ -63,6 +73,33 @@ window.AG = window.AG || {};
 
         px(0, 0, 2, 2, AG.CFG.COLORES.blanco);
         g.generateTexture('chispa', 2, 2);
+        g.destroy();
+      }
+      if (!scene.textures.exists('polaroid')) {
+        const g = scene.add.graphics();
+        const px = (x, y, w, h, color) => {
+          g.fillStyle(c(color), 1);
+          g.fillRect(x, y, w, h);
+        };
+        const { COLORES } = AG.CFG;
+        // Respaldo del polaroid pixeleado de tools/arte_extra.py: 9 × 11, el mismo marco con el
+        // borde de abajo ancho y la fotito (cielo, atardecer, los dos, pasto), en menos tonos.
+        px(1, 0, 7, 11, COLORES.tinta);
+        px(0, 1, 9, 9, COLORES.tinta);
+        px(1, 1, 7, 9, COLORES.crema);
+        px(2, 2, 5, 2, COLORES.cielo);
+        px(2, 4, 5, 2, COLORES.rosa);
+        px(3, 4, 1, 2, COLORES.tintaSuave);
+        px(5, 4, 1, 2, COLORES.tintaSuave);
+        px(2, 6, 5, 1, COLORES.verde);
+        g.generateTexture('polaroid', 9, 11);
+        g.clear();
+
+        // Destello: una crucecita de 5 × 5, blanco tibio (el amarillo es de Liss y las flores).
+        px(2, 0, 1, 5, COLORES.crema);
+        px(0, 2, 5, 1, COLORES.crema);
+        px(2, 2, 1, 1, COLORES.blanco);
+        g.generateTexture('destello', 5, 5);
         g.destroy();
       }
       return this;

@@ -48,6 +48,8 @@ body {
   position: absolute;
   display: block;
   object-fit: cover;
+  /* Las tarjetas del álbum recortan la foto a lo ancho: un poco hacia arriba, donde están las caras. */
+  object-position: 50% 35%;
   image-rendering: auto;
   pointer-events: none;
 }

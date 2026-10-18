@@ -131,7 +131,7 @@ Reglas:
 
 | Asset | Tamaño | Cantidad | Uso | Origen |
 |---|---|---|---|---|
-| `atlas.png` / `atlas.json` | 256×237 hoy, 71 frames | 1 | sprites, iconos, retratos, partículas | `tools/generate_sprites.py` |
+| `atlas.png` / `atlas.json` | 256×237 hoy, 76 frames | 1 | sprites, iconos, retratos, partículas | `tools/generate_sprites.py` |
 | `font_pixel.png` / `.xml` | variable | 2 (8 px y 16 px) | todo el texto | `tools/generate_font.py` |
 | `mapa_casa.png` | 20×14 tiles | 1 | interior | `tools/render_maps.py` |
 | `mapa_pueblo.png` | 48×32 tiles | 1 | exterior principal | `tools/render_maps.py` |
@@ -144,6 +144,8 @@ Reglas:
 | iconos UI | 16×16 y 9×8 | `ui_corazon`, `ui_flor`, `ui_corazon_chico` | punto de guardado, cursores, latido | `tools/arte_extra.py` |
 | `ramo_0` | 16×24 | 1 | el ramo de la colina | `tools/arte_extra.py` |
 | pétalo y hoja seca | 6×7 y 8×6 | `fx_petalo`, `fx_hoja` | partículas y minijuego | `tools/arte_extra.py` (en `fx.js` queda el respaldo) |
+| polaroid del mapa | 9×11 | `fx_polaroid`, `fx_polaroid_atras` | los recuerdos que esperan en los mapas | `tools/arte_extra.py`, pixeleado a mano |
+| destello | 5×5 | `fx_destello_0..2` | el brillo que asoma en el polaroid | `tools/arte_extra.py`, pixeleado a mano |
 | `fondo_titulo.png` | 480×270 | 1 | título y créditos: el pueblo de noche | `tools/fondos.py` |
 | `fondo_petalos1/2.png` | 480×270 | 2 | las dos rondas de pétalos | `tools/fondos.py` |
 | terreno y objetos | 16×16 | 7 terrenos + 15 objetos | respaldo de los mapas ASCII | `tools/tiles.py` |
@@ -167,7 +169,28 @@ npc_<id>_abajo_0 / _1       # Alex, Flora, Beto, Sofi, Michi: quieto + respiraci
 retrato_<id>_normal         # los cinco, 48×48
 ui_corazon   ui_flor   ui_corazon_chico   ramo_0
 fx_petalo   fx_hoja          # partículas: AG.FX.textura() las prefiere a las de fx.js
+fx_polaroid   fx_polaroid_atras   fx_destello_0 .. _2   # el polaroid del mapa (ver abajo)
 ```
+
+### El polaroid del mapa
+
+Cada recuerdo que se encuentra en un mapa se ve donde está (`foto x y [colgada]` en `maps/*.txt`).
+Es un sprite de 9 × 11 pixeleado a mano (`POLAROID_FRENTE` en `tools/arte_extra.py`): a ese
+tamaño cada píxel es una decisión, y bajado de un dibujo grande se ensuciaba.
+
+- Marco crema con la luz de arriba a la izquierda y la sombra lila abajo a la derecha, el borde de
+  abajo más ancho (el de los polaroid de verdad) y las esquinas redondeadas. Contorno *selout*:
+  tibio y más claro del lado de la luz, oscuro del lado de la sombra.
+- La fotito es la escena del final: los dos en la colina, con el cielo del atardecer. Leída como
+  dos caritas se confundía con un emoji.
+- El revés (`fx_polaroid_atras`) lleva dos renglones de tinta: "cada una tiene su letra atrás".
+- Apoyado, lleva una sombra de contacto de un píxel abajo y a la derecha; colgado, un hilo ámbar.
+- Para que se encuentre sin gritar: un brillo **blanco tibio** de tres anillos escalonados que
+  respira (nunca amarillo: es de Liss y de las flores) y un destello de tres cuadros cada 2–3 s.
+  Cuando Liss ya lo vio, el brillo se apaga y el polaroid se queda.
+- **Nada se rota ni se escala en fracciones**: con vecino más cercano, un sprite de 9 px se rompe.
+  El que cuelga gira como una moneda, por anchos enteros (9, 7, 5, 3, 1) mostrando el revés, y
+  el destello se anima por cuadros.
 
 Los NPCs traen una sola dirección porque en el juego nunca caminan. Si algún día uno se mueve,
 se agregan las ocho con estos mismos nombres y `AG.direccionDibujable()` las toma sola.
