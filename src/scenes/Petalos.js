@@ -31,7 +31,7 @@ AG.Petalos = class Petalos extends Phaser.Scene {
 
     this.entrada = new AG.Entrada(this);
     this.dialogo = new AG.Dialogo(this, this.entrada);
-    AG.Musica.tocar('petalos');
+    AG.Musica.tocar(this.tipo);
 
     if (AG.hayAtlas()) {
       this.jugador = this.add.sprite(VIEW_W / 2, VIEW_H - 12, 'arte', 'liss_idle_abajo_0').setOrigin(0.5, 1);

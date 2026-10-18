@@ -160,7 +160,8 @@ async def main() -> None:
 
         estado = await pagina.evaluate(
             "() => ({ escena: AG.juego.scene.scenes.filter(s => s.scene.isActive()).map(s => s.scene.key),"
-            " flores: AG.Guardado.datos.flores, recuerdos: AG.Guardado.datos.recuerdos })"
+            " flores: AG.Guardado.datos.flores, recuerdos: AG.Guardado.datos.recuerdos,"
+            " musica: AG.Musica.sonando ? AG.Musica.sonando.archivo : AG.Musica.chip })"
         )
         print("  estado:", estado)
 
@@ -221,7 +222,8 @@ async def main() -> None:
 
         final = await pagina.evaluate(
             "() => ({ activas: AG.juego.scene.scenes.filter(s => s.scene.isActive()).map(s => s.scene.key),"
-            " flores: AG.Guardado.datos.flores, terminado: AG.Guardado.datos.terminado })"
+            " flores: AG.Guardado.datos.flores, terminado: AG.Guardado.datos.terminado,"
+            " musica: AG.Musica.sonando ? AG.Musica.sonando.archivo : AG.Musica.chip })"
         )
         print("  final:", final)
         await captura(pagina, "18-creditos-en-curso")

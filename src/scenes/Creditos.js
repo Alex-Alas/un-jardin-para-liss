@@ -13,7 +13,7 @@ AG.Creditos = class Creditos extends Phaser.Scene {
     const fondo = AG.ponerFondo(this, 'titulo');
     this.add.rectangle(0, 0, VIEW_W, VIEW_H, c(COLORES.negro), fondo ? 0.55 : 1).setOrigin(0);
     this.entrada = new AG.Entrada(this);
-    AG.Musica.tocar('final');
+    AG.Musica.tocar('creditos');
     AG.FX.petalosAmbientales(this, 2);
 
     const lineas = [
@@ -23,6 +23,7 @@ AG.Creditos = class Creditos extends Phaser.Scene {
       ['(Y con ayuda de Claudio, jeje)', COLORES.gris],
       ['', COLORES.blanco],
       ['Historia, arte y fotos: Alex y Liss', COLORES.blanco],
+      ['Música: Alex, con Gemini', COLORES.gris],
       ['', COLORES.blanco],
       ['Gracias a Doña Flora, a Don Beto,', COLORES.crema],
       ['a Sofi y a Michi,', COLORES.crema],

@@ -306,6 +306,7 @@ Una aventura hecha a mano por Alex
 (Y con ayuda de Claudio, jeje)
 
 Historia, arte y fotos: Alex y Liss
+Música: Alex, con Gemini
 
 Gracias a Doña Flora, a Don Beto, a Sofi y a Michi,
 que son inventados, pero ayudaron muchísimo.
@@ -342,4 +343,5 @@ te amo <333».
 2. **Un chiste interno** para `pueblo.beto.chisme` (marcado para reemplazo).
 3. **Un apodo** que quieras que use el espejo en `casa.espejo`.
 4. **Las 6 fotos** con sus descripciones reales (tabla de arriba).
-5. **¿Canción significativa?** Si existe, se versiona a chiptune para los créditos; si no, se compone una.
+5. ~~**¿Canción significativa?**~~ ✅ Alex hizo la música con Gemini: siete pistas, una por momento
+   (ver `docs/musica.md`).

@@ -24,6 +24,8 @@ def detectar() -> dict:
     # Los recortes que tapan a Liss en los mapas pintados (tools/escenarios.py).
     frentes = [m for m in mapas if (ASSETS / f"mapa_{m}_frentes.png").exists()]
     fotos = sorted(p.stem.replace("recuerdo_", "") for p in (ASSETS / "fotos").glob("*.jpg"))
+    # Las pistas de tools/preparar_musica.py; las que falten suenan en chiptune.
+    musica = sorted(p.stem for p in (ASSETS / "musica").glob("*.mp3"))
     return {
         "fuente": bool(fuentes),
         "fuentes": fuentes,
@@ -35,6 +37,7 @@ def detectar() -> dict:
         "fotosPendientes": [
             f"r{i}" for i in range(1, 7) if f"r{i}" not in fotos
         ],
+        "musica": musica,
     }
 
 

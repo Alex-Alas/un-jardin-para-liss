@@ -6,6 +6,10 @@ _referencias/
 # poner los originales acá y correr tools/prepare_photos.py.
 assets/source/fotos/
 
+# Lo mismo con la música: los .mp3 que salen de Gemini pesan 27 MB y se quedan acá; al repo sube
+# lo que arma tools/preparar_musica.py (assets/musica/).
+assets/source/musica/
+
 # Builds y artefactos
 dist/
 __pycache__/
