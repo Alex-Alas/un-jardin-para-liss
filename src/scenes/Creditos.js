@@ -90,10 +90,10 @@ AG.Creditos = class Creditos extends Phaser.Scene {
       .rectangle(0, 0, VIEW_W, VIEW_H, c(COLORES.negro), 0.85)
       .setOrigin(0)
       .setDepth(50);
-    AG.UI.texto(this, VIEW_W / 2, VIEW_H / 2 - 22, '¡Feliz cumpleaños, mi amor!', { color: COLORES.rosa })
+    AG.UI.texto(this, VIEW_W / 2, VIEW_H / 2 - 22, '¡Feliz cumpleaños, amorcito!', { color: COLORES.rosa })
       .setOrigin(0.5)
       .setDepth(51);
-    AG.UI.texto(this, VIEW_W / 2, VIEW_H / 2 - 6, 'Gracias por jugar, amoychito.', { color: COLORES.amarillo })
+    AG.UI.texto(this, VIEW_W / 2, VIEW_H / 2 - 6, 'Gracias por jugar, te amo <333', { color: COLORES.amarillo })
       .setOrigin(0.5)
       .setDepth(51);
     AG.UI.texto(this, VIEW_W / 2, VIEW_H / 2 + 14, 'A o ESC para volver', { color: COLORES.gris })

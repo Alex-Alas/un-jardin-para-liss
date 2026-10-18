@@ -332,8 +332,8 @@ mi bellísima noviecita :>
 Te amo, mi Liss hermosa.
 ```
 
-Al terminar de subir queda la pantalla final: «¡Feliz cumpleaños, mi amor!» y «Gracias por jugar,
-amoychito.».
+Al terminar de subir queda la pantalla final: «¡Feliz cumpleaños, amorcito!» y «Gracias por jugar,
+te amo <333».
 
 ---
 
