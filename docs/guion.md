@@ -266,11 +266,10 @@ ALEX: (Se queda callado un rato, sonriendo.)
 * El sol se pone. Las flores amarillas se ven naranja un rato, y después violeta.
 ```
 
-**`colina.tarjeta_final`**
+**`colina.tarjeta_final`** (la antesala de los créditos, que abren con el «¡FELIZ CUMPLEAÑOS!»)
 ```
-* Feliz Día de las Flores Amarillas
-* 21.09
-* Gracias por jugar, Liss.
+* El pueblo entero celebra algo más que las flores amarillas...
+* ...porque hoy es tu cumpleaños.
 ```
 
 ---

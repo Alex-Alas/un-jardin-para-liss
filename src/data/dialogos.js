@@ -199,9 +199,8 @@ AG.DIALOGOS = {
     { narracion: 'El sol se pone. Las flores amarillas se ven naranja un rato, y después violeta.' }
   ],
   'colina.tarjeta_final': [
-    { narracion: 'Feliz Día de las Flores Amarillas' },
-    { narracion: '21.09' },
-    { narracion: 'Gracias por jugar, Liss.' }
+    { narracion: 'El pueblo entero celebra algo más que las flores amarillas...' },
+    { narracion: '...porque hoy es tu cumpleaños.' }
   ],
 
   'album.vacio': [
