@@ -236,49 +236,89 @@ window.AG = window.AG || {};
     }
 
     /**
-     * El polaroid que espera en el mapa (`foto x y` en maps/*.txt): chiquito, con un brillo tibio
-     * que respira y un destello de vez en cuando, para que se encuentre sin gritar. El que cuelga
-     * gira despacio. Una vez visto queda quieto, sin brillo.
+     * El polaroid que espera en el mapa (`foto x y` en maps/*.txt, su centro): el pixeleado de
+     * tools/arte_extra.py, con un brillo tibio que respira y un destello de vez en cuando, para que
+     * se encuentre sin gritar. El que cuelga gira sobre su hilo. Una vez visto, el brillo se apaga.
+     *
+     * Nada se rota ni se escala en fracciones: con vecino más cercano un sprite de 9 px se rompe.
+     * El giro va por anchos enteros (como una moneda) y el destello, por cuadros.
      */
     crearPolaroid(objeto, foto) {
       const { COLORES } = AG.CFG;
-      const x = this.desfase.x + foto.px;
-      const y = this.desfase.y + foto.py;
+      const ANCHO = 9;
+      const ALTO = 11;
+      const frente = AG.FX.textura(this, 'polaroid');
+      const atras = AG.FX.textura(this, 'polaroid_atras');
+      // Anclado por la esquina en un píxel entero: centrado, un ancho impar caería en medio píxel.
+      const x0 = Math.round(this.desfase.x + foto.px - ANCHO / 2);
+      const y0 = Math.round(this.desfase.y + foto.py - ALTO / 2);
+      const centro = { x: x0 + ANCHO / 2, y: y0 + ALTO / 2 };
       // Se ordena con Liss como el objeto al que pertenece: si ella pasa por delante, lo tapa.
       const profundidad = objeto.y;
-      const imagen = this.add.image(x, y, 'polaroid_mapa').setDepth(profundidad + 0.2);
-      const centroY = foto.colgada ? y + 4 : y;
+      const imagen = this.add.image(x0, y0, frente.clave, frente.frame).setOrigin(0).setDepth(profundidad + 0.2);
+
       if (foto.colgada) {
-        // Del hilo amarillo que lo ata (el del diálogo), y gira desde ahí.
-        this.add.rectangle(x, y - 4, 1, 4, c(COLORES.amarillo)).setOrigin(0.5, 0).setDepth(profundidad + 0.2);
-        imagen.setOrigin(0.5, 0);
-        this.tweens.add({ targets: imagen, angle: { from: -9, to: 9 }, duration: 1700, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+        // El hilo del diálogo (ámbar, para no competir con el amarillo de las flores). Gira hasta
+        // mostrar el revés, se queda un momento y vuelve, como si el viento lo retorciera.
+        this.add.rectangle(x0 + 4, y0 - 4, 1, 4, c(COLORES.ambar)).setOrigin(0).setDepth(profundidad + 0.2);
+        const giro = { t: 0 };
+        this.tweens.add({
+          targets: giro,
+          t: Math.PI,
+          duration: 1600,
+          hold: 900,
+          yoyo: true,
+          repeat: -1,
+          repeatDelay: 1400,
+          ease: 'Sine.easeInOut',
+          onUpdate: () => {
+            const coseno = Math.cos(giro.t);
+            const ancho = Math.max(1, 2 * Math.round((Math.abs(coseno) * ANCHO - 1) / 2) + 1);
+            const cara = coseno >= 0 ? frente : atras;
+            imagen.setTexture(cara.clave, cara.frame).setScale(ancho / ANCHO, 1);
+            imagen.x = x0 + (ANCHO - ancho) / 2;
+          }
+        });
+      } else {
+        // Sombra de contacto de un píxel, abajo y a la derecha (la luz viene de arriba a la izquierda).
+        this.add.rectangle(x0 + 1, y0 + ALTO, ANCHO - 1, 1, c(COLORES.tinta), 0.35).setOrigin(0).setDepth(profundidad + 0.15);
+        this.add.rectangle(x0 + ANCHO, y0 + 1, 1, ALTO, c(COLORES.tinta), 0.35).setOrigin(0).setDepth(profundidad + 0.15);
       }
-      // Dos círculos, uno ancho y tenue y otro chico, para que el brillo no tenga un borde duro.
+
+      // Tres anillos que se apagan hacia afuera, el degradé escalonado del pixel art: con un solo
+      // círculo, sobre la madera oscura se veía un disco de borde duro. Blanco tibio: el amarillo
+      // es de Liss y de las flores (docs/arte.md).
       const brillo = [
-        this.add.circle(x, centroY, 9, c(COLORES.amarilloClaro), 0.45),
-        this.add.circle(x, centroY, 6, c(COLORES.amarilloClaro), 0.7)
+        this.add.circle(centro.x, centro.y, 12, c(COLORES.crema), 0.25),
+        this.add.circle(centro.x, centro.y, 9, c(COLORES.crema), 0.35),
+        this.add.circle(centro.x, centro.y, 6, c(COLORES.blanco), 0.45)
       ].map((circulo) => circulo.setDepth(profundidad + 0.1));
       this.tweens.add({
         targets: brillo,
-        alpha: { from: 0.1, to: 0.32 },
-        scale: { from: 0.85, to: 1.15 },
-        duration: 1100,
+        alpha: { from: 0.15, to: 0.42 },
+        scale: { from: 0.85, to: 1.1 },
+        duration: 1200,
         yoyo: true,
         repeat: -1,
         ease: 'Sine.easeInOut'
       });
-      const destello = this.add.image(x + 4, centroY - 4, 'destello').setDepth(profundidad + 0.3).setScale(0);
-      this.tweens.add({
-        targets: destello,
-        scale: { from: 0, to: 1 },
-        duration: 240,
-        hold: 120,
-        yoyo: true,
-        repeat: -1,
-        repeatDelay: 1900 + Math.random() * 900,
-        delay: Math.random() * 1500
-      });
+
+      // El destello asoma en la esquina de arriba a la derecha: chico, grande y de vuelta.
+      const cuadros = [0, 1, 2, 2, 1, 0].map((i) => AG.FX.textura(this, `destello_${i}`));
+      const destello = this.add.image(x0 + 6, y0 - 2, cuadros[0].clave, cuadros[0].frame)
+        .setOrigin(0)
+        .setDepth(profundidad + 0.3)
+        .setVisible(false);
+      const destellar = () => {
+        if (!destello.active) return;
+        cuadros.forEach((cuadro, i) =>
+          this.time.delayedCall(i * 70, () => destello.active && destello.setTexture(cuadro.clave, cuadro.frame).setVisible(true))
+        );
+        this.time.delayedCall(cuadros.length * 70, () => destello.active && destello.setVisible(false));
+        this.time.delayedCall(2200 + Math.random() * 1200, destellar);
+      };
+      this.time.delayedCall(Math.random() * 1500, destellar);
+
       objeto.polaroid = { imagen, efectos: [...brillo, destello] };
       if (AG.Guardado.tieneRecuerdo(objeto.recuerdo)) this.apagarPolaroid(objeto);
     }
