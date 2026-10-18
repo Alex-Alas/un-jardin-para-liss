@@ -16,6 +16,16 @@ AG.CFG = {
     BLIP_CADA: 3,
     MARGEN: 6
   },
+  // Cuántas letras de 8 px entran por renglón en los recuerdos. Lo usan el polaroid, el álbum y
+  // el validador de contenido, que avisa si un texto nuevo no cabe.
+  POLAROID: {
+    LETRAS_MARCO: 23, // título y pie: los 184 px entre los márgenes del marco
+    RENGLONES_MARCO: 4,
+    LETRAS_MENSAJE: 24, // la carta de al lado: 192 px
+    RENGLONES_MENSAJE: 10,
+    LETRAS_ALBUM: 16, // el título en la tarjeta del álbum: 128 px
+    RENGLONES_ALBUM: 2
+  },
   COLORES: {
     tinta: '#1b1420',
     tintaSuave: '#3b2f47',

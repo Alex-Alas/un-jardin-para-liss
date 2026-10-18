@@ -20,7 +20,7 @@ function cargar(ruta) {
   new Function(codigo)();
 }
 
-['src/config.js', 'src/data/personajes.js', 'src/data/dialogos.js', 'src/data/mapas.js'].forEach(cargar);
+['src/config.js', 'src/systems/ui.js', 'src/data/personajes.js', 'src/data/dialogos.js', 'src/data/mapas.js'].forEach(cargar);
 
 const AG = globalThis.AG;
 const errores = [];
@@ -58,6 +58,27 @@ Object.entries(AG.DIALOGOS).forEach(([clave, valor]) => {
       }
     });
   });
+});
+
+/* Que los textos de cada recuerdo quepan en el polaroid y en su tarjeta del álbum, partidos igual
+ * que en src/systems/memories.js. */
+const { POLAROID } = AG.CFG;
+const renglones = AG.UI.envolver;
+AG.RECUERDOS.forEach((r) => {
+  const marco = renglones(r.titulo, POLAROID.LETRAS_MARCO).length + renglones(r.pie, POLAROID.LETRAS_MARCO).length;
+  if (marco > POLAROID.RENGLONES_MARCO) {
+    errores.push(`recuerdo ${r.id}: título y pie ocupan ${marco} renglones bajo la foto (caben ${POLAROID.RENGLONES_MARCO})`);
+  }
+  const mensaje = renglones(r.mensaje, POLAROID.LETRAS_MENSAJE).length;
+  if (mensaje > POLAROID.RENGLONES_MENSAJE) {
+    errores.push(`recuerdo ${r.id}: el mensaje ocupa ${mensaje} renglones (caben ${POLAROID.RENGLONES_MENSAJE})`);
+  }
+  [r.titulo, r.pie, r.mensaje].join(' ').split(' ').forEach((palabra) => {
+    if (palabra.length > POLAROID.LETRAS_MARCO) errores.push(`recuerdo ${r.id}: "${palabra}" no entra en un renglón`);
+  });
+  if (renglones(r.titulo, POLAROID.LETRAS_ALBUM).length > POLAROID.RENGLONES_ALBUM) {
+    avisos.push(`recuerdo ${r.id}: el título se corta con "…" en el álbum`);
+  }
 });
 
 /* ---------------------------------------------------------------- mapas

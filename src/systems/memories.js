@@ -3,6 +3,14 @@ window.AG = window.AG || {};
 (function () {
   const c = (v) => AG.UI.color(v);
 
+  // La grilla del álbum: 3 × 2 tarjetas de 140 × 100. Son anchas para que el título vaya a tamaño
+  // completo: la fuente achicada (0.75) se deformaba y no se leía.
+  const GRILLA = { x: 20, y: 40, pasoX: 150, pasoY: 106, ancho: 140, alto: 100 };
+  const celda = (i) => ({
+    x: GRILLA.x + (i % 3) * GRILLA.pasoX,
+    y: GRILLA.y + Math.floor(i / 3) * GRILLA.pasoY
+  });
+
   AG.Recuerdos = class Recuerdos {
     constructor(scene) {
       this.scene = scene;
@@ -87,18 +95,24 @@ window.AG = window.AG || {};
         );
       }
 
-      this.objetos.push(
-        AG.UI.texto(this.scene, 36, 208, recuerdo.titulo, { color: COLORES.tinta })
-          .setDepth(803)
-          .setScrollFactor(0)
-      );
-      this.objetos.push(
-        AG.UI.texto(this.scene, 36, 224, recuerdo.pie, { color: COLORES.marron })
-          .setDepth(803)
-          .setScrollFactor(0)
-      );
+      // Título y pie se apilan bajo la foto, partidos para no salirse del marco: con un título
+      // de dos renglones el pie baja, en vez de pisarlo.
+      const { POLAROID } = AG.CFG;
+      let y = fotoY + fotoAlto + 8;
+      [
+        [recuerdo.titulo, COLORES.tinta],
+        [recuerdo.pie, COLORES.marron]
+      ].forEach(([cadena, color]) => {
+        const renglones = AG.UI.envolver(cadena, POLAROID.LETRAS_MARCO);
+        this.objetos.push(
+          this.renglones(AG.UI.texto(this.scene, 36, y, renglones.join('\n'), { color }))
+            .setDepth(803)
+            .setScrollFactor(0)
+        );
+        y += renglones.length * 10 + 4;
+      });
 
-      const lineas = AG.UI.envolver(recuerdo.mensaje, 26);
+      const lineas = AG.UI.envolver(recuerdo.mensaje, POLAROID.LETRAS_MENSAJE);
       this.objetos.push(
         this.scene.add
           .rectangle(248, 60, 216, 140, c(COLORES.crema), 0.12)
@@ -115,7 +129,7 @@ window.AG = window.AG || {};
           .setScrollFactor(0)
       );
       this.objetos.push(
-        AG.UI.texto(this.scene, 260, 76, lineas.join('\n'), { color: COLORES.blanco })
+        this.renglones(AG.UI.texto(this.scene, 260, 76, lineas.join('\n'), { color: COLORES.blanco }))
           .setDepth(802)
           .setScrollFactor(0)
       );
@@ -132,6 +146,12 @@ window.AG = window.AG || {};
 
       AG.Musica && AG.Musica.sfx('recuerdo');
       this.escucharToque();
+    }
+
+    /** Dos píxeles entre renglones: la fuente mide 8 y sin aire las líneas se pegan. */
+    renglones(texto) {
+      if (texto.setLineSpacing) texto.setLineSpacing(2);
+      return texto;
     }
 
     /** El toque que abrió/cerró un recuerdo no debe ser leído como una acción nueva. */
@@ -178,13 +198,13 @@ window.AG = window.AG || {};
           .setScrollFactor(0)
       );
       this.objetos.push(
-        AG.UI.texto(this.scene, VIEW_W / 2, 16, 'NUESTROS RECUERDOS', { color: COLORES.amarillo })
+        AG.UI.texto(this.scene, VIEW_W / 2, 10, 'NUESTROS RECUERDOS', { color: COLORES.amarillo })
           .setOrigin(0.5, 0)
           .setDepth(801)
           .setScrollFactor(0)
       );
       this.objetos.push(
-        AG.UI.texto(this.scene, VIEW_W / 2, 32, `${abiertos.length} de ${AG.RECUERDOS.length}`, {
+        AG.UI.texto(this.scene, VIEW_W / 2, 24, `${abiertos.length} de ${AG.RECUERDOS.length}`, {
           color: COLORES.crema
         })
           .setOrigin(0.5, 0)
@@ -205,13 +225,11 @@ window.AG = window.AG || {};
       }
 
       const capas = [];
+      const { POLAROID } = AG.CFG;
       abiertos.forEach((recuerdo, i) => {
-        const columna = i % 3;
-        const fila = Math.floor(i / 3);
-        const x = 92 + columna * 106;
-        const y = 60 + fila * 96;
+        const { x, y } = celda(i);
         const marco = this.scene.add
-          .rectangle(x, y, 92, 88, c(COLORES.crema), 1)
+          .rectangle(x, y, GRILLA.ancho, GRILLA.alto, c(COLORES.crema), 1)
           .setOrigin(0)
           .setDepth(801)
           .setScrollFactor(0);
@@ -219,26 +237,24 @@ window.AG = window.AG || {};
         marco.setInteractive({ useHandCursor: true });
         marco.on('pointerdown', () => this.abrirDesdeAlbum(recuerdo.id));
         this.objetos.push(marco);
+        const fotoAncho = GRILLA.ancho - 12;
         if (AG.hayFoto(recuerdo.id)) {
-          capas.push({ id: recuerdo.id, x: x + 6, y: y + 6, ancho: 80, alto: 60 });
+          capas.push({ id: recuerdo.id, x: x + 6, y: y + 6, ancho: fotoAncho, alto: 68 });
         } else {
           this.objetos.push(
             this.scene.add
-              .rectangle(x + 6, y + 6, 80, 60, c(COLORES.grisOscuro), 1)
+              .rectangle(x + 6, y + 6, fotoAncho, 68, c(COLORES.grisOscuro), 1)
               .setOrigin(0)
               .setDepth(802)
               .setScrollFactor(0)
           );
         }
-        // Dos líneas de 6 px a escala 0.75: la tarjeta mide 88 de alto y el título arranca en
-        // y+70, así que entra justo sin tocar el pie de la pantalla.
-        const lineas = AG.UI.envolver(recuerdo.titulo, 12);
-        const titulo = lineas.length > 2 ? `${lineas[0]}\n${lineas[1]}…` : lineas.join('\n');
+        // Hasta dos renglones de 8 px bajo la foto (y+78 a y+96); si no entra, se corta con "…".
+        const lineas = AG.UI.envolver(recuerdo.titulo, POLAROID.LETRAS_ALBUM);
+        const visibles = lineas.slice(0, POLAROID.RENGLONES_ALBUM);
+        if (lineas.length > visibles.length) visibles[visibles.length - 1] += '…';
         this.objetos.push(
-          AG.UI.texto(this.scene, x + 6, y + 70, titulo, {
-            color: COLORES.tinta,
-            escala: 0.75
-          })
+          this.renglones(AG.UI.texto(this.scene, x + 6, y + 78, visibles.join('\n'), { color: COLORES.tinta }))
             .setDepth(802)
             .setScrollFactor(0)
         );
@@ -246,7 +262,7 @@ window.AG = window.AG || {};
       // Las fotos del álbum van juntas a la capa HTML, que las pega encima del canvas.
       AG.Fotos.mostrar(capas);
 
-      const cerrar = AG.UI.texto(this.scene, VIEW_W - 14, 14, 'cerrar', { color: COLORES.gris })
+      const cerrar = AG.UI.texto(this.scene, VIEW_W - 14, 10, 'cerrar', { color: COLORES.gris })
         .setOrigin(1, 0)
         .setDepth(801)
         .setScrollFactor(0)
@@ -254,10 +270,10 @@ window.AG = window.AG || {};
       cerrar.on('pointerdown', () => this.cerrar());
       this.objetos.push(cerrar);
 
-      this.cursorCorazon = AG.UI.corazon(this.scene, 92, 60, 1).setDepth(803).setScrollFactor(0);
+      this.cursorCorazon = AG.UI.corazon(this.scene, GRILLA.x, GRILLA.y, 1).setDepth(803).setScrollFactor(0);
       this.objetos.push(this.cursorCorazon);
       this.objetos.push(
-        AG.UI.texto(this.scene, VIEW_W / 2, VIEW_H - 18, 'A abre · ESC cierra', { color: COLORES.gris })
+        AG.UI.texto(this.scene, VIEW_W / 2, VIEW_H - 12, 'A abre · ESC cierra', { color: COLORES.gris })
           .setOrigin(0.5)
           .setDepth(801)
           .setScrollFactor(0)
@@ -277,9 +293,8 @@ window.AG = window.AG || {};
       const lista = abiertos || AG.RECUERDOS.filter((r) => AG.Guardado.tieneRecuerdo(r.id));
       if (!lista.length) return;
       this.cursor = (this.cursor + paso + lista.length) % lista.length;
-      const columna = this.cursor % 3;
-      const fila = Math.floor(this.cursor / 3);
-      this.cursorCorazon.setPosition(88 + columna * 106, 62 + fila * 96);
+      const { x, y } = celda(this.cursor);
+      this.cursorCorazon.setPosition(x - 4, y + 2);
       AG.Musica && AG.Musica.sfx('blip');
     }
 

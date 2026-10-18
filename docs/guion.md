@@ -279,16 +279,18 @@ Cada uno es un polaroid con la foto real, un pie de foto y un mensajito de Alex.
 aporta Alex en `_referencias/fotos/`; el pipeline las optimiza a `assets/fotos/recuerdo_rN.jpg`.
 
 Los textos son los que se ven en el juego y viven en `src/data/personajes.js`: esta tabla es el
-registro de qué foto quedó en cada recuerdo.
+registro de qué foto quedó en cada recuerdo. Título y pie se parten solos en renglones de 23
+letras bajo la foto (caben 4 entre los dos) y el mensaje en renglones de 24 (caben 10);
+`node tools/validar_contenido.js` avisa si un texto nuevo no entra.
 
 | # | Título | Pie de foto | Mensaje | Foto que quedó |
 |---|---|---|---|---|
-| 1 | «Pegaditos bien gonitos» | «La primera vez q te tuve tan cómoda cerca de mí» | «Antes de esta foto yo ya estaba nervioso. Después también :P» | Selfie de día, mejilla con mejilla |
-| 2 | «Tu carita» | «Aquí te burlabas de mí» | «No es la mejor foto que te he tomado, pero es mi favorita.» | Ella haciéndote carita de burla, con la plantita |
-| 3 | «Tu risa» | «Esa noche, entre las luces» | «No nos importó nada. Volvería a esa noche contigo.» | Los dos riéndose, de noche, con guirnaldas |
-| 4 | «El lugar de siempre» | «Ya nos conocen y todo» | «Aquí quiero volver contigo mil veces más.» | Un lugar con luces y un cartel violeta detrás |
-| 5 | «Nosotros» | «Un día cualquiera, contigo» | «Los días normales contigo no tienen nada de normales.» | Los dos en el sillón, ella apoyada en él |
-| 6 | «Bajo las flores» | «Un jardín entero para vos» | «Te beso y se prenden todas las luces.» | Posada bajo el arco de flores, con las luces |
+| 1 | «Pegaditos bien gonitos» | «Tan preciosa con tu overol :>» | «Tu estilazo siempre hace q nuestras fotos juntos brillen.» | Selfie de día, mejilla con mejilla |
+| 2 | «Nuestra plantita de amor» | «Crecimos tanto ese día» | «Desde ese día siento que hemos crecido tantísimo juntos y siento que nuestro compromiso ha tomado más fuerza.» | Ella haciéndote carita de burla, con la plantita |
+| 3 | «Entre las luces» | «Tú siempre brillas más» | «Un bello recuerdo de una salida juntos inolvidable, con tu risa siendo siempre la luz más brillante q acompaña a la mía <3» | Los dos riéndose, de noche, con guirnaldas |
+| 4 | «Más sonrisitas» | «Más amorsss» | «Otro día que recuerdo con mucha felicidad y cariño de nosotros compartiendo una bella noche nuestro bello amor.» | Un lugar con luces y un cartel violeta detrás |
+| 5 | «En mi pecho» | «Lo más cerca de mí <3» | «Siempre me encanta tenerte cerca mío, pero esta posición es mi favorita pq es cuando más cerca te siento de mí.» | Los dos en el sillón, ella apoyada en él |
+| 6 | «Bajo las flores» | «Besando la flor más bella» | «Mil jardines llenos de flores he visto y aun así sólo quiero contemplar la flor más bella que es tu ser completo y el amor q compartimos.» | Posada bajo el arco de flores, con las luces |
 
 ---
 
@@ -307,7 +309,21 @@ Gracias a Doña Flora, a Don Beto, a Sofi y a Michi,
 que son inventados, pero ayudaron muchísimo.
 
 21 de septiembre.
+
+Feliz Día de las Flores Amarillas.
+
+Y hoy, sobre todo:
+¡FELIZ CUMPLEAÑOS, LISS!
+
+Que este año nuevo te llene de flores,
+de risas y de luces,
+como las que tú le das a mis días.
+
+Te amo, Liss.
 ```
+
+Al terminar de subir queda la pantalla final: «¡Feliz cumpleaños, mi amor!» y «Gracias por jugar,
+Liss.».
 
 ---
 

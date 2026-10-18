@@ -35,6 +35,13 @@ AG.Creditos = class Creditos extends Phaser.Scene {
       ['', COLORES.blanco],
       ['Feliz Día de las Flores Amarillas.', COLORES.amarillo],
       ['', COLORES.blanco],
+      ['Y hoy, sobre todo:', COLORES.crema],
+      ['¡FELIZ CUMPLEAÑOS, LISS!', COLORES.amarillo],
+      ['', COLORES.blanco],
+      ['Que este año nuevo te llene de flores,', COLORES.crema],
+      ['de risas y de luces,', COLORES.crema],
+      ['como las que tú le das a mis días.', COLORES.crema],
+      ['', COLORES.blanco],
       ['Te amo, Liss.', COLORES.rosa]
     ];
 
@@ -52,13 +59,16 @@ AG.Creditos = class Creditos extends Phaser.Scene {
 
   update(tiempo, delta) {
     const dt = delta / 1000;
+    // Siguen subiendo detrás de la pantalla final, para que no queden quietas debajo del velo.
+    this.textos.forEach((t) => {
+      t.y -= this.velocidad * dt;
+    });
     if (!this.terminado) {
       const limite = AG.CFG.VIEW_H * 0.35;
-      this.textos.forEach((t) => {
-        t.y -= this.velocidad * dt;
-      });
-      const primera = this.textos[0];
-      if (primera && primera.y < -60) {
+      // La pantalla final llega cuando la última línea ya subió hasta arriba del centro: si se
+      // esperara a la primera, el final de los créditos (el cumpleaños) quedaría tapado.
+      const ultima = this.textos[this.textos.length - 1];
+      if (ultima && ultima.y < limite) {
         this.terminado = true;
         this.mostrarFinal();
       }
@@ -73,10 +83,13 @@ AG.Creditos = class Creditos extends Phaser.Scene {
       .rectangle(0, 0, VIEW_W, VIEW_H, c(COLORES.negro), 0.85)
       .setOrigin(0)
       .setDepth(50);
-    AG.UI.texto(this, VIEW_W / 2, VIEW_H / 2 - 10, 'Gracias por jugar, Liss.', { color: COLORES.amarillo })
+    AG.UI.texto(this, VIEW_W / 2, VIEW_H / 2 - 22, '¡Feliz cumpleaños, mi amor!', { color: COLORES.rosa })
       .setOrigin(0.5)
       .setDepth(51);
-    AG.UI.texto(this, VIEW_W / 2, VIEW_H / 2 + 10, 'A o ESC para volver', { color: COLORES.gris })
+    AG.UI.texto(this, VIEW_W / 2, VIEW_H / 2 - 6, 'Gracias por jugar, Liss.', { color: COLORES.amarillo })
+      .setOrigin(0.5)
+      .setDepth(51);
+    AG.UI.texto(this, VIEW_W / 2, VIEW_H / 2 + 14, 'A o ESC para volver', { color: COLORES.gris })
       .setOrigin(0.5)
       .setDepth(51);
   }
