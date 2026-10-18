@@ -67,33 +67,30 @@ window.AG = window.AG || {};
       this.controles.push(boton, this.textoBoton);
 
       this.scene.input.on('pointerdown', (p) => this.pointerAbajo(p, centro));
+      // Arrastrar solo mueve el D-pad, y solo si el dedo empezó en él. Antes cada `pointermove`
+      // contaba como un toque nuevo: el pulgar que se corría del D-pad abría el diálogo de lo
+      // que hubiera cerca, y un dedo apoyado (que siempre tiembla un poco) lo pasaba volando.
       this.scene.input.on('pointermove', (p) => {
-        if (p.isDown) this.pointerAbajo(p, centro);
+        if (p.isDown && p.id === this.punteroDpad) this.apuntarDpad(p, centro);
       });
-      this.scene.input.on('pointerup', (p) => this.pointerArriba(p, centro));
-      this.scene.input.on('pointerupoutside', () => this.soltarTodo());
+      this.scene.input.on('pointerup', (p) => this.pointerArriba(p));
+      this.scene.input.on('pointerupoutside', (p) => this.pointerArriba(p));
     }
 
     hayTactil() {
       return (navigator.maxTouchPoints || 0) > 0 || 'ontouchstart' in window;
     }
 
+    /** Un dedo que se apoya: es del D-pad, del botón A o, en cualquier otra parte, un toque. */
     pointerAbajo(pointer, centro) {
       const distancia = Phaser.Math.Distance.Between(pointer.x, pointer.y, centro.x, centro.y);
       if (distancia < 40) {
-        const dx = pointer.x - centro.x;
-        const dy = pointer.y - centro.y;
-        if (Math.abs(dx) < 6 && Math.abs(dy) < 6) {
-          this.ejeTactil = { x: 0, y: 0 };
-          return;
-        }
-        // Ocho sectores: los diagonales se toman cuando ningún eje manda con claridad.
-        const ejeX = Math.abs(dx) > Math.abs(dy) * 0.45 ? Math.sign(dx) : 0;
-        const ejeY = Math.abs(dy) > Math.abs(dx) * 0.45 ? Math.sign(dy) : 0;
-        this.ejeTactil = { x: ejeX, y: ejeY };
+        this.punteroDpad = pointer.id;
+        this.apuntarDpad(pointer, centro);
         return;
       }
       if (pointer.x > AG.CFG.VIEW_W - 96 && pointer.y > AG.CFG.VIEW_H - 96) {
+        this.punteroA = pointer.id;
         this.botonA = true;
         this.botonAPulsado = true;
         return;
@@ -102,10 +99,29 @@ window.AG = window.AG || {};
       this.toqueLibre = true;
     }
 
-    pointerArriba(pointer, centro) {
-      const distancia = Phaser.Math.Distance.Between(pointer.x, pointer.y, centro.x, centro.y);
-      if (distancia < 40) this.ejeTactil = { x: 0, y: 0 };
-      if (pointer.x > AG.CFG.VIEW_W - 96 && pointer.y > AG.CFG.VIEW_H - 96) this.botonA = false;
+    /** El eje según dónde está el dedo del D-pad; si se corre un poco afuera, sigue mandando. */
+    apuntarDpad(pointer, centro) {
+      const dx = pointer.x - centro.x;
+      const dy = pointer.y - centro.y;
+      if (Math.abs(dx) < 6 && Math.abs(dy) < 6) {
+        this.ejeTactil = { x: 0, y: 0 };
+        return;
+      }
+      // Ocho sectores: los diagonales se toman cuando ningún eje manda con claridad.
+      const ejeX = Math.abs(dx) > Math.abs(dy) * 0.45 ? Math.sign(dx) : 0;
+      const ejeY = Math.abs(dy) > Math.abs(dx) * 0.45 ? Math.sign(dy) : 0;
+      this.ejeTactil = { x: ejeX, y: ejeY };
+    }
+
+    pointerArriba(pointer) {
+      if (pointer.id === this.punteroDpad) {
+        this.punteroDpad = null;
+        this.ejeTactil = { x: 0, y: 0 };
+      }
+      if (pointer.id === this.punteroA) {
+        this.punteroA = null;
+        this.botonA = false;
+      }
     }
 
     mostrarControles(visible) {
@@ -117,6 +133,8 @@ window.AG = window.AG || {};
     soltarTodo() {
       this.ejeTactil = { x: 0, y: 0 };
       this.botonA = false;
+      this.punteroDpad = null;
+      this.punteroA = null;
     }
 
     /** Dirección de movimiento en 8 sentidos, ya combinando teclado y táctil. */
@@ -133,6 +151,21 @@ window.AG = window.AG || {};
         y = this.ejeTactil.y;
       }
       return { x, y };
+    }
+
+    /**
+     * La dirección solo en el instante en que cambia, para moverse por un menú: leída en cada
+     * frame, una flecha sostenida hacía volar el cursor (y la elección del diálogo).
+     */
+    pulsoDireccion() {
+      const ahora = performance.now();
+      const dir = this.direccion();
+      // Si hacía rato que nadie preguntaba (un menú que recién se abre), lo que ya venía
+      // apretado no cuenta como pulso: hay que soltar y volver a apretar.
+      const antes = ahora - (this.ultimoPulso || 0) > 250 ? dir : this.direccionAnterior;
+      this.direccionAnterior = dir;
+      this.ultimoPulso = ahora;
+      return dir.x === antes.x && dir.y === antes.y ? { x: 0, y: 0 } : dir;
     }
 
     /**

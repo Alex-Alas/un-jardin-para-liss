@@ -713,6 +713,63 @@ def hoja_seca() -> Image.Image:
     return reducir(imagen, 8, 6)
 
 
+# --- el polaroid del mapa ---------------------------------------------------------------------
+
+# Pixeleado a mano: a 9 × 11 cada píxel es una decisión, y bajado de un dibujo grande se ensucia.
+# Marco crema con la luz de arriba a la izquierda y la sombra lila abajo a la derecha, el borde de
+# abajo más ancho (el de los polaroid de verdad) y las esquinas redondeadas. El contorno es
+# *selout*: tibio y más claro del lado de la luz (O), oscuro del lado de la sombra (o). Adentro, la
+# foto: el cielo del atardecer y dos cabecitas, Liss de vestido rosa y Alex de suéter verde.
+POLAROID = {
+    "O": (104, 74, 86), "o": (44, 28, 40),
+    "C": (255, 248, 236), "c": (240, 226, 204), "s": (198, 182, 200),
+    "K": (170, 218, 238), "k": (127, 199, 232), "p": (244, 166, 150), "a": (244, 162, 89),
+    "h": (72, 44, 70), "d": (150, 80, 104), "v": (62, 98, 74), "g": (99, 168, 82),
+    "t": (122, 104, 126),
+}
+POLAROID_FRENTE = [
+    ".OOOOOOO.",
+    "OCCCCCCco",
+    "OCKKKKKso",
+    "OCkkpkkso",
+    "OCphphpso",
+    "Ocpdavpso",
+    "Ocgggggso",
+    "Occccccco",
+    "Occccccco",
+    "Ocsssssso",
+    ".ooooooo.",
+]
+# El revés: "cada una tiene su letra atrás" (colina.album). Dos renglones de tinta, sin texto.
+POLAROID_ATRAS = [
+    ".OOOOOOO.",
+    "OCCCCCCco",
+    "OCcccccco",
+    "OCttt.tco",
+    "OCcccccco",
+    "OCtt.ttco",
+    "OCcccccco",
+    "Occccccco",
+    "Occccccco",
+    "Ocsssssso",
+    ".ooooooo.",
+]
+# El destello que asoma de vez en cuando, en tres tamaños: blanco tibio, nunca amarillo (el
+# amarillo es de Liss y de las flores). Se anima por cuadros: escalado, un sprite de 5 px se rompe.
+DESTELLO = {"W": (255, 255, 250), "C": (255, 244, 220), "c": (238, 226, 210)}
+DESTELLO_CUADROS = [
+    [".....", ".....", "..C..", ".....", "....."],
+    [".....", "..c..", ".cWc.", "..c..", "....."],
+    ["..c..", "..C..", "cCWCc", "..C..", "..c.."],
+]
+
+
+def pixeleado(dibujo: list[str], colores: dict[str, tuple]) -> Image.Image:
+    imagen = Image.new("RGBA", (len(dibujo[0]), len(dibujo)), (0, 0, 0, 0))
+    pintar(imagen, 0, 0, dibujo, colores)
+    return imagen
+
+
 # --- todo junto -------------------------------------------------------------------------------
 
 def piezas() -> dict[str, Image.Image]:
@@ -733,6 +790,10 @@ def piezas() -> dict[str, Image.Image]:
 
     salida["fx_petalo"], = cuantizar(petalo())
     salida["fx_hoja"], = cuantizar(hoja_seca())
+    salida["fx_polaroid"] = pixeleado(POLAROID_FRENTE, POLAROID)
+    salida["fx_polaroid_atras"] = pixeleado(POLAROID_ATRAS, POLAROID)
+    for i, cuadro in enumerate(DESTELLO_CUADROS):
+        salida[f"fx_destello_{i}"] = pixeleado(cuadro, DESTELLO)
     return salida
 
 

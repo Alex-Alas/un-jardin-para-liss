@@ -150,7 +150,7 @@ async def main() -> None:
         await captura(pagina, "03-casa-despertar")
         await cerrar_dialogo(pagina)
 
-        await usar(pagina, "casa.escritorio")
+        await usar(pagina, "casa.mesita")
         await pagina.wait_for_timeout(600)
         await captura(pagina, "05-casa-recuerdo")
         await cerrar_dialogo(pagina)

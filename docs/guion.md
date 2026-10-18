@@ -54,9 +54,9 @@ pétalos 2 en el parque → abre la colina.
 * 21. Día de las flores amarillas.
 ```
 
-**`casa.escritorio`** → desbloquea **Recuerdo 1**
+**`casa.mesita`** → desbloquea **Recuerdo 1** (el polaroid se ve en la mesita de noche, junto a la lámpara)
 ```
-* En el escritorio hay un polaroid apoyado en el marco de la ventana.
+* En la mesita de noche, apoyado contra la lámpara, hay un polaroid.
 ```
 > Recuerdo 1 — «Pegaditos bien gonitos»
 
@@ -138,6 +138,7 @@ BETO: Ni se te olvida ni se te va a olvidar. Mírate la cara.
 **`pueblo.arbol`** → desbloquea **Recuerdo 3**
 ```
 * En el tronco hay dos iniciales talladas. No las talló nadie hoy: llevan ahí un buen rato.
+* Al pie del tronco, alguien dejó un polaroid apoyado.
 ```
 
 **`pueblo.floreria.mostrador`** → desbloquea **Recuerdo 4**
@@ -235,9 +236,10 @@ ALEX: ...y esto.
 ```
 → aparece el ramo.
 
-**`colina.album`** (se muestran los 6 recuerdos, uno por uno, con su foto)
+**`colina.album`** → desbloquea **Recuerdo 6** y después muestra el álbum con los 6
 ```
 * Alex saca un puñado de fotos y las va poniendo en el pasto, una por una.
+* La última no la habías visto nunca.
 * Cada una tiene su letra atrás.
 ```
 
@@ -264,11 +266,10 @@ ALEX: (Se queda callado un rato, sonriendo.)
 * El sol se pone. Las flores amarillas se ven naranja un rato, y después violeta.
 ```
 
-**`colina.tarjeta_final`**
+**`colina.tarjeta_final`** (la antesala de los créditos, que abren con el «¡FELIZ CUMPLEAÑOS!»)
 ```
-* Feliz Día de las Flores Amarillas
-* 21.09
-* Gracias por jugar, Liss.
+* El pueblo entero celebra algo más que las flores amarillas...
+* ...porque hoy es tu cumpleaños.
 ```
 
 ---
@@ -279,35 +280,60 @@ Cada uno es un polaroid con la foto real, un pie de foto y un mensajito de Alex.
 aporta Alex en `_referencias/fotos/`; el pipeline las optimiza a `assets/fotos/recuerdo_rN.jpg`.
 
 Los textos son los que se ven en el juego y viven en `src/data/personajes.js`: esta tabla es el
-registro de qué foto quedó en cada recuerdo.
+registro de qué foto quedó en cada recuerdo. Los recuerdos 1 a 5 se encuentran en los mapas: cada
+polaroid se ve donde está (`foto x y` en `maps/*.txt`) con un brillo suave hasta que Liss lo mira. Título y pie se parten solos en renglones de 23
+letras bajo la foto (caben 4 entre los dos) y el mensaje en renglones de 24 (caben 10);
+`node tools/validar_contenido.js` avisa si un texto nuevo no entra.
 
 | # | Título | Pie de foto | Mensaje | Foto que quedó |
 |---|---|---|---|---|
-| 1 | «Pegaditos bien gonitos» | «La primera vez q te tuve tan cómoda cerca de mí» | «Antes de esta foto yo ya estaba nervioso. Después también :P» | Selfie de día, mejilla con mejilla |
-| 2 | «Tu carita» | «Aquí te burlabas de mí» | «No es la mejor foto que te he tomado, pero es mi favorita.» | Ella haciéndote carita de burla, con la plantita |
-| 3 | «Tu risa» | «Esa noche, entre las luces» | «No nos importó nada. Volvería a esa noche contigo.» | Los dos riéndose, de noche, con guirnaldas |
-| 4 | «El lugar de siempre» | «Ya nos conocen y todo» | «Aquí quiero volver contigo mil veces más.» | Un lugar con luces y un cartel violeta detrás |
-| 5 | «Nosotros» | «Un día cualquiera, contigo» | «Los días normales contigo no tienen nada de normales.» | Los dos en el sillón, ella apoyada en él |
-| 6 | «Bajo las flores» | «Un jardín entero para vos» | «Te beso y se prenden todas las luces.» | Posada bajo el arco de flores, con las luces |
+| 1 | «Pegaditos bien gonitos» | «Tan preciosa con tu overol :>» | «Tu estilazo siempre hace q nuestras fotos juntos brillen.» | Selfie de día, mejilla con mejilla |
+| 2 | «Nuestra plantita de amor» | «Crecimos tanto ese día» | «Desde ese día siento que hemos crecido tantísimo juntos y siento que nuestro compromiso ha tomado más fuerza.» | Ella haciéndote carita de burla, con la plantita |
+| 3 | «Entre las luces» | «Tú siempre brillas más» | «Un bello recuerdo de una salida juntos inolvidable, con tu risa siendo siempre la luz más brillante q acompaña a la mía <3» | Los dos riéndose, de noche, con guirnaldas |
+| 4 | «Más sonrisitas» | «Más amorsss» | «Otro día que recuerdo con mucha felicidad y cariño de nosotros compartiendo una bella noche nuestro bello amor.» | Un lugar con luces y un cartel violeta detrás |
+| 5 | «En mi pecho» | «Lo más cerca de mí <3» | «Siempre me encanta tenerte cerca mío, pero esta posición es mi favorita pq es cuando más cerca te siento de mí.» | Los dos en el sillón, ella apoyada en él |
+| 6 | «Bajo las flores» | «Besando la flor más bella» | «Mil jardines llenos de flores he visto y aun así sólo quiero contemplar la flor más bella que es tu ser completo y el amor q compartimos.» | Posada bajo el arco de flores, con las luces |
 
 ---
 
 ## Créditos (pantalla final)
 
+Sin nada técnico: el motor, la fuente y sus licencias quedan en el README.
+
 ```
 UN JARDÍN PARA LISS
-Una aventura hecha a mano por Alex, con ayuda de Claude.
+Una aventura hecha a mano por Alex
+(Y con ayuda de Claudio, jeje)
 
 Historia, arte y fotos: Alex y Liss
-Motor: Phaser 4
-Fuente: Press Start 2P (OFL)
 Música: Alex, con Gemini
 
 Gracias a Doña Flora, a Don Beto, a Sofi y a Michi,
 que son inventados, pero ayudaron muchísimo.
 
 21 de septiembre.
+
+Feliz Día de las Flores Amarillas.
+
+Y hoy, sobre todo:
+¡FELIZ CUMPLEAÑOS, AMOYCHITO!
+
+Gracias, mi chulita, por tu atención,
+por tu cariño, por tu compromiso
+y por tu inmenso amor.
+
+Te deseo flores, mi osita preciosita,
+y una vida llenísima
+de bendiciones y amors.
+
+Este jardín de flores es para ti,
+mi bellísima noviecita :>
+
+Te amo, mi Liss hermosa.
 ```
+
+Al terminar de subir queda la pantalla final: «¡Feliz cumpleaños, amorcito!» y «Gracias por jugar,
+te amo <333».
 
 ---
 

@@ -23,10 +23,12 @@ window.AG = window.AG || {};
 
     crear() {
       const { VIEW_W, VIEW_H, COLORES, FUENTE_CHICA } = AG.CFG;
+      // Baja y ancha: en un celular de lado la caja de 94 px tapaba más de un tercio del juego.
+      // Tres renglones y el retrato de 48 px a tamaño natural entran en 58.
       this.ancho = 468;
-      this.alto = 94;
+      this.alto = 58;
       this.x = (VIEW_W - this.ancho) / 2;
-      this.y = VIEW_H - this.alto - 6;
+      this.y = VIEW_H - this.alto - 4;
       const escena = this.scene;
 
       this.grupo = [];
@@ -48,39 +50,38 @@ window.AG = window.AG || {};
 
       // Placa de fondo: sostiene la inicial de quien todavía no tiene retrato dibujado.
       this.placa = escena.add
-        .rectangle(this.x + 8, this.y + 8, 84, 84, c(COLORES.tintaSuave))
+        .rectangle(this.x + 5, this.y + 5, 48, 48, c(COLORES.tintaSuave))
         .setOrigin(0)
         .setDepth(702)
         .setScrollFactor(0);
       this.retrato = AG.tieneFrame(escena, 'retrato_liss_normal')
         ? escena.add
-            .image(this.x + 8, this.y + 8, 'arte', 'retrato_liss_normal')
+            .image(this.x + 5, this.y + 5, 'arte', 'retrato_liss_normal')
             .setOrigin(0)
-            .setScale(1.75)
             .setDepth(703)
             .setScrollFactor(0)
         : null;
-      this.retratoInicial = AG.UI.texto(escena, this.x + 32, this.y + 52, 'L', {
+      this.retratoInicial = AG.UI.texto(escena, this.x + 29, this.y + 29, 'L', {
         color: COLORES.amarillo,
-        escala: 4
+        escala: 3
       })
         .setOrigin(0.5)
         .setDepth(702)
         .setScrollFactor(0);
 
-      this.nombre = AG.UI.texto(escena, this.x + 110, this.y + 12, '', { color: COLORES.amarillo })
+      this.nombre = AG.UI.texto(escena, this.x + 62, this.y + 6, '', { color: COLORES.amarillo })
         .setDepth(702)
         .setScrollFactor(0);
-      this.texto = AG.UI.texto(escena, this.x + 110, this.y + 30, '', { color: COLORES.blanco })
+      this.texto = AG.UI.texto(escena, this.x + 62, this.y + 18, '', { color: COLORES.blanco })
         .setDepth(702)
         .setScrollFactor(0);
       if (this.texto.setLineSpacing) this.texto.setLineSpacing(3);
-      this.indicador = AG.UI.corazon(escena, this.x + this.ancho - 16, this.y + this.alto - 14, 1)
+      this.indicador = AG.UI.corazon(escena, this.x + this.ancho - 12, this.y + this.alto - 9, 1)
         .setDepth(702)
         .setScrollFactor(0);
 
       this.opciones = [0, 1].map((i) =>
-        AG.UI.texto(escena, this.x + 130, this.y + 40 + i * 18, '', { color: COLORES.blanco })
+        AG.UI.texto(escena, this.x + 24, this.y + 14 + i * 16, '', { color: COLORES.blanco })
           .setDepth(703)
           .setScrollFactor(0)
       );
@@ -195,7 +196,11 @@ window.AG = window.AG || {};
         return;
       }
 
-      const lineas = AG.UI.envolver(contenido, 42);
+      // Con retrato el texto va a su derecha (48 letras por renglón); sin él (la narración) usa
+      // todo el ancho y se centra en la altura de la caja, que no tiene nombre arriba.
+      const conRetrato = Boolean(personaje);
+      this.texto.setPosition(this.x + (conRetrato ? 62 : 12), this.y + (conRetrato ? 18 : 14));
+      const lineas = AG.UI.envolver(contenido, conRetrato ? 48 : 55);
       this.paginas = AG.UI.paginar(lineas, 3);
       this.pagina = 0;
       this.reveladas = 0;
@@ -350,7 +355,7 @@ window.AG = window.AG || {};
       const accion = this.entrada.accion();
 
       if (this.eleccionActiva) {
-        const dir = this.entrada.direccion();
+        const dir = this.entrada.pulsoDireccion();
         if (dir.y < 0) this.moverEleccion(-1);
         if (dir.y > 0) this.moverEleccion(1);
         if (accion) this.confirmarEleccion();
