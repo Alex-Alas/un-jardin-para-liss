@@ -299,14 +299,14 @@ letras bajo la foto (caben 4 entre los dos) y el mensaje en renglones de 24 (cab
 
 ## Créditos (pantalla final)
 
+Sin nada técnico: el motor, la fuente y sus licencias quedan en el README.
+
 ```
 UN JARDÍN PARA LISS
-Una aventura hecha a mano por Alex, con ayuda de Claude.
+Una aventura hecha a mano por Alex
+(Y con ayuda de Claudio, jeje)
 
 Historia, arte y fotos: Alex y Liss
-Motor: Phaser 4
-Fuente: Press Start 2P (OFL)
-Música: chiptune generado en vivo por el navegador
 
 Gracias a Doña Flora, a Don Beto, a Sofi y a Michi,
 que son inventados, pero ayudaron muchísimo.
