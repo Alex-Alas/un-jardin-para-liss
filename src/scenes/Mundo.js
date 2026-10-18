@@ -212,10 +212,12 @@ window.AG = window.AG || {};
           letra: dato.letra,
           tipo: dato.tipo,
           dialogo: dato.dialogo,
+          recuerdo: AG.recuerdoDeDialogo(dato.dialogo),
           x,
           y,
           visual
         };
+        if (dato.foto && objeto.recuerdo) this.crearPolaroid(objeto, dato.foto);
         this.objetos.push(objeto);
       });
 
@@ -231,6 +233,69 @@ window.AG = window.AG || {};
         const y0 = this.desfase.y + p.y * TILE;
         return { ...p, x0, y0, x1: x0 + TILE, y1: y0 + TILE + 6 };
       });
+    }
+
+    /**
+     * El polaroid que espera en el mapa (`foto x y` en maps/*.txt): chiquito, con un brillo tibio
+     * que respira y un destello de vez en cuando, para que se encuentre sin gritar. El que cuelga
+     * gira despacio. Una vez visto queda quieto, sin brillo.
+     */
+    crearPolaroid(objeto, foto) {
+      const { COLORES } = AG.CFG;
+      const x = this.desfase.x + foto.px;
+      const y = this.desfase.y + foto.py;
+      // Se ordena con Liss como el objeto al que pertenece: si ella pasa por delante, lo tapa.
+      const profundidad = objeto.y;
+      const imagen = this.add.image(x, y, 'polaroid_mapa').setDepth(profundidad + 0.2);
+      const centroY = foto.colgada ? y + 4 : y;
+      if (foto.colgada) {
+        // Del hilo amarillo que lo ata (el del diálogo), y gira desde ahí.
+        this.add.rectangle(x, y - 4, 1, 4, c(COLORES.amarillo)).setOrigin(0.5, 0).setDepth(profundidad + 0.2);
+        imagen.setOrigin(0.5, 0);
+        this.tweens.add({ targets: imagen, angle: { from: -9, to: 9 }, duration: 1700, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+      }
+      // Dos círculos, uno ancho y tenue y otro chico, para que el brillo no tenga un borde duro.
+      const brillo = [
+        this.add.circle(x, centroY, 9, c(COLORES.amarilloClaro), 0.45),
+        this.add.circle(x, centroY, 6, c(COLORES.amarilloClaro), 0.7)
+      ].map((circulo) => circulo.setDepth(profundidad + 0.1));
+      this.tweens.add({
+        targets: brillo,
+        alpha: { from: 0.1, to: 0.32 },
+        scale: { from: 0.85, to: 1.15 },
+        duration: 1100,
+        yoyo: true,
+        repeat: -1,
+        ease: 'Sine.easeInOut'
+      });
+      const destello = this.add.image(x + 4, centroY - 4, 'destello').setDepth(profundidad + 0.3).setScale(0);
+      this.tweens.add({
+        targets: destello,
+        scale: { from: 0, to: 1 },
+        duration: 240,
+        hold: 120,
+        yoyo: true,
+        repeat: -1,
+        repeatDelay: 1900 + Math.random() * 900,
+        delay: Math.random() * 1500
+      });
+      objeto.polaroid = { imagen, efectos: [...brillo, destello] };
+      if (AG.Guardado.tieneRecuerdo(objeto.recuerdo)) this.apagarPolaroid(objeto);
+    }
+
+    apagarPolaroid(objeto) {
+      objeto.polaroid.efectos.forEach((efecto) => {
+        this.tweens.killTweensOf(efecto);
+        efecto.destroy();
+      });
+      objeto.polaroid.efectos = [];
+    }
+
+    /** Lo llama AG.Recuerdos al abrir un polaroid: el del mapa deja de brillar. */
+    alVerRecuerdo(id) {
+      this.objetos
+        .filter((objeto) => objeto.recuerdo === id && objeto.polaroid)
+        .forEach((objeto) => this.apagarPolaroid(objeto));
     }
 
     /** Marca como sólidas las celdas que toca la caja [x0, x1) × [y0, y1), en píxeles del mundo. */

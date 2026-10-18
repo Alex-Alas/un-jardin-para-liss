@@ -54,9 +54,9 @@ pétalos 2 en el parque → abre la colina.
 * 21. Día de las flores amarillas.
 ```
 
-**`casa.escritorio`** → desbloquea **Recuerdo 1**
+**`casa.mesita`** → desbloquea **Recuerdo 1** (el polaroid se ve en la mesita de noche, junto a la lámpara)
 ```
-* En el escritorio hay un polaroid apoyado en el marco de la ventana.
+* En la mesita de noche, apoyado contra la lámpara, hay un polaroid.
 ```
 > Recuerdo 1 — «Pegaditos bien gonitos»
 
@@ -138,6 +138,7 @@ BETO: Ni se te olvida ni se te va a olvidar. Mírate la cara.
 **`pueblo.arbol`** → desbloquea **Recuerdo 3**
 ```
 * En el tronco hay dos iniciales talladas. No las talló nadie hoy: llevan ahí un buen rato.
+* Al pie del tronco, alguien dejó un polaroid apoyado.
 ```
 
 **`pueblo.floreria.mostrador`** → desbloquea **Recuerdo 4**
@@ -235,9 +236,10 @@ ALEX: ...y esto.
 ```
 → aparece el ramo.
 
-**`colina.album`** (se muestran los 6 recuerdos, uno por uno, con su foto)
+**`colina.album`** → desbloquea **Recuerdo 6** y después muestra el álbum con los 6
 ```
 * Alex saca un puñado de fotos y las va poniendo en el pasto, una por una.
+* La última no la habías visto nunca.
 * Cada una tiene su letra atrás.
 ```
 
@@ -279,7 +281,8 @@ Cada uno es un polaroid con la foto real, un pie de foto y un mensajito de Alex.
 aporta Alex en `_referencias/fotos/`; el pipeline las optimiza a `assets/fotos/recuerdo_rN.jpg`.
 
 Los textos son los que se ven en el juego y viven en `src/data/personajes.js`: esta tabla es el
-registro de qué foto quedó en cada recuerdo. Título y pie se parten solos en renglones de 23
+registro de qué foto quedó en cada recuerdo. Los recuerdos 1 a 5 se encuentran en los mapas: cada
+polaroid se ve donde está (`foto x y` en `maps/*.txt`) con un brillo suave hasta que Liss lo mira. Título y pie se parten solos en renglones de 23
 letras bajo la foto (caben 4 entre los dos) y el mensaje en renglones de 24 (caben 10);
 `node tools/validar_contenido.js` avisa si un texto nuevo no entra.
 

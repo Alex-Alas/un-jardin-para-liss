@@ -65,6 +65,31 @@ window.AG = window.AG || {};
         g.generateTexture('chispa', 2, 2);
         g.destroy();
       }
+      if (!scene.textures.exists('polaroid_mapa')) {
+        const g = scene.add.graphics();
+        const px = (x, y, w, h, color) => {
+          g.fillStyle(c(color), 1);
+          g.fillRect(x, y, w, h);
+        };
+        const { COLORES } = AG.CFG;
+        // El polaroid que espera en el mapa: 8 × 8, marco claro con el borde de abajo más ancho y
+        // una fotito adentro (cielo, dos caritas, pasto). El contorno oscuro lo despega del fondo.
+        px(0, 0, 8, 8, COLORES.tintaSuave);
+        px(1, 1, 6, 6, COLORES.blanco);
+        px(2, 2, 4, 2, COLORES.cielo);
+        px(3, 3, 1, 1, COLORES.rosa);
+        px(4, 3, 1, 1, COLORES.marronClaro);
+        px(2, 4, 4, 1, COLORES.verde);
+        g.generateTexture('polaroid_mapa', 8, 8);
+        g.clear();
+
+        // Destello: una crucecita de 5 × 5 con el centro blanco.
+        px(2, 0, 1, 5, COLORES.amarilloClaro);
+        px(0, 2, 5, 1, COLORES.amarilloClaro);
+        px(2, 2, 1, 1, COLORES.blanco);
+        g.generateTexture('destello', 5, 5);
+        g.destroy();
+      }
       return this;
     },
 

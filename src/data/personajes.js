@@ -57,3 +57,12 @@ AG.RECUERDOS = [
 AG.recuerdoPorId = function (id) {
   return AG.RECUERDOS.filter((r) => r.id === id)[0] || null;
 };
+
+/** El recuerdo que entrega un diálogo (su línea `darRecuerdo`), o null si no entrega ninguno. */
+AG.recuerdoDeDialogo = function (clave) {
+  const dato = clave && AG.DIALOGOS && AG.DIALOGOS[clave];
+  if (!dato) return null;
+  const lineas = [].concat(...(Array.isArray(dato[0]) ? dato : [dato]));
+  const linea = lineas.find((l) => l.darRecuerdo);
+  return linea ? linea.darRecuerdo : null;
+};

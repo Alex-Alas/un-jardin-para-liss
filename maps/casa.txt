@@ -15,9 +15,9 @@
 #! retoque dibujo marca_calendario 41 159          // la libreta del escritorio es el calendario
 #! retoque dibujo nota 70 204                      // la nota, pasada por debajo de la puerta
 
-// --- lo que se toca (x y = el punto donde el objeto toca el piso)
+// --- lo que se toca (x y = el punto donde el objeto toca el piso; `foto x y` = dónde se ve su polaroid)
 #! objeto cama cama casa.despertar 79 128
-#! objeto escritorio escritorio casa.escritorio 64 150
+#! objeto mesita mesita casa.mesita 128 102 foto 120 87   // el polaroid, apoyado contra la lámpara
 #! objeto cuadro calendario casa.calendario 50 190
 #! objeto espejo espejo casa.espejo 197 146
 #! objeto planta planta casa.planta 206 192

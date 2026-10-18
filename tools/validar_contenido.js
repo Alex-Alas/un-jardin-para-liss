@@ -81,6 +81,20 @@ AG.RECUERDOS.forEach((r) => {
   }
 });
 
+/* Cada polaroid que se encuentra en un mapa se ve en él (`foto x y` en maps/*.txt), y solo los
+ * objetos que entregan un recuerdo llevan foto. */
+Object.entries(AG.MAPAS).forEach(([nombre, mapa]) => {
+  (mapa.objetos || []).forEach((o) => {
+    const recuerdo = AG.recuerdoDeDialogo(o.dialogo);
+    if (recuerdo && !o.foto) errores.push(`mapa ${nombre}: "${o.id}" entrega ${recuerdo} pero su polaroid no se ve (falta \`foto x y\`)`);
+    if (o.foto && !recuerdo) errores.push(`mapa ${nombre}: "${o.id}" tiene foto pero su diálogo no entrega ningún recuerdo`);
+  });
+});
+const entregados = new Set(Object.keys(AG.DIALOGOS).map(AG.recuerdoDeDialogo).filter(Boolean));
+AG.RECUERDOS.forEach((r) => {
+  if (!entregados.has(r.id)) errores.push(`recuerdo ${r.id}: ningún diálogo lo entrega, nunca se ve en la partida`);
+});
+
 /* ---------------------------------------------------------------- mapas
  * Lo mismo que hace el motor (src/scenes/Mundo.js), sin Phaser: puntos en píxeles del mapa,
  * celdas de colisión de `mapa.celda` px y la caja de los pies de Liss de 10 × 4 px.

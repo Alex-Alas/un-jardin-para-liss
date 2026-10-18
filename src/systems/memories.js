@@ -41,6 +41,7 @@ window.AG = window.AG || {};
       this.id = id;
       this.alCerrar = opciones.alCerrar || null;
       AG.Guardado.recuerdo(id);
+      if (this.scene.alVerRecuerdo) this.scene.alVerRecuerdo(id);
       this.abierto = true;
       this.esAlbum = false;
       this.modo = 'polaroid';
@@ -314,7 +315,7 @@ window.AG = window.AG || {};
       if (!entrada) return;
       const accion = entrada.accion();
       if (this.esAlbum && this.objetos.length) {
-        const dir = entrada.direccion();
+        const dir = entrada.pulsoDireccion();
         if (dir.x < 0 || dir.y < 0) this.moverCursor(-1);
         if (dir.x > 0 || dir.y > 0) this.moverCursor(1);
         if (accion) {

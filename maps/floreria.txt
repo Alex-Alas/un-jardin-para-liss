@@ -19,7 +19,7 @@
 
 // --- lo que se toca (x y = el punto donde el objeto toca el piso)
 #! objeto npc flora pueblo.flora.saludo 268 150          // al final del mostrador, junto a la caja
-#! objeto mostrador mostrador pueblo.floreria.mostrador 160 166
+#! objeto mostrador mostrador pueblo.floreria.mostrador 160 166 foto 160 150   // pegado al frente con cinta
 #! objeto estante estante pueblo.floreria.estante 258 86
 
 // --- la puerta de abajo lleva al pueblo, frente a la florería

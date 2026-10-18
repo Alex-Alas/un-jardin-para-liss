@@ -19,8 +19,8 @@ AG.DIALOGOS = {
     { narracion: 'Septiembre. Un día está marcado con un círculo amarillo.' },
     { narracion: '21. Día de las flores amarillas.' }
   ],
-  'casa.escritorio': [
-    { narracion: 'En el escritorio hay un polaroid apoyado en el marco de la ventana.' },
+  'casa.mesita': [
+    { narracion: 'En la mesita de noche, apoyado contra la lámpara, hay un polaroid.' },
     { darRecuerdo: 'r1' }
   ],
   'casa.nota': [
@@ -51,6 +51,7 @@ AG.DIALOGOS = {
   ],
   'pueblo.arbol': [
     { narracion: 'En el tronco hay dos iniciales talladas. No las talló nadie hoy: llevan ahí un buen rato.' },
+    { narracion: 'Al pie del tronco, alguien dejó un polaroid apoyado.' },
     { darRecuerdo: 'r3' }
   ],
   'pueblo.lampara': [
@@ -177,6 +178,8 @@ AG.DIALOGOS = {
   ],
   'colina.album': [
     { narracion: 'Alex saca un puñado de fotos y las va poniendo en el pasto, una por una.' },
+    { narracion: 'La última no la habías visto nunca.' },
+    { darRecuerdo: 'r6' },
     { narracion: 'Cada una tiene su letra atrás.' },
     { verAlbum: true }
   ],
