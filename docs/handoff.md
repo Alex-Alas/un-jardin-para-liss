@@ -33,7 +33,8 @@ python3 -m venv .venv && .venv/bin/pip install -r tools/requirements.txt
 ```
 
 También funciona abriendo `index.html` directo (`file://`): por eso no hay ES modules ni `fetch` de
-assets en runtime.
+assets en runtime. La excepción es la música (`assets/musica/*.mp3`), que se baja con `fetch` al
+entrar a cada escena: desde el disco el navegador la bloquea y suena el chiptune de respaldo.
 
 ## Arquitectura
 
@@ -46,6 +47,8 @@ vendor/phaser.min.js → assets/manifest.js → src/config.js → src/assets.js
 
 - `src/config.js` — `AG.CFG`: resolución, tile, velocidades, paleta, claves de guardado.
 - `src/assets.js` — manifest de rutas. `AG.requiereAssets()` decide si hay arte generado.
+- `src/audio/chiptune.js` — `AG.Musica`: las pistas grabadas, el chiptune de respaldo y los
+  efectos. Qué suena dónde: `docs/musica.md`.
 - `src/main.js` — crea el `Phaser.Game` y expone `AG.debug` (`AG.debug.ir('Colina')` para saltar de
   escena en QA).
 - `src/scenes/*.js` — una escena por lugar: `Boot`, `Title`, `Casa`, `Pueblo`, `Floreria`, `Parque`,
@@ -192,4 +195,5 @@ iconos y las partículas: 71 frames. El código pide los frames que faltan con g
 - **Acentos**: la fuente bitmap se genera desde Press Start 2P (OFL, latin-ext). Verificar
   `á é í ó ú ü ñ ¿ ¡` en pantalla antes de escribir el guion final.
 - **iOS**: audio necesita gesto del usuario (pantalla de título) y `touch-action: none` (ya está).
-- **Peso del build único**: si supera ~4 MB, bajar calidad de las fotos antes de subir al repo.
+- **Peso del build único**: sin música, si supera ~4 MB, bajar calidad de las fotos antes de subir
+  al repo. La música lo lleva a ~27 MB; `tools/build_single.py --sin-musica` lo deja liviano.

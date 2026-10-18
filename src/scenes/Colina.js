@@ -5,7 +5,7 @@ AG.Colina = class Colina extends AG.Mundo {
     super({
       clave: 'Colina',
       mapa: 'colina',
-      musica: 'pueblo',
+      musica: 'colina',
       intro: 'colina.entrada',
       velo: true,
       petalos: 3

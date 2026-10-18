@@ -5,7 +5,7 @@ AG.Casa = class Casa extends AG.Mundo {
     super({
       clave: 'Casa',
       mapa: 'casa',
-      musica: 'pueblo',
+      musica: 'casa',
       intro: 'casa.despertar',
       petalos: 0
     });

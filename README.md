@@ -21,7 +21,7 @@ Liss despierta, encuentra una nota y el pueblo entero la espera con flores amari
 | F1 | Hoja de sprites de Liss → sprite jugable | ✅ (camina en 8 direcciones) |
 | F2 | Pipeline de arte (`tools/`, Python + Pillow) | ✅ (todo en el estilo pintado de Liss: NPCs, retratos, mapas y fondos) |
 | F3 | Núcleo jugable (movimiento, colisión, guardado) | ✅ |
-| F4 | Diálogos, recuerdos con fotos, música chiptune | ✅ (las 6 fotos están; la música es sintetizada, sin `.wav`) |
+| F4 | Diálogos, recuerdos con fotos, música | ✅ (las 6 fotos están; 7 pistas hechas con Gemini, con el chiptune de respaldo) |
 | F5 | Las escenas de pétalos | ✅ (la del patio y la del parque al atardecer, con ráfagas) |
 | F6 | Contenido completo y final | ✅ |
 | F7 | QA, build de un archivo, GitHub Pages | 🟡 (QA y build listos; Pages queda armado y se publica al mergear a `main`) |
@@ -42,7 +42,8 @@ tools/qa_navegador.sh     # juega la partida completa y guarda capturas
 
 1. **Encender Pages una vez**: en GitHub, *Settings → Pages → Source: **GitHub Actions***. Después
    de eso, cada push a `main` publica solo (`.github/workflows/pages.yml`).
-2. Nada más es obligatorio. Lo que sigue es gusto: más NPCs, más recuerdos, música grabada.
+2. Nada más es obligatorio. Lo que sigue es gusto: más NPCs, más recuerdos, una pista propia para
+   el título (hoy comparte la de los créditos).
 
 
 ## Para co-crear con Claude
@@ -50,6 +51,7 @@ tools/qa_navegador.sh     # juega la partida completa y guarda capturas
 - [`docs/idea.md`](docs/idea.md) — qué es el juego y por qué así.
 - [`docs/guion.md`](docs/guion.md) — historia, diálogos y recuerdos (todo editable).
 - [`docs/arte.md`](docs/arte.md) — brief de arte, paleta y reglas de estilo.
+- [`docs/musica.md`](docs/musica.md) — qué pista suena dónde, la mezcla y cómo cambiar una canción.
 - [`docs/plan-implementacion.md`](docs/plan-implementacion.md) — plan por fases y criterios de aceptación.
 - [`docs/handoff.md`](docs/handoff.md) — encargo técnico autocontenido: contratos entre archivos, formatos de datos y checklist de revisión.
 
@@ -62,10 +64,11 @@ python3 -m venv .venv && .venv/bin/pip install -r tools/requirements.txt
 .venv/bin/python tools/arte_extra.py --contacto # solo los NPCs, para mirarlos: dist/contacto_extra.png
 .venv/bin/python tools/fondos.py --ver     # fondos pintados del título y los pétalos (después de los mapas)
 .venv/bin/python tools/prepare_photos.py   # assets/source/fotos/r1..r6 -> polaroids de 720 px
+.venv/bin/python tools/preparar_musica.py  # assets/source/musica (Gemini) -> assets/musica (pide ffmpeg)
 .venv/bin/python tools/render_maps.py      # mapas (ASCII y pintados) -> PNG + colisiones
 .venv/bin/python tools/render_maps.py --ver   # + dist/mapa_<n>_revision.png: colisión, frentes, objetos
 .venv/bin/python tools/generate_font.py    # fuente bitmap desde Press Start 2P (OFL)
-.venv/bin/python tools/build_single.py     # dist/un-jardin-para-liss.html (un solo archivo)
+.venv/bin/python tools/build_single.py     # dist/un-jardin-para-liss.html (un solo archivo; --sin-musica: liviano)
 .venv/bin/python tools/actualizar_manifest.py  # qué arte existe (lo lee el juego al arrancar)
 .venv/bin/python tools/qa_assets.py        # reporte de QA de assets
 ```
@@ -77,5 +80,6 @@ con scripts de Python. El juego corre también abriendo `index.html` directament
 
 - Código: MIT (ver [`LICENSE`](LICENSE)).
 - Pixel art, historia y fotos: © Alex-Alas — todos los derechos reservados. Este repo es un regalo.
+- Música: pistas que hizo Alex con Gemini (ver [`docs/musica.md`](docs/musica.md)).
 - [Phaser](https://phaser.io) 4.2.1, MIT (ver [`vendor/LICENSE-phaser.md`](vendor/LICENSE-phaser.md)).
 - Fuente [Press Start 2P](https://fonts.google.com/specimen/Press+Start+2P) (CodeMan38), SIL Open Font License 1.1.

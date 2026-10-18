@@ -24,7 +24,8 @@ AG.ASSETS = {
   mapa: (clave) => AG.ruta(`assets/mapa_${clave}.png`),
   frentes: (clave) => AG.ruta(`assets/mapa_${clave}_frentes.png`),
   fondo: (clave) => AG.ruta(`assets/fondo_${clave}.png`),
-  foto: (id) => AG.ruta(`assets/fotos/recuerdo_${id}.jpg`)
+  foto: (id) => AG.ruta(`assets/fotos/recuerdo_${id}.jpg`),
+  musica: (pista) => AG.ruta(`assets/musica/${pista}.mp3`)
 };
 
 /** Las ocho direcciones de la hoja de Liss, en el orden en que se leen sus rótulos. */
@@ -121,6 +122,7 @@ AG.hayMapa = (clave) => (AG.MANIFIESTO.mapas || []).indexOf(clave) !== -1;
 AG.hayFrentes = (clave) => (AG.MANIFIESTO.frentes || []).indexOf(clave) !== -1;
 AG.hayFoto = (id) => (AG.MANIFIESTO.fotos || []).indexOf(id) !== -1;
 AG.hayFondo = (clave) => (AG.MANIFIESTO.fondos || []).indexOf(clave) !== -1;
+AG.hayMusica = (pista) => (AG.MANIFIESTO.musica || []).indexOf(pista) !== -1;
 
 /**
  * El fondo pintado de una pantalla (tools/fondos.py), a pantalla completa y fijo a la cámara.

@@ -1,14 +1,17 @@
 #!/usr/bin/env python3
 """Empaqueta el juego en un solo archivo HTML, sin red y sin servidor.
 
-    .venv/bin/python tools/build_single.py            # -> dist/un-jardin-para-liss.html
+    .venv/bin/python tools/build_single.py              # -> dist/un-jardin-para-liss.html
+    .venv/bin/python tools/build_single.py --sin-musica # más liviano: suena el chiptune
 
 Lee index.html, reemplaza cada <script src> y cada <link rel=stylesheet> por su contenido, y
-convierte las imágenes, la fuente y las fotos a data URI dentro de AG.ARCHIVOS_DATOS.
+convierte las imágenes, la fuente, las fotos y la música a data URI dentro de AG.ARCHIVOS_DATOS.
+La música es lo que más pesa (~18 MB que en base64 son ~24): sin ella el archivo queda chico.
 """
 
 from __future__ import annotations
 
+import argparse
 import base64
 import json
 import re
@@ -32,13 +35,14 @@ def data_uri(ruta: Path) -> str:
         ".jpeg": "image/jpeg",
         ".json": "application/json",
         ".xml": "application/xml",
-        ".js": "application/javascript"
+        ".js": "application/javascript",
+        ".mp3": "audio/mpeg"
     }[ruta.suffix.lower()]
     datos = base64.b64encode(ruta.read_bytes()).decode("ascii")
     return f"data:{tipo};base64,{datos}"
 
 
-def inventario() -> dict:
+def inventario(con_musica: bool = True) -> dict:
     """Recolecta el arte que existe, como data URIs, y el manifiesto que le corresponde."""
     archivos = {}
     fotos = []
@@ -51,6 +55,8 @@ def inventario() -> dict:
     candidatos += [ASSETS / f"mapa_{m}_frentes.png" for m in MAPAS]
     candidatos += [ASSETS / f"fondo_{f}.png" for f in FONDOS]
     candidatos += sorted((ASSETS / "fotos").glob("*.jpg"))
+    if con_musica:
+        candidatos += sorted((ASSETS / "musica").glob("*.mp3"))
 
     for ruta in candidatos:
         if not ruta.exists():
@@ -71,14 +77,19 @@ def inventario() -> dict:
         "frentes": [m for m in MAPAS if f"assets/mapa_{m}_frentes.png" in archivos],
         "fondos": [f for f in FONDOS if f"assets/fondo_{f}.png" in archivos],
         "fotos": sorted(fotos),
-        "fotosPendientes": [f"r{i}" for i in range(1, 7) if f"r{i}" not in fotos]
+        "fotosPendientes": [f"r{i}" for i in range(1, 7) if f"r{i}" not in fotos],
+        "musica": sorted(Path(r).stem for r in archivos if r.startswith("assets/musica/"))
     }
     return archivos, manifiesto
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--sin-musica", action="store_true", help="no incrustar las pistas grabadas")
+    args = parser.parse_args()
+
     html = (RAIZ / "index.html").read_text(encoding="utf-8")
-    archivos, manifiesto = inventario()
+    archivos, manifiesto = inventario(con_musica=not args.sin_musica)
 
     inyeccion = (
         "<script>window.AG = window.AG || {}; AG.ARCHIVOS_DATOS = "
@@ -118,6 +129,7 @@ def main() -> int:
     print(f"  archivos incrustados: {len(archivos)}")
     print(f"  fotos: {manifiesto['fotos'] or 'ninguna (pendientes: ' + ', '.join(manifiesto['fotosPendientes']) + ')'}")
     print(f"  mapas: {manifiesto['mapas']}")
+    print(f"  música: {manifiesto['musica'] or 'ninguna (suena el chiptune)'}")
     return 0
 
 
