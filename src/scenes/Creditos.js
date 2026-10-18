@@ -36,13 +36,20 @@ AG.Creditos = class Creditos extends Phaser.Scene {
       ['Feliz Día de las Flores Amarillas.', COLORES.amarillo],
       ['', COLORES.blanco],
       ['Y hoy, sobre todo:', COLORES.crema],
-      ['¡FELIZ CUMPLEAÑOS, LISS!', COLORES.amarillo],
+      ['¡FELIZ CUMPLEAÑOS, AMOYCHITO!', COLORES.amarillo],
       ['', COLORES.blanco],
-      ['Que este año nuevo te llene de flores,', COLORES.crema],
-      ['de risas y de luces,', COLORES.crema],
-      ['como las que tú le das a mis días.', COLORES.crema],
+      ['Gracias, mi chulita, por tu atención,', COLORES.crema],
+      ['por tu cariño, por tu compromiso', COLORES.crema],
+      ['y por tu inmenso amor.', COLORES.crema],
       ['', COLORES.blanco],
-      ['Te amo, Liss.', COLORES.rosa]
+      ['Te deseo flores, mi osita preciosita,', COLORES.crema],
+      ['y una vida llenísima', COLORES.crema],
+      ['de bendiciones y amors.', COLORES.crema],
+      ['', COLORES.blanco],
+      ['Este jardín de flores es para ti,', COLORES.amarilloClaro],
+      ['mi bellísima noviecita :>', COLORES.amarilloClaro],
+      ['', COLORES.blanco],
+      ['Te amo, mi Liss hermosa.', COLORES.rosa]
     ];
 
     let y = VIEW_H + 10;
@@ -86,7 +93,7 @@ AG.Creditos = class Creditos extends Phaser.Scene {
     AG.UI.texto(this, VIEW_W / 2, VIEW_H / 2 - 22, '¡Feliz cumpleaños, mi amor!', { color: COLORES.rosa })
       .setOrigin(0.5)
       .setDepth(51);
-    AG.UI.texto(this, VIEW_W / 2, VIEW_H / 2 - 6, 'Gracias por jugar, Liss.', { color: COLORES.amarillo })
+    AG.UI.texto(this, VIEW_W / 2, VIEW_H / 2 - 6, 'Gracias por jugar, amoychito.', { color: COLORES.amarillo })
       .setOrigin(0.5)
       .setDepth(51);
     AG.UI.texto(this, VIEW_W / 2, VIEW_H / 2 + 14, 'A o ESC para volver', { color: COLORES.gris })

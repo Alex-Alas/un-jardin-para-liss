@@ -316,17 +316,24 @@ que son inventados, pero ayudaron muchísimo.
 Feliz Día de las Flores Amarillas.
 
 Y hoy, sobre todo:
-¡FELIZ CUMPLEAÑOS, LISS!
+¡FELIZ CUMPLEAÑOS, AMOYCHITO!
 
-Que este año nuevo te llene de flores,
-de risas y de luces,
-como las que tú le das a mis días.
+Gracias, mi chulita, por tu atención,
+por tu cariño, por tu compromiso
+y por tu inmenso amor.
 
-Te amo, Liss.
+Te deseo flores, mi osita preciosita,
+y una vida llenísima
+de bendiciones y amors.
+
+Este jardín de flores es para ti,
+mi bellísima noviecita :>
+
+Te amo, mi Liss hermosa.
 ```
 
 Al terminar de subir queda la pantalla final: «¡Feliz cumpleaños, mi amor!» y «Gracias por jugar,
-Liss.».
+amoychito.».
 
 ---
 
