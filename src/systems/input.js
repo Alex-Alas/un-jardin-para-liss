@@ -4,7 +4,11 @@ window.AG = window.AG || {};
   const c = (v) => AG.UI.color(v);
 
   AG.Entrada = class Entrada {
-    constructor(scene) {
+    /**
+     * `controles: false` deja la escena sin D-pad ni botón A (los créditos, el álbum del título):
+     * ahí no hay nada que caminar y la escena escucha sus propios toques.
+     */
+    constructor(scene, opciones = {}) {
       this.scene = scene;
       this.teclas = scene.input.keyboard.addKeys({
         arriba: 'UP',
@@ -25,7 +29,8 @@ window.AG = window.AG || {};
       this.silencioHasta = 0;
       this.ejeTactil = { x: 0, y: 0 };
       this.controles = [];
-      this.crearControles();
+      this.ocultosPor = new Set();
+      if (opciones.controles !== false) this.crearControles();
     }
 
     crearControles() {
@@ -126,10 +131,18 @@ window.AG = window.AG || {};
       }
     }
 
-    mostrarControles(visible) {
+    /**
+     * Esconde los controles mientras `motivo` (el diálogo, un recuerdo) esté en pantalla; vuelven
+     * solo cuando ya nadie los esconde. Con un simple mostrar/ocultar, el diálogo que terminaba
+     * con la foto todavía abierta los volvía a pintar encima de ella.
+     */
+    ocultarControles(motivo, ocultar = true) {
+      if (ocultar) this.ocultosPor.add(motivo);
+      else this.ocultosPor.delete(motivo);
+      const visible = this.ocultosPor.size === 0;
       this.controles.forEach((control) => control.setVisible(visible));
       if (this.zonaDpad) this.zonaDpad.setVisible(visible);
-      if (visible === false) this.soltarTodo();
+      if (!visible) this.soltarTodo();
     }
 
     controlesVisibles() {

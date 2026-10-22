@@ -12,7 +12,8 @@ AG.Creditos = class Creditos extends Phaser.Scene {
     // El pueblo de noche del título, más oscuro: los créditos tienen que leerse mientras suben.
     const fondo = AG.ponerFondo(this, 'titulo');
     this.add.rectangle(0, 0, VIEW_W, VIEW_H, c(COLORES.negro), fondo ? 0.55 : 1).setOrigin(0);
-    this.entrada = new AG.Entrada(this);
+    // Solo los créditos en pantalla: sin D-pad ni botón A, cualquier toque sale (ver abajo).
+    this.entrada = new AG.Entrada(this, { controles: false });
     AG.Musica.tocar('creditos');
     AG.FX.petalosAmbientales(this, 2);
 
@@ -23,7 +24,7 @@ AG.Creditos = class Creditos extends Phaser.Scene {
       ['(Y con ayuda de Claudio, jeje)', COLORES.gris],
       ['', COLORES.blanco],
       ['Historia, arte y fotos: Alex y Liss', COLORES.blanco],
-      ['Música: Alex, con Gemini', COLORES.gris],
+      ['Música: Alex', COLORES.gris],
       ['', COLORES.blanco],
       ['Gracias a Doña Flora, a Don Beto,', COLORES.crema],
       ['a Sofi y a Michi,', COLORES.crema],

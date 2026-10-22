@@ -169,18 +169,13 @@ window.AG = window.AG || {};
       return Boolean(entrada && entrada.hayTactil && entrada.hayTactil());
     }
 
-    /** En el celular la foto se ve sin el D-pad ni el botón A encima; al cerrar vuelven como estaban. */
-    ocultarControles() {
+    /**
+     * En el celular las fotos y el álbum se ven sin el D-pad ni el botón A encima. Al cerrar
+     * vuelven solo si nadie más los esconde (el diálogo que abrió la foto sigue después).
+     */
+    ocultarControles(ocultar = true) {
       const entrada = this.scene.entrada;
-      if (!entrada || !entrada.mostrarControles) return;
-      if (this.controlesAntes === undefined) this.controlesAntes = entrada.controlesVisibles();
-      entrada.mostrarControles(false);
-    }
-
-    restaurarControles() {
-      const entrada = this.scene.entrada;
-      if (entrada && entrada.mostrarControles && this.controlesAntes) entrada.mostrarControles(true);
-      this.controlesAntes = undefined;
+      if (entrada && entrada.ocultarControles) entrada.ocultarControles('recuerdo', ocultar);
     }
 
     /** Cerrar el polaroid tocando en cualquier lado (celular). */
@@ -211,6 +206,7 @@ window.AG = window.AG || {};
       this.modo = 'album';
       this.cursor = 0;
       this.silenciarToques();
+      this.ocultarControles();
 
       const { VIEW_W, VIEW_H, COLORES } = AG.CFG;
       this.objetos.push(
@@ -296,7 +292,9 @@ window.AG = window.AG || {};
       this.cursorCorazon = AG.UI.corazon(this.scene, GRILLA.x, GRILLA.y, 1).setDepth(803).setScrollFactor(0);
       this.objetos.push(this.cursorCorazon);
       this.objetos.push(
-        AG.UI.texto(this.scene, VIEW_W / 2, VIEW_H - 12, 'A abre · ESC cierra', { color: COLORES.gris })
+        AG.UI.texto(this.scene, VIEW_W / 2, VIEW_H - 12, this.hayTactil() ? 'toca una foto para verla' : 'A abre · ESC cierra', {
+          color: COLORES.gris
+        })
           .setOrigin(0.5)
           .setDepth(801)
           .setScrollFactor(0)
@@ -326,7 +324,7 @@ window.AG = window.AG || {};
       this.silenciarToques();
       this.abierto = false;
       this.limpiar();
-      this.restaurarControles();
+      this.ocultarControles(false);
       const cb = this.alCerrar;
       this.alCerrar = null;
       if (cb) cb();

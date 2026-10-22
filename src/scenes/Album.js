@@ -6,8 +6,7 @@ AG.Album = class Album extends Phaser.Scene {
   }
 
   create() {
-    this.entrada = new AG.Entrada(this);
-    this.entrada.mostrarControles(false);
+    this.entrada = new AG.Entrada(this, { controles: false });
     AG.Musica.tocar('titulo');
     this.recuerdos = new AG.Recuerdos(this);
     this.recuerdos.abrirAlbum({ alCerrar: () => this.volver() });

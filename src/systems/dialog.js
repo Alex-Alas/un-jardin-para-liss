@@ -144,11 +144,12 @@ window.AG = window.AG || {};
     }
 
     mostrarLineas(lineas, opciones = {}) {
-      if (this.entrada && this.entrada.mostrarControles) this.entrada.mostrarControles(false);
+      if (this.entrada && this.entrada.ocultarControles) this.entrada.ocultarControles('dialogo');
       this.lineas = lineas.slice();
       this.indice = 0;
       this.activa = true;
       this.pausado = false;
+      this.seguirAlReanudar = false;
       this.alCerrar = opciones.alCerrar || null;
       this.limpiar();
       this.pintarLinea();
@@ -206,9 +207,11 @@ window.AG = window.AG || {};
       this.reveladas = 0;
       this.aplicarAcciones(linea);
 
-      // Las líneas que solo ejecutan algo (dar una flor, abrir un recuerdo) no se esperan.
+      // Las líneas que solo ejecutan algo (dar una flor) no se esperan. Las que abren un recuerdo
+      // o el álbum sí: la charla sigue cuando Liss lo cierra, no detrás de las fotos.
       if (!contenido.trim() && !linea.eleccion && this.activa) {
-        this.siguiente();
+        if (this.pausado) this.seguirAlReanudar = true;
+        else this.siguiente();
         return;
       }
       this.pintarPagina();
@@ -338,13 +341,18 @@ window.AG = window.AG || {};
 
     reanudar() {
       this.pausado = false;
+      if (this.seguirAlReanudar) {
+        this.seguirAlReanudar = false;
+        this.siguiente();
+        return;
+      }
       if (this.completo()) this.indicador.setVisible(true);
     }
 
     cerrar() {
       this.activa = false;
       this.ocultar();
-      if (this.entrada && this.entrada.mostrarControles) this.entrada.mostrarControles(true);
+      if (this.entrada && this.entrada.ocultarControles) this.entrada.ocultarControles('dialogo', false);
       const cb = this.alCerrar;
       this.alCerrar = null;
       if (cb) cb();
