@@ -165,18 +165,14 @@ async def main() -> None:
         )
         print("  estado:", estado)
 
+        # Al salir de la casa, Don Beto llama desde la plaza y da la primera flor.
         await pagina.evaluate(
-            "() => AG.debug.ir('Petalos', { tipo: 'petalos1', volver: 'Floreria', inicio: { px: 248, py: 178 } })"
+            "() => AG.debug.ir('Pueblo', { inicio: { px: 146, py: 184 }, desde: 'casa' })"
         )
-        await pagina.wait_for_timeout(900)
-        await captura(pagina, "06-petalos-intro")
-        await pasar_dialogo(pagina, 1, 400)
-        await pagina.wait_for_timeout(2500)
-        await captura(pagina, "07-petalos-jugando")
-
-        await pagina.evaluate("() => AG.debug.ir('Pueblo', { inicio: { x: 6, y: 10 } })")
-        await pagina.wait_for_timeout(1200)
+        await pagina.wait_for_timeout(1400)
         await captura(pagina, "08-pueblo")
+        await cerrar_dialogo(pagina)
+        await captura(pagina, "08b-pueblo-beto-llama")
         await cerrar_dialogo(pagina)
         await caminar(pagina, "ArrowDown", 900)
         await caminar(pagina, "ArrowRight", 1500)
@@ -184,6 +180,23 @@ async def main() -> None:
         await usar(pagina, "pueblo.buzon")
         await captura(pagina, "09b-pueblo-buzon")
         await cerrar_dialogo(pagina)
+        await usar(pagina, "pueblo.beto.saludo")
+        await captura(pagina, "09c-charla-beto")
+        await cerrar_dialogo(pagina)
+
+        # Sofi lanza la ronda tranquila; se gana a mano para no esperar los pétalos.
+        await usar(pagina, "pueblo.sofi.saludo")
+        await captura(pagina, "06-charla-sofi")
+        await cerrar_dialogo(pagina)
+        await pagina.wait_for_timeout(900)
+        await captura(pagina, "06b-petalos-intro")
+        await pasar_dialogo(pagina, 2, 400)
+        await pagina.wait_for_timeout(2500)
+        await captura(pagina, "07-petalos-jugando")
+        await pagina.evaluate("() => { const s = AG.juego.scene.getScene('Petalos'); s.atrapados = s.reglas.meta; }")
+        await pagina.wait_for_timeout(600)
+        await cerrar_dialogo(pagina)
+        await pagina.wait_for_timeout(1400)
 
         await pagina.evaluate("() => AG.debug.ir('Floreria')")
         await pagina.wait_for_timeout(1200)
@@ -193,11 +206,24 @@ async def main() -> None:
         await cerrar_dialogo(pagina)
         await usar(pagina, "pueblo.flora.saludo")
         await captura(pagina, "11-charla-flora")
-        await pasar_dialogo(pagina, 6, 300)
+        await cerrar_dialogo(pagina)
+        await pagina.wait_for_timeout(900)
+        await captura(pagina, "11b-petalos-viento")
+        await pasar_dialogo(pagina, 3, 400)
+        await pagina.wait_for_timeout(4000)
+        await captura(pagina, "11c-petalos-viento-jugando")
+        await pagina.evaluate("() => { const s = AG.juego.scene.getScene('Petalos'); s.atrapados = s.reglas.meta; }")
+        await pagina.wait_for_timeout(600)
+        await cerrar_dialogo(pagina)
+        await pagina.wait_for_timeout(1400)
+
+        flores = await pagina.evaluate("() => AG.Guardado.datos.floresDe")
+        print("  flores tras las dos rondas:", flores)
+        if flores != ["beto", "sofi", "flora"]:
+            MENSAJES.append(f"[qa] las flores no son una de cada uno, en orden: {flores}")
 
         await pagina.evaluate(
-            "() => { AG.Guardado.datos.flores = 3;"
-            " AG.Guardado.datos.recuerdos = ['r1','r2','r3','r4','r5','r6']; AG.debug.ir('Colina'); }"
+            "() => { AG.Guardado.datos.recuerdos = ['r1','r2','r3','r4','r5','r6']; AG.debug.ir('Colina'); }"
         )
         await pagina.wait_for_timeout(1200)
         await captura(pagina, "12-colina")

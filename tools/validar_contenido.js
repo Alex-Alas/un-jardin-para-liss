@@ -20,7 +20,7 @@ function cargar(ruta) {
   new Function(codigo)();
 }
 
-['src/config.js', 'src/systems/ui.js', 'src/data/personajes.js', 'src/data/dialogos.js', 'src/data/mapas.js'].forEach(cargar);
+['src/config.js', 'src/systems/ui.js', 'src/systems/save.js', 'src/data/personajes.js', 'src/data/dialogos.js', 'src/data/mapas.js'].forEach(cargar);
 
 const AG = globalThis.AG;
 const errores = [];
@@ -28,6 +28,7 @@ const avisos = [];
 const escenasValidas = ['Casa', 'Pueblo', 'Floreria', 'Colina', 'Petalos', 'Album', 'Creditos', 'Title'];
 const efectosValidos = ['latido', 'temblor', 'florecer'];
 
+const floresDadas = {};
 Object.entries(AG.DIALOGOS).forEach(([clave, valor]) => {
   const variantes = Array.isArray(valor[0]) ? valor : [valor];
   variantes.forEach((lineas, i) => {
@@ -37,6 +38,10 @@ Object.entries(AG.DIALOGOS).forEach(([clave, valor]) => {
       if (!linea.quien && !linea.narracion && !linea.eleccion && !linea.darFlor &&
           !linea.darRecuerdo && !linea.lanzarEscena && !linea.efecto && !linea.musica && !linea.verAlbum) {
         errores.push(`${donde}: línea vacía o con forma rara`);
+      }
+      if (linea.darFlor) {
+        if (!AG.FLORES.includes(linea.darFlor)) errores.push(`${donde}: flor de alguien desconocido "${linea.darFlor}"`);
+        (floresDadas[linea.darFlor] = floresDadas[linea.darFlor] || []).push(clave);
       }
       if (linea.darRecuerdo && !AG.recuerdoPorId(linea.darRecuerdo)) {
         errores.push(`${donde}: recuerdo desconocido "${linea.darRecuerdo}"`);
@@ -58,6 +63,12 @@ Object.entries(AG.DIALOGOS).forEach(([clave, valor]) => {
       }
     });
   });
+});
+
+/* Cada flor la da una sola persona, en un solo diálogo: si dos la dieran, una se perdería. */
+AG.FLORES.forEach((quien) => {
+  const dialogos = floresDadas[quien] || [];
+  if (dialogos.length !== 1) errores.push(`la flor de ${quien} la dan ${dialogos.length} diálogos (${dialogos.join(', ') || 'ninguno'}): tiene que ser uno`);
 });
 
 /* Que los textos de cada recuerdo quepan en el polaroid y en su tarjeta del álbum, partidos igual
@@ -241,6 +252,17 @@ Object.entries(AG.DIALOGOS).forEach(([clave, lineas]) => {
 
 const usados = new Set();
 Object.values(AG.MAPAS).forEach((mapa) => (mapa.objetos || []).forEach((o) => usados.add(o.dialogo)));
+// Los que elige una escena por código (Pueblo.alUsar, el final de la colina, …) también cuentan.
+fs.readdirSync(path.join(RAIZ, 'src/scenes')).forEach((archivo) => {
+  const codigo = fs.readFileSync(path.join(RAIZ, 'src/scenes', archivo), 'utf8');
+  (codigo.match(/'[a-z0-9_]+(\.[a-z0-9_]+)+'/g) || []).forEach((cita) => {
+    const clave = cita.slice(1, -1);
+    if (AG.DIALOGOS[clave]) usados.add(clave);
+    else if (/^(pueblo|casa|colina|floreria|petalos\d?|sistema|album)\./.test(clave)) {
+      errores.push(`src/scenes/${archivo}: usa un diálogo inexistente: ${clave}`);
+    }
+  });
+});
 Object.keys(AG.DIALOGOS).forEach((clave) => {
   if (!usados.has(clave) && !clave.startsWith('petalos') && clave !== 'album.vacio') {
     avisos.push(`diálogo sin usar en los mapas: ${clave}`);

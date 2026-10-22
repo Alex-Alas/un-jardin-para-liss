@@ -31,9 +31,9 @@ cursilería.
 ## Los cinco latidos
 
 1. **Casa** — despertar, la nota firmada "— A.", el primer recuerdo en el escritorio.
-2. **Pueblo** — los NPCs y sus mensajitos; tres flores que conseguir.
-3. **Pétalos 1 (plaza)** — aprender a atrapar pétalos; flor 1.
-4. **Pétalos 2 (parque)** — el viento; flor 3 y camino a la colina.
+2. **Pueblo** — Don Beto la llama desde la plaza, le cuenta de las fotos y le da la flor 1.
+3. **Pétalos 1 (el patio de la florería)** — con Sofi, aprender a atrapar pétalos; flor 2.
+4. **Pétalos 2 (parque)** — con Doña Flora, el viento y las hojas; flor 3 y camino a la colina.
 5. **Colina** — Alex, el ramo, los seis recuerdos y el mensaje final.
 
 ## Decisiones y por qué

@@ -5,6 +5,7 @@ reales, apodos o chistes de ustedes.
 
 ## Reglas de escritura
 
+- **Se dice «foto», nunca «polaroid»**: en el juego suena más natural.
 - **Liss casi no habla.** Es la protagonista silenciosa (como Kris en Deltarune): lo que siente sale
   como narración en `*`, y solo elige respuesta en los momentos importantes.
 - **Narración** = líneas que empiezan con `*`, sin retrato, en cursiva mental. Describen cosas
@@ -22,14 +23,15 @@ reales, apodos o chistes de ustedes.
 |---|---|---|
 | `liss` | Liss | Protagonista. Sprite de la hoja que aporta Alex. |
 | `alex` | Alex | Espera en la colina. Aparece solo en el final (y en la nota). |
-| `flora` | Doña Flora | Florista. Da la primera flor y lanza la escena de pétalos 1. |
-| `beto` | Don Beto | Kiosquero. Suelta el mensajito pagado por Alex. |
-| `sofi` | Sofi | Niña del parque. Regala la segunda flor y da el tip del viento. |
-| `michi` | Michi | Gato. Solo habla en `*`. Nadie sabe de quién es. |
+| `flora` | Doña Flora | Florista, mamá de Sofi. Lanza la escena de pétalos 2 (la del viento) y da la tercera flor. |
+| `beto` | Don Beto | El vecino de la plaza. Llama a Liss al salir, le cuenta de las fotos y le da la primera flor. |
+| `sofi` | Sofi | Hija de Doña Flora. Lanza la escena de pétalos 1 (la tranquila) y da la segunda flor. |
+| `michi` | Michi | Gato. Solo habla en `*`. Anda a los pies de Don Beto, pero nadie sabe de quién es. |
 | `voz` | Voz del espejo | Chiste recurrente. No es Liss. |
 
-Flujo de flores: **Flor 1** ← Doña Flora (pétalos 1) · **Flor 2** ← Sofi (cariño) · **Flor 3** ←
-pétalos 2 en el parque → abre la colina.
+Flujo de flores, una por persona y en orden: **Flor 1** ← Don Beto (de parte de Alex) · **Flor 2** ←
+Sofi (pétalos 1, la ronda tranquila) · **Flor 3** ← Doña Flora (pétalos 2, la del viento) → abre la
+colina.
 
 ---
 
@@ -54,9 +56,9 @@ pétalos 2 en el parque → abre la colina.
 * 21. Día de las flores amarillas.
 ```
 
-**`casa.mesita`** → desbloquea **Recuerdo 1** (el polaroid se ve en la mesita de noche, junto a la lámpara)
+**`casa.mesita`** → desbloquea **Recuerdo 1** (la foto se ve en la mesita de noche, junto a la lámpara)
 ```
-* En la mesita de noche, apoyado contra la lámpara, hay un polaroid.
+* En la mesita de noche, apoyada contra la lámpara, hay una foto.
 ```
 > Recuerdo 1 — «Pegaditos bien gonitos»
 
@@ -82,38 +84,54 @@ pétalos 2 en el parque → abre la colina.
 
 ## Acto 2 — El pueblo
 
+El orden es fijo, y cada persona da **una** flor: **Don Beto → Sofi → Doña Flora**. Si Liss se
+adelanta, quien todavía no le toca la manda con quien sí (`Pueblo.alUsar`, `Floreria.alUsar`).
+
 **`pueblo.cartel`**
 ```
 * FIESTA DE LAS FLORES AMARILLAS. Hoy.
 * Todos los años. Todos los colores... bueno, uno: amarillo.
 ```
 
-**`pueblo.flora.saludo`** (Doña Flora, en la florería)
+**`pueblo.beto.llamado`** (al salir de su casa sin la flor de Beto: la llama desde la plaza)
 ```
-FLORA: ¡Liss! Justo a quien necesitaba.
-FLORA: Se me volaron los pétalos del ramo más bonito del año.
-FLORA: ¿Me ayudas a juntarlos antes de que el viento se los lleve?
-```
-→ inicia la **Escena de pétalos 1**.
-
-**`pueblo.flora.post`** → entrega **Flor 1**
-```
-FLORA: ¡Bien hecho, mi niña! Este ramo ya tiene dueña.
-FLORA: Toma. Y no te la cobro, ni se te ocurra.
+BETO: ¡Liss! ¡Eh, Liss! ¡Aquí, en la plaza!
+* Don Beto la saluda con la mano desde la fuente. Michi, a sus pies, ni se inmuta.
 ```
 
-**`pueblo.beto.saludo`** (Don Beto, kiosco)
+**`pueblo.beto.saludo`** (Don Beto, en la plaza con Michi) → **Flor 1**
 ```
-BETO: Ah, tú. Un tal Alex pasó ayer y me dejó pagado lo que quisieras.
-BETO: No le digas que te dije.
-* El kiosquero guiña un ojo con toda la discreción de un kiosquero.
+BETO: ¡Buenos días, Liss! Feliz Día de las Flores Amarillas.
+BETO: Oye, ayer pasó por aquí un muchacho, Alex. Traía un montón de fotos.
+BETO: Las fue escondiendo por todo el pueblo: en la plaza, en los árboles, en el parque... hasta en la florería.
+BETO: Dijo que cada una tiene algo escrito atrás. Búscalas donde veas un brillito.
+BETO: Ah, casi me olvido... el chico del que te hablé me dijo que te entregara esto.
+→ entrega la flor de Don Beto
+* Una flor amarilla, envuelta en papel de periódico. Muy Don Beto.
+BETO: Dice que hay más. Sofi anda por el camino del parque, aquí abajo. Ve a verla.
 ```
 
-**`pueblo.beto.chisme`** (segunda charla)
+**`pueblo.beto.chisme`** (la charla siguiente)
 ```
 BETO: Ese muchacho llevaba semanas preguntando por flores. Semanas.
 BETO: «¿Y si no le gustan?» me decía. «¿Y si se le olvida?»
 BETO: Ni se te olvida ni se te va a olvidar. Mírate la cara.
+```
+
+**`pueblo.beto.pista.sofi`** (después, si falta la flor de Sofi)
+```
+BETO: ¿Ya viste a Sofi? Anda por el camino del parque, aquí abajo de la plaza.
+```
+
+**`pueblo.beto.pista.flora`** (si falta la de Doña Flora)
+```
+BETO: La florería de Doña Flora está pasando la plaza, la del techo de madera. Ándale.
+```
+
+**`pueblo.beto.pista.colina`** (con las tres)
+```
+BETO: ¿Tres flores? Entonces ya sabes: el camino del cartel, para arriba.
+BETO: Y no corras, que la vista es bonita.
 ```
 
 **`pueblo.buzon`**
@@ -122,93 +140,156 @@ BETO: Ni se te olvida ni se te va a olvidar. Mírate la cara.
 «Si estás leyendo esto, ya casi es la hora. Sube despacio, que la vista es bonita.» — A.
 ```
 
-**`pueblo.michi`** (tres charlas en orden)
+**`pueblo.michi`** (tres charlas en orden; Michi está a los pies de Don Beto)
 ```
 * Michi te mira como si supiera algo. Los gatos siempre saben algo.
+MICHI: * Miau.
 * Michi maúlla. Suena sospechosamente a "ánimo".
 * Michi se estira. Tú también quisieras estirarte así de tranquila.
 ```
 
 **`pueblo.banco`** → desbloquea **Recuerdo 2**
 ```
-* En el banco del parque alguien dejó un polaroid con una piedrita encima para que el viento no se
-  lo llevara.
+* En el banco del parque alguien dejó una foto con una piedrita encima para que el viento no se la llevara.
 ```
 
 **`pueblo.arbol`** → desbloquea **Recuerdo 3**
 ```
 * En el tronco hay dos iniciales talladas. No las talló nadie hoy: llevan ahí un buen rato.
-* Al pie del tronco, alguien dejó un polaroid apoyado.
+* Al pie del tronco, alguien dejó una foto apoyada.
+```
+
+**`pueblo.lampara`** → desbloquea **Recuerdo 5**
+```
+* Alguien ató una foto al poste de la luz con un hilo amarillo.
+* El viento la hace girar despacio, como si estuviera bailando.
+```
+
+**`pueblo.sofi.antes`** (Sofi, en el camino del parque, si Liss todavía no vio a Beto)
+```
+SOFI: ¡Hola, Liss! Don Beto te anda buscando. Está en la plaza, con Michi.
+```
+
+**`pueblo.sofi.saludo`** (es hija de Doña Flora)
+```
+SOFI: ¡Liss! ¿Viste el viento de hoy? Se llevó los pétalos del patio de mi mamá.
+SOFI: Mi mamá es Doña Flora, la de la florería. Los quería para un ramo bien especial.
+SOFI: ¿Me ayudas a atraparlos? Así se los llevamos juntas.
+```
+→ inicia la **Escena de pétalos 1** (la tranquila).
+
+**`pueblo.sofi.gracias`** (después de los pétalos, si falta Doña Flora)
+```
+SOFI: ¿Ya fuiste a la tienda de mi mamá? Es la del techo de madera, pasando la plaza.
+```
+
+**`pueblo.sofi.final`** (con las tres flores)
+```
+SOFI: ¡Corre a la colina! Y después me cuentas.
+```
+
+**`pueblo.flora.beto`** (Doña Flora, en la florería, si Liss todavía no vio a Beto)
+```
+FLORA: ¡Liss, mi niña! Qué gusto verte por aquí.
+FLORA: Don Beto te anda buscando, está en la plaza. Anda, ve a saludarlo.
+```
+
+**`pueblo.flora.sofi`** (si todavía no ayudó a Sofi)
+```
+FLORA: ¡Liss, mi niña! Ay, perdóname, ahorita ando con las manos ocupadas.
+FLORA: ¿Ya viste a mi Sofi? Anda por el camino del parque, y creo que te necesita.
+```
+
+**`pueblo.flora.saludo`**
+```
+FLORA: ¡Liss! Sofi ya me contó que le ayudaste. Gracias, mi niña.
+FLORA: Pero ay, qué día. El viento se llevó los pétalos de mi ramo más bonito hasta el parque.
+FLORA: Allá sopla fuerte y se mezclan con hojas secas. ¿Me echas la mano?
+```
+→ inicia la **Escena de pétalos 2** (la del viento).
+
+**`pueblo.flora.gracias`** (con las tres flores)
+```
+FLORA: ¿Y qué haces aquí todavía? Anda, sube a la colina.
+FLORA: El camino sale del cruce, donde está el cartel.
 ```
 
 **`pueblo.floreria.mostrador`** → desbloquea **Recuerdo 4**
 ```
-* Debajo del mostrador, pegado con cinta adhesiva, hay otro polaroid.
+* Debajo del mostrador, pegada con cinta adhesiva, hay otra foto.
 * Doña Flora no dice nada. Doña Flora sonríe.
 ```
 
-**`pueblo.sofi.saludo`** (Sofi, cerca del parque)
+**`pueblo.cartel_colina`** (el cartel al pie del camino de la colina)
 ```
-SOFI: Hola. ¿Tú también vienes por las flores?
-SOFI: Yo ya tengo la mía. Esta es para ti.
-```
-→ entrega **Flor 2**.
-
-```
-SOFI: Es de mi mamá. Tiene un jardín enorme y le sobran.
-SOFI: En el parque el viento sopla feo.
-SOFI: Si un pétalo se va de lado, ¡corre!
+* Un cartel de madera con una flecha que apunta camino arriba.
+«A la colina». Alguien repasó las letras con pintura amarilla hace poquito.
 ```
 
-**`pueblo.sofi.pista`** (antes de los pétalos 2)
+**`pueblo.caminito`** (el caminito de la florería, que no sube)
 ```
-SOFI: Yo te aviso si lo veo venir. Tú corre.
+* El caminito se pierde entre los pinos. Por aquí no se sube a la colina.
 ```
-→ inicia la **Escena de pétalos 2**.
 
-**`pueblo.lampara`** → desbloquea **Recuerdo 5**
+**`pueblo.colina.bloqueada`** (el camino de la colina sin las tres flores)
 ```
-* Alguien ató un polaroid al poste de la luz con un hilo amarillo.
-* El viento lo hace girar despacio, como si estuviera bailando.
+* El sendero sube entre flores. Todavía no.
+* Tres flores. Eso decía la nota.
 ```
 
 ---
 
-## Acto 3 — Escena de pétalos 1: «Los pétalos de la plaza»
+## Acto 3 — Escena de pétalos 1: «El patio de Doña Flora», con Sofi
 
-Contexto: los pétalos del ramo de Doña Flora se volaron. Reglas: atrapar **10 pétalos** en 45
-segundos; nunca se pierde (si el tiempo se acaba, se puede volver a intentar sin castigo).
+Contexto: el viento se llevó los pétalos del patio de la florería y Sofi quiere llevárselos a su
+mamá. Es la ronda **tranquila**: atrapar **10 pétalos** en 45 segundos, sin viento ni hojas secas;
+nunca se pierde (si el tiempo se acaba, se vuelve a intentar sin castigo). Al terminar, Liss vuelve
+al pueblo junto a Sofi.
 
 **`petalos1.intro`**
 ```
-FLORA: ¡Ahí van! ¡Atrápalos con las manos y con el corazón!
+SOFI: ¡Ahí vienen! Atrápalos antes de que toquen el suelo.
 ```
+
 **`petalos1.reintento`**
 ```
-FLORA: Ay, se fueron. No importa, el viento siempre presta. ¿Otra vez?
+SOFI: ¡Uy, casi! No pasa nada, todavía quedan un montón. ¿Otra vez?
 ```
-**`petalos1.victoria`**
-```
-FLORA: ¡Perfecto! Ni una hoja seca, ¿eh? Solo amarillo.
-```
-→ **Flor 1**.
 
-## Acto 4 — Escena de pétalos 2: «El viento del parque»
+**`petalos1.victoria`** → **Flor 2**
+```
+SOFI: ¡Los juntamos todos! Mi mamá se va a poner feliz.
+SOFI: Toma, esta es para ti. La escogí yo: es la más bonita del patio.
+→ entrega la flor de Sofi
+SOFI: Y antes de subir a la colina, pasa por la tienda de mi mamá. Creo que te tiene algo.
+```
 
-Contexto: el viento sopla fuerte. Reglas: atrapar **14 pétalos** en 50 segundos; el viento empuja
-los pétalos hacia un lado y hay hojas secas que restan. Al ganar, se abre la colina.
+## Acto 4 — Escena de pétalos 2: «El viento del parque», con Doña Flora
+
+Contexto: el viento se llevó al parque los pétalos del ramo más bonito de Doña Flora. Es la ronda
+**movida**: atrapar **14 pétalos** en 50 segundos, con ráfagas que empujan todo hacia un lado y
+hojas secas que restan. Al terminar, Liss vuelve a la florería con las tres flores y se abre la
+colina.
 
 **`petalos2.intro`**
 ```
-SOFI: ¡Ahí van! ¡Y el viento sopla fuerte, corre!
+FLORA: ¡Ahí van! Los amarillos sí, las hojas secas no.
+FLORA: Y cuando sople el viento, fíjate hacia dónde se los lleva.
 ```
-**`petalos2.victoria`**
+
+**`petalos2.reintento`**
 ```
-SOFI: ¡Lo lograste!
-SOFI: Toma, la tercera. Entre las dos ya son tres.
-* El camino a la colina ya está libre, y el cielo se está poniendo naranja.
+FLORA: Ay, se fueron. No importa, el viento siempre presta. ¿Otra vez?
 ```
-→ **Flor 3**.
+
+**`petalos2.victoria`** → **Flor 3**
+```
+FLORA: ¡Perfecto! Ni una hoja seca, ¿eh? Puro amarillo.
+FLORA: Toma. Y no te la cobro, ni se te ocurra.
+→ entrega la flor de Doña Flora
+FLORA: Ya tienes las tres, mi niña. Ahora sube a la colina: allá arriba te espera la última sorpresa.
+* El cielo se está poniendo naranja.
+```
 
 ---
 
@@ -229,8 +310,8 @@ ALEX: No sabes cuánto me alegra verte llegar.
 **`colina.alex.2`**
 ```
 ALEX: ¿Te cuento un secreto?
-ALEX: El pueblo entero me ayudó. Don Beto puso el kiosco. Doña Flora puso los pétalos.
-ALEX: Sofi puso la flor que no era suya. Michi puso la cara de sospechoso.
+ALEX: El pueblo entero me ayudó. Don Beto te guardó la primera flor.
+ALEX: Sofi y Doña Flora pusieron los pétalos. Michi puso la cara de sospechoso.
 ALEX: Yo solo puse las ganas.
 ALEX: ...y esto.
 ```
@@ -276,12 +357,12 @@ ALEX: (Se queda callado un rato, sonriendo.)
 
 ## Los 6 recuerdos
 
-Cada uno es un polaroid con la foto real, un pie de foto y un mensajito de Alex. Las fotos las
+Cada uno es una foto real con su marco, un pie de foto y un mensajito de Alex. Las fotos las
 aporta Alex en `_referencias/fotos/`; el pipeline las optimiza a `assets/fotos/recuerdo_rN.jpg`.
 
 Los textos son los que se ven en el juego y viven en `src/data/personajes.js`: esta tabla es el
 registro de qué foto quedó en cada recuerdo. Los recuerdos 1 a 5 se encuentran en los mapas: cada
-polaroid se ve donde está (`foto x y` en `maps/*.txt`) con un brillo suave hasta que Liss lo mira. Título y pie se parten solos en renglones de 23
+foto se ve donde está (`foto x y` en `maps/*.txt`) con un brillo suave hasta que Liss la mira. Título y pie se parten solos en renglones de 23
 letras bajo la foto (caben 4 entre los dos) y el mensaje en renglones de 24 (caben 10);
 `node tools/validar_contenido.js` avisa si un texto nuevo no entra.
 

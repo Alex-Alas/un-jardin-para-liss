@@ -14,6 +14,8 @@
 #! retoque copiar 224 236 234 257 a 211 236       // dos muñequitos que marcaban los puntos de
 #! retoque copiar 528 285 538 304 a 515 285       // guardado: el motor ya pone el corazón
 #! retoque espejar 716 428 742 452 a 680 428      // la marca de agua sobre el pino de abajo
+#! retoque sombra 332 199 9 3                     // el cartel del camino a la colina, con su
+#! retoque dibujo cartel_colina 332 200           // sombra, al pie del camino de arriba
 
 // --- lo que se toca (x y = el punto donde el objeto toca el piso)
 #! objeto buzon buzon pueblo.buzon 254 126               // la casilla de madera con ranura
@@ -21,8 +23,10 @@
 #! objeto lampara lampara pueblo.lampara 500 196 foto 500 166 colgada   // atado al poste, gira con el viento
 #! objeto banco banco pueblo.banco 566 388 foto 575 367    // el banco del pícnic: el polaroid, en la mesa
 #! objeto arbol_tallado arbol_tallado pueblo.arbol 711 370 foto 720 356   // el tronco con las iniciales
-#! objeto npc michi pueblo.michi 334 206
-#! objeto npc beto pueblo.beto.saludo 558 276           // junto al pozo, donde estaba el kiosco
+#! objeto cartel_colina cartel_colina pueblo.cartel_colina 332 200
+#! objeto caminito caminito pueblo.caminito 736 34      // el caminito de la florería no sube a ningún lado
+#! objeto npc beto pueblo.beto.saludo 376 240           // en la plaza, junto a la fuente: llama a Liss
+#! objeto npc michi pueblo.michi 390 258                // a los pies de Don Beto
 #! objeto npc sofi pueblo.sofi.saludo 512 322
 #! guardado 216 252
 #! guardado 520 300
@@ -30,8 +34,7 @@
 // --- puertas (zona x0 y0 x1 y1 · destino en las unidades del mapa destino)
 #! puerta Casa 136 156 157 170 68 202
 #! puerta Floreria 656 170 673 184 155 210
-#! puerta Colina 726 14 747 30 258 292              // el camino de arriba a la derecha
-#! puerta Colina 386 0 414 10 258 292               // y el de arriba al centro, que sale del mapa
+#! puerta Colina 386 0 414 10 258 292               // el camino de arriba al centro, el del cartel
 
 // --- casas y cosas grandes: bloquean todo lo que ocupan, así nadie queda escondido detrás
 #! solido rect 47 0 233 158                       // la casa de Liss (y el bosquecito de atrás)
@@ -47,6 +50,8 @@
 #! solido poli 0,416 46,416 56,424 60,440 72,447 76,458 88,466 94,478 94,494 84,502 60,504 30,500 0,500   // las piedras
 
 // --- cosas que se pueden rodear: bloquean su pie y tapan a Liss si pasa por detrás
+#! solido rect 327 195 337 201                    // el cartel de la colina: su poste
+#! frente 201 rect 319 173 346 202
 #! solido rect 240 98 268 122                     // la casilla de madera
 #! frente 122 rect 239 69 269 123
 #! solido rect 222 207 267 220                    // el cartel

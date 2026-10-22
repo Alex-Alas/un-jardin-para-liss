@@ -268,7 +268,7 @@ window.AG = window.AG || {};
 
     aplicarAcciones(linea) {
       if (linea.darFlor) {
-        AG.Guardado.flor();
+        AG.Guardado.flor(linea.darFlor);
         AG.Musica && AG.Musica.sfx('flor');
         this.mostrarContador();
       }

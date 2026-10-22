@@ -21,7 +21,7 @@
 #! guardado 232 300
 
 // --- la vuelta al pueblo: el camino sale por abajo y llega al final del camino de arriba
-#! puerta Pueblo 246 310 274 320 736 40
+#! puerta Pueblo 246 310 274 320 400 22
 
 // --- el bosque que rodea el claro: bloquea entero, nadie pasa por detrás
 #! solido poli 0,0 92,0 92,12 70,30 60,44 56,64 44,70 40,96 38,118 50,124 52,158 34,172 26,178 26,250 40,262 46,300 40,320 0,320

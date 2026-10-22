@@ -90,7 +90,9 @@ window.AG = window.AG || {};
       this.crearObjetos();
       this.crearJugador();
       this.crearCamara();
-      AG.FX.petalosAmbientales(this, this.ajustes.petalos || 1);
+      // Adentro (`petalos: 0`) no caen: el `|| 1` de antes los hacía llover también en la casa.
+      const petalos = this.ajustes.petalos === undefined ? 1 : this.ajustes.petalos;
+      if (petalos > 0) AG.FX.petalosAmbientales(this, petalos);
 
       if (this.ajustes.musica) AG.Musica.tocar(this.ajustes.musica);
       if (this.ajustes.velo) AG.FX.washAtardecer(this);
@@ -98,8 +100,14 @@ window.AG = window.AG || {};
       this.cameras.main.fadeIn(280, 11, 10, 16);
       this.registrarVisita();
 
+      // La primera vez, la intro del mapa; después (o en su lugar) lo que la escena quiera
+      // mostrar al llegar, como Don Beto llamando desde la plaza.
+      const alLlegar = this.gancho('alLlegar');
+      const llegar = () => alLlegar && alLlegar.call(this);
       if (this.ajustes.intro && AG.Guardado.visto(`intro.${this.claveMapa}`)) {
-        this.dialogo.abrir(this.ajustes.intro);
+        this.dialogo.abrir(this.ajustes.intro, { alCerrar: llegar });
+      } else {
+        llegar();
       }
     }
 
