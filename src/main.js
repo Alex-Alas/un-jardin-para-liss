@@ -38,9 +38,10 @@ window.AG = window.AG || {};
     },
     saltar: (clave) => AG.debug.ir(clave),
     flores: (n) => {
-      AG.Guardado.datos.flores = n;
+      AG.Guardado.datos.floresDe = AG.FLORES.slice(0, n);
+      AG.Guardado.datos.flores = AG.Guardado.datos.floresDe.length;
       AG.Guardado.guardar();
-      return n;
+      return AG.Guardado.datos.floresDe;
     },
     olvidar: () => {
       AG.Guardado.reiniciar();

@@ -13,9 +13,15 @@
 #! ajuste: 3
 
 // --- retoques
-#! retoque interpolar 282 201 296 215              // la marca de agua sobre la maceta de la palmera
-#! retoque interpolar 202 149 239 164              // el letrero traía el nombre escrito: se borra…
-#! retoque dibujo flor_cartel 216 152              // …y lleva una flor pintada
+// La marca de agua sobre la maceta de la palmera, en tres tramos que no pasan del contorno de
+// la maceta: el parche de antes llegaba hasta el piso y dejaba la maceta rayada.
+#! retoque interpolar 286 202 289 203              // la punta de arriba, sobre el borde
+#! retoque interpolar 280 203 293 211              // el cuerpo
+#! retoque interpolar 284 211 291 215              // la punta de abajo, donde la maceta se angosta
+// El letrero traía el nombre escrito: la tabla se rehace con sus propias vetas, sin tocar el
+// marco, y lleva un tulipán pintado.
+#! retoque tabla 202 151 236 164 muestra 205 229 filas 151 157 164
+#! retoque dibujo flor_cartel 216 154
 
 // --- lo que se toca (x y = el punto donde el objeto toca el piso)
 #! objeto npc flora pueblo.flora.saludo 268 150          // al final del mostrador, junto a la caja

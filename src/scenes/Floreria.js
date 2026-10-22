@@ -11,11 +11,12 @@ AG.Floreria = class Floreria extends AG.Mundo {
     });
   }
 
-  /** Doña Flora entrega la primera flor; antes de eso, manda a juntar pétalos. */
+  /** Doña Flora da la última flor, con la ronda del parque; antes manda a Liss con Beto o con Sofi. */
   alUsar(objeto, clave) {
     if (objeto.tipo !== 'npc') return clave;
-    if (!AG.Guardado.datos.visto['petalos1.listo']) return 'pueblo.flora.saludo';
-    if (!AG.Guardado.tieneFlor(1)) return 'pueblo.flora.post';
+    if (!AG.Guardado.tieneFlorDe('beto')) return 'pueblo.flora.beto';
+    if (!AG.Guardado.tieneFlorDe('sofi')) return 'pueblo.flora.sofi';
+    if (!AG.Guardado.tieneFlorDe('flora')) return 'pueblo.flora.saludo';
     return 'pueblo.flora.gracias';
   }
 };

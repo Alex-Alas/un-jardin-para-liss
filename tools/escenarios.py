@@ -184,8 +184,12 @@ def _color(texto: str) -> tuple:
     return tuple(int(texto[i:i + 2], 16) for i in (0, 2, 4))
 
 
-def retocar(imagen: Image.Image, retoques: list[list[str]]) -> None:
+def retocar(imagen: Image.Image, retoques: list[list[str]]) -> dict:
     """Arreglos a mano sobre la pintura ya escalada, en orden.
+
+    Devuelve los píxeles que pusieron los `dibujo`, con su color: la reducción de colores de
+    `pintura` los respeta tal cual (a esos pocos píxeles la cuantización los lavaba: el amarillo
+    del letrero de la florería salía crema).
 
     - `copiar x0 y0 x1 y1 a dx dy`   tapa algo con un parche de la misma pintura
     - `espejar x0 y0 x1 y1 a dx dy`  igual, pero dado vuelta (para objetos simétricos)
@@ -193,8 +197,16 @@ def retocar(imagen: Image.Image, retoques: list[list[str]]) -> None:
     - `interpolar x0 y0 x1 y1`       cada fila pasa del color de su borde izquierdo al del derecho:
                                      borra algo puesto encima de una superficie con franjas
                                      horizontales (una maceta, una tabla) sin dejar costura
+    - `tabla x0 y0 x1 y1 muestra sx0 sx1 filas a b …`
+                                     rehace una tabla de madera: cada fila se llena repitiendo el
+                                     tramo [sx0, sx1) de una de las filas limpias `a b …`, corrido
+                                     un poco en cada fila para que la veta no se vea calcada
+    - `sombra cx cy rx ry`           oscurece una elipse del piso: la sombra de algo que se dibuja
+    - `cartel x y madera bx by`      el cartel de la colina parado en (x, y), hecho con la madera
+                                     de la propia pintura: (bx, by) es la tabla que la presta
     - `dibujo <nombre> x y`          uno de los dibujitos de DIBUJOS (abajo)
     """
+    exactos: dict = {}
     for partes in retoques:
         orden = partes[0]
         if orden in ("copiar", "espejar"):
@@ -215,11 +227,46 @@ def retocar(imagen: Image.Image, retoques: list[list[str]]) -> None:
                 for x in range(x0, x1):
                     t = (x - x0 + 1) / (x1 - x0 + 1)
                     datos[x, y] = tuple(round(a + (b - a) * t) for a, b in zip(izquierda, derecha))
+        elif orden == "tabla":
+            x0, y0, x1, y1 = _numeros(partes[1:5])
+            sx0, sx1 = _numeros(partes[6:8])
+            muestras = _numeros(partes[9:])
+            datos = imagen.load()
+            limpias = [[datos[x, y] for x in range(sx0, sx1)] for y in muestras]
+            for i, y in enumerate(range(y0, y1)):
+                fila = limpias[i % len(limpias)]
+                corrimiento = (i * 7) % len(fila)
+                for x in range(x0, x1):
+                    datos[x, y] = fila[(x - x0 + corrimiento) % len(fila)]
+        elif orden == "sombra":
+            cx, cy, rx, ry = _numeros(partes[1:5])
+            datos = imagen.load()
+            for y in range(cy - ry, cy + ry + 1):
+                for x in range(cx - rx, cx + rx + 1):
+                    if ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 <= 1:
+                        r, g, b = datos[x, y][:3]
+                        datos[x, y] = (round(r * 0.62), round(g * 0.66), round(b * 0.66))
+        elif orden == "cartel":
+            x, y = _numeros(partes[1:3])
+            bx, by = _numeros(partes[4:6])
+            cartel_colina(imagen, x, y, (bx, by))
         elif orden == "dibujo":
             x, y = _numeros(partes[2:4])
-            DIBUJOS[partes[1]](ImageDraw.Draw(imagen), x, y)
+            capa = Image.new("RGBA", imagen.size, (0, 0, 0, 0))
+            DIBUJOS[partes[1]](ImageDraw.Draw(capa), x, y)
+            caja = capa.getbbox()
+            if caja:
+                datos = capa.load()
+                for py in range(caja[1], caja[3]):
+                    for px in range(caja[0], caja[2]):
+                        if datos[px, py][3]:
+                            exactos[(px, py)] = datos[px, py][:3]
+                imagen.paste(capa, (0, 0), capa)
         else:
             raise SystemExit(f"retoque desconocido: {' '.join(partes)}")
+    # Un retoque posterior puede haber tapado parte de un dibujo: eso ya no se respeta.
+    datos = imagen.load()
+    return {punto: color for punto, color in exactos.items() if datos[punto][:3] == color}
 
 
 # Dibujitos que la pintura no trae y el guion sí necesita. Se dibujan con los colores de la
@@ -271,27 +318,177 @@ def _espejo_ropero(dib: ImageDraw.ImageDraw, x: int, y: int) -> None:
         dib.point((x + dx, y + dy), fill=brillo)
 
 
-def _flor_cartel(dib: ImageDraw.ImageDraw, x: int, y: int) -> None:
-    """La flor pintada en el letrero de la florería, donde la ilustración traía el nombre escrito.
+def _patron(dib: ImageDraw.ImageDraw, x: int, y: int, filas: list[str], colores: dict) -> None:
+    """Un dibujito hecho con letras: cada letra es un color de `colores`, el punto es vacío."""
+    for j, fila in enumerate(filas):
+        for i, letra in enumerate(fila):
+            if letra in colores:
+                dib.point((x + i, y + j), fill=colores[letra])
 
-    (x, y) es la esquina de arriba a la izquierda; mide 9 × 9 con dos hojitas a los lados. Los
-    amarillos son los de las flores de la propia pintura.
+
+def _flor_cartel(dib: ImageDraw.ImageDraw, x: int, y: int) -> None:
+    """El tulipán pintado en el letrero de la florería, donde la ilustración traía el nombre escrito.
+
+    (x, y) es la esquina de arriba a la izquierda; mide 7 × 8. Va con amarillos apagados, como
+    pintura vieja sobre la madera: un amarillo puro se veía como una calcomanía pegada encima.
     """
-    claro, amarillo, ambar, centro = (255, 228, 120), (242, 196, 64), (206, 140, 44), (168, 84, 40)
-    borde, hoja, hoja_luz = (88, 46, 30), (64, 112, 58), (104, 152, 76)
-    for dx, dy in ((3, 0), (0, 3), (6, 3), (3, 6)):                    # cuatro pétalos en cruz
-        dib.rectangle([x + dx, y + dy, x + dx + 2, y + dy + 2], fill=amarillo)
-        dib.point((x + dx, y + dy), fill=claro)
-        dib.point((x + dx + 2, y + dy + 2), fill=ambar)
-    dib.rectangle([x + 3, y + 3, x + 5, y + 5], fill=ambar)
-    dib.point((x + 4, y + 4), fill=centro)
-    for px, py in ((x + 3, y - 1), (x + 5, y - 1), (x - 1, y + 3), (x - 1, y + 5),
-                   (x + 9, y + 3), (x + 9, y + 5), (x + 3, y + 9), (x + 5, y + 9)):
-        dib.point((px, py), fill=borde)
-    dib.line([x - 4, y + 4, x - 2, y + 4], fill=hoja)                   # las hojitas
-    dib.point((x - 3, y + 3), fill=hoja_luz)
-    dib.line([x + 10, y + 4, x + 12, y + 4], fill=hoja)
-    dib.point((x + 11, y + 3), fill=hoja_luz)
+    _patron(dib, x, y, [
+        ".h.p.p.",
+        ".hpppps",
+        ".hppps.",
+        "..pps..",
+        "...g...",
+        ".Gg.gG.",
+        "..gg...",
+        "...g...",
+    ], {"h": (240, 220, 150), "p": (220, 186, 96), "s": (170, 128, 62),
+        "g": (78, 104, 58), "G": (116, 146, 80)})
+
+
+# --- el cartel de la colina -----------------------------------------------------------------
+#
+# La forma (la tabla astillada, el poste y la base) y la veta salen de la referencia que pasó
+# Alex, con la flecha vuelta hacia arriba. Los colores no son inventados: cada fila de la tabla
+# toma los tonos de una tabla de verdad de la pintura (el asiento del banco de la plaza), así el
+# cartel tiene la misma luz, las mismas bandas y el mismo marrón que el resto del pueblo. Hecho
+# con colores planos se veía de otro juego.
+#
+#   o contorno · T tabla · P poste · B base · . afuera
+
+CARTEL_FORMA = [
+    "............ooo...........",
+    "...........oPPPo..........",
+    "...........oPPPo..........",
+    "...........oPPPo..........",
+    "...........oPPPo..........",
+    "...........oPPPo..........",
+    ".....oooooooooooooooooo...",
+    "....oTTTTTTTTTTTTTTTTTTo..",
+    ".....oTTTTTTTTTTTTTTTTTo..",
+    "...ooTTTTTTTTTTTTTTTTTTTo.",
+    "..oTTTTTTTTTTTTTTTTTTTTo..",
+    "...oTTTTTTTTTTTTTTTTTTo...",
+    "..oTTTTTTTTTTTTTTTTTTo....",
+    "...oTTTTTTTTTTTTTTTTTTo...",
+    "...ooTTTTTTTTTTTTTTTTTTo..",
+    "..oTTTTTTTTTTTTTTTTTToo...",
+    ".oTTTTTTTTTTTTTTTTTTo.....",
+    "..oTTTTTTTTTTTTTTTTTTooo..",
+    "...ooTTTTTTTTTTTTTTTTTTTo.",
+    ".....ooooooooooooooooooo..",
+    "...........oPPPo..........",
+    "...........oPPPo..........",
+    "...........oPPPo..........",
+    "...........oPPPo..........",
+    "...........oPPPo..........",
+    "..........ooPPPoo.........",
+    "........oBBBBBBBBo........",
+]
+CARTEL_VETA = [   # una fila por fila de tabla (la 7 de la forma en adelante)
+    "..............dddddddddd..",
+    ".........dd..........dd...",
+    "......................dd..",
+    "....dddd....d.........d...",
+    "..........ddd..ddd...d....",
+    "....dd...ddddddd.....d....",
+    "........ddddddddddd.......",
+    "...........dddddddd.ddd...",
+    ".....ddddd..ddd.....dd....",
+    "....dddd...d.d.ddd..d.....",
+    "...................dddd...",
+    "......dddd..dddddddddddd..",
+]
+CARTEL_FLECHA = {8: (0, 0), 9: (-1, 1), 10: (-2, 2), 11: (-3, 3), 12: (-1, 1), 13: (-1, 1),
+                 14: (-1, 1), 15: (-1, 1), 16: (-1, 1)}   # fila: desde, hasta (respecto al poste)
+
+
+def cartel_colina(imagen: Image.Image, x: int, y: int, madera: tuple[int, int]) -> None:
+    """El cartel con la flecha hacia la colina; (x, y) es donde la base toca el piso.
+
+    `madera` es la esquina izquierda de la tabla que presta los colores: de ahí hacia abajo,
+    la fila de luz, la de la veta, las dos del cuerpo y la de la sombra (en el banco de la plaza,
+    las filas 1 a 5 del asiento).
+    """
+    datos = imagen.load()
+    x0, y0 = x - 13, y - 26
+    alto, ancho = len(CARTEL_FORMA), len(CARTEL_FORMA[0])
+    largo = 38
+    fila = lambda dy: [datos[madera[0] + i, madera[1] + dy][:3] for i in range(largo)]
+    luz, veta, cuerpo, cuerpo2, sombra = fila(1), fila(2), fila(3), fila(4), fila(5)
+    contorno = (52, 30, 20)
+    poste = [(150, 104, 70), (118, 78, 50), (84, 54, 36)]     # de la cara con luz a la de sombra
+
+    def por(color, k):
+        return tuple(max(0, min(255, round(c * k))) for c in color)
+
+    def hacia(a, b, t):
+        return tuple(round(p + (q - p) * t) for p, q in zip(a, b))
+
+    def ruido(i, j):          # fijo, para que el cartel salga igual cada vez
+        return ((i * 73 + j * 151 + i * j * 7) % 17) / 16
+
+    def tabla(i, j):
+        return 0 <= j < alto and 0 <= i < ancho and CARTEL_FORMA[j][i] == "T"
+
+    flecha = {(i, j) for j, (a, b) in CARTEL_FLECHA.items() for i in range(13 + a, 14 + b)}
+    for j, renglon in enumerate(CARTEL_FORMA):
+        for i, letra in enumerate(renglon):
+            punto = (x0 + i, y0 + j)
+            if letra == "T":
+                col = (i * 3 + j) % largo
+                if not tabla(i, j - 1):
+                    color = luz[col]
+                elif not tabla(i, j + 1):
+                    color = sombra[col]
+                else:
+                    color = (cuerpo if (j + i // 6) % 2 else cuerpo2)[col]
+                    if CARTEL_VETA[j - 7][i] == "d" and (i, j) not in flecha and tabla(i, j + 1):
+                        color = hacia(color, veta[col], 0.75)
+                color = por(color, 1.06 - 0.14 * i / ancho)    # la luz viene de la izquierda
+                if not tabla(i - 1, j):
+                    color = por(color, 1.18)                   # la astilla que agarra la luz
+                if not tabla(i + 1, j):
+                    color = por(color, 0.84)
+                if tabla(i, j + 1) and not tabla(i, j + 2):
+                    color = por(color, 0.9)
+                datos[punto] = color
+            elif letra == "P":
+                color = por(poste[i - 12], 0.94 + 0.1 * ruido(i, j))
+                if j in (20, 21):
+                    color = por(color, 0.62 if j == 20 else 0.8)   # la sombra de la tabla
+                if j == 1:
+                    color = por(color, 1.15)                       # la punta del poste
+                datos[punto] = color
+            elif letra == "B":
+                datos[punto] = por((92, 62, 42), 0.9 + 0.15 * ruido(i, j))
+            elif letra == "o":
+                datos[punto] = por(contorno, 0.9 + 0.2 * ruido(i, j))
+
+    # La flecha, tallada: el surco oscuro y su borde de abajo y de la derecha, que agarran luz.
+    for i, j in flecha:
+        datos[x0 + i, y0 + j] = por(datos[x0 + i, y0 + j], 0.42)
+    for i, j in flecha:
+        if (i, j + 1) not in flecha:
+            datos[x0 + i, y0 + j + 1] = por(datos[x0 + i, y0 + j + 1], 1.25)
+        if (i + 1, j) not in flecha:
+            datos[x0 + i + 1, y0 + j] = por(datos[x0 + i + 1, y0 + j], 1.12)
+
+    # El borde se funde un poco con el pasto, como el contorno pintado de las cosas del pueblo.
+    for j in range(-1, alto + 1):
+        for i in range(-1, ancho + 1):
+            if 0 <= j < alto and 0 <= i < ancho and CARTEL_FORMA[j][i] != ".":
+                continue
+            vecinos = sum(1 for di, dj in ((1, 0), (-1, 0), (0, 1), (0, -1))
+                          if 0 <= j + dj < alto and 0 <= i + di < ancho
+                          and CARTEL_FORMA[j + dj][i + di] == "o")
+            if vecinos:
+                punto = (x0 + i, y0 + j)
+                datos[punto] = hacia(datos[punto][:3], contorno, 0.22 * vecinos)
+
+    # Unas briznas de pasto por delante de la base, para que el cartel esté clavado y no apoyado.
+    for i, brizna in ((7, 2), (8, 1), (9, 2), (17, 1), (18, 2), (19, 1)):
+        for h in range(brizna):
+            datos[x0 + i, y0 + 26 - h] = por(datos[x0 + i, y0 + 29][:3], 1.05)
 
 
 DIBUJOS = {"nota": _nota, "marca_calendario": _marca_calendario, "espejo_ropero": _espejo_ropero,
@@ -308,15 +505,26 @@ def pintura(mapa: dict) -> Image.Image:
     if not fuente.exists():
         raise SystemExit(f"falta la pintura {fuente.relative_to(RAIZ)}")
     imagen = escalar(Image.open(fuente).convert("RGB"), ancho, alto)
-    retocar(imagen, mapa["retoques"])
+    exactos = retocar(imagen, mapa["retoques"])
     if mapa["meta"].get("luz") == "atardecer":
         imagen = imagen.convert("RGBA")
         tiles.atardecer(imagen)
         imagen = imagen.convert("RGB")
+        exactos = {punto: imagen.getpixel(punto) for punto in exactos}   # ya teñidos
     if mapa.get("colores"):
-        # Menos colores = PNG más liviano; a este tamaño el ojo no nota la diferencia.
-        imagen = imagen.quantize(colors=mapa["colores"], method=Image.Quantize.MEDIANCUT,
+        # Menos colores = PNG más liviano; a este tamaño el ojo no nota la diferencia. Los colores
+        # de los dibujos van aparte, al final de la paleta, para que salgan exactos.
+        extras = sorted(set(exactos.values()))
+        cuantos = mapa["colores"] - len(extras)
+        imagen = imagen.quantize(colors=cuantos, method=Image.Quantize.MEDIANCUT,
                                  dither=Image.Dither.NONE)
+        if extras:
+            paleta = imagen.getpalette()[:cuantos * 3]
+            base = len(paleta) // 3
+            imagen.putpalette(paleta + [canal for color in extras for canal in color])
+            indices = imagen.load()
+            for (x, y), color in exactos.items():
+                indices[x, y] = base + extras.index(color)
     return imagen
 
 

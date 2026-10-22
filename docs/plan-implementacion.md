@@ -139,8 +139,9 @@ nombres de `docs/arte.md` ya prevé las ocho.
 
 ### F5 — Las 2 escenas de pétalos ✅
 - [x] `Petalos.js` escena reutilizable parametrizada (meta, tiempo, viento, obstáculos, recompensa).
-- [x] Escena 1 (patio de la florería, de día): pétalos que caen, meta blanda, sin castigo → flor 1.
-- [x] Escena 2 (parque al atardecer): fondo propio —cielo en bandas, cerros, línea de árboles— con **ráfagas de viento avisadas** y hojas secas que restan → flor 3 + abre la colina.
+- [x] Escena 1 (patio de la florería, de día), con Sofi: pétalos que caen, meta blanda, sin castigo → flor 2.
+- [x] Escena 2 (parque al atardecer), con Doña Flora: fondo propio —cielo en bandas, cerros, línea de árboles— con **ráfagas de viento avisadas** y hojas secas que restan → flor 3 + abre la colina.
+- [x] Una flor por persona y en orden (Don Beto → Sofi → Doña Flora): la flor 1 la da Don Beto de parte de Alex, y quien todavía no le toca manda a Liss con quien sí. En las rondas, Liss camina solo por el pasto.
 - [x] Feedback: combo en pantalla, sonido ascendente, temblor al agarrar una hoja seca, rayitas cruzando en cada ráfaga.
 - **Gate:** ✅ ronda completa en navegador: ráfaga, derrota, reintento y victoria.
 

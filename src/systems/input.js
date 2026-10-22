@@ -89,14 +89,16 @@ window.AG = window.AG || {};
         this.apuntarDpad(pointer, centro);
         return;
       }
-      if (pointer.x > AG.CFG.VIEW_W - 96 && pointer.y > AG.CFG.VIEW_H - 96) {
+      const centroA = { x: AG.CFG.VIEW_W - 52, y: AG.CFG.VIEW_H - 46 };
+      if (Phaser.Math.Distance.Between(pointer.x, pointer.y, centroA.x, centroA.y) < 34) {
         this.punteroA = pointer.id;
         this.botonA = true;
         this.botonAPulsado = true;
         return;
       }
-      // Toque en cualquier otra parte: vale como acción (así se avanza el diálogo en el celular).
-      this.toqueLibre = true;
+      // Con los controles a la vista, la acción es solo del botón A: tocar el resto de la
+      // pantalla no hace nada. Ocultos (diálogo, polaroid), cualquier toque avanza.
+      if (!this.controlesVisibles()) this.toqueLibre = true;
     }
 
     /** El eje según dónde está el dedo del D-pad; si se corre un poco afuera, sigue mandando. */
@@ -128,6 +130,10 @@ window.AG = window.AG || {};
       this.controles.forEach((control) => control.setVisible(visible));
       if (this.zonaDpad) this.zonaDpad.setVisible(visible);
       if (visible === false) this.soltarTodo();
+    }
+
+    controlesVisibles() {
+      return Boolean(this.zonaDpad && this.zonaDpad.visible);
     }
 
     soltarTodo() {

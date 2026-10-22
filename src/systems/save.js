@@ -1,8 +1,12 @@
 window.AG = window.AG || {};
 
 (function () {
+  // Las tres flores, cada una de quien la da. El orden es el de la partida.
+  const FLORES = ['beto', 'sofi', 'flora'];
+
   const VACIO = () => ({
     flores: 0,
+    floresDe: [],
     recuerdos: [],
     escena: 'Casa',
     pos: null,
@@ -11,6 +15,8 @@ window.AG = window.AG || {};
     visto: {}
   });
 
+  AG.FLORES = FLORES;
+
   AG.Guardado = {
     datos: VACIO(),
 
@@ -18,7 +24,7 @@ window.AG = window.AG || {};
       try {
         const crudo = window.localStorage.getItem(AG.CFG.SAVE_KEY);
         if (crudo) {
-          this.datos = Object.assign(VACIO(), JSON.parse(crudo));
+          this.datos = this.migrar(Object.assign(VACIO(), JSON.parse(crudo)));
           return this.datos;
         }
       } catch (error) {
@@ -26,6 +32,20 @@ window.AG = window.AG || {};
       }
       this.datos = VACIO();
       return this.datos;
+    },
+
+    /**
+     * Antes las flores eran un contador y cualquiera daba "la siguiente": así Sofi terminaba
+     * dando las tres. Un guardado de entonces no dice de quién era cada una; si la partida ya
+     * terminó se le dan las tres, si no, las flores vuelven a empezar (las fotos se quedan).
+     */
+    migrar(datos) {
+      if (!Array.isArray(datos.floresDe) || (datos.flores && !datos.floresDe.length)) {
+        datos.floresDe = datos.terminado ? FLORES.slice() : [];
+      }
+      datos.floresDe = datos.floresDe.filter((id) => FLORES.indexOf(id) !== -1);
+      datos.flores = datos.floresDe.length;
+      return datos;
     },
 
     guardar() {
@@ -43,14 +63,24 @@ window.AG = window.AG || {};
       this.guardar();
     },
 
-    flor() {
-      this.datos.flores = Math.min(3, this.datos.flores + 1);
+    /** La flor que da `quien` (beto, sofi o flora). Dos veces la misma no suma. */
+    flor(quien) {
+      if (FLORES.indexOf(quien) === -1) {
+        console.warn('[Guardado] Flor de alguien desconocido:', quien);
+        return this.datos.flores;
+      }
+      if (this.datos.floresDe.indexOf(quien) === -1) this.datos.floresDe.push(quien);
+      this.datos.flores = this.datos.floresDe.length;
       this.guardar();
       return this.datos.flores;
     },
 
-    tieneFlor(n) {
-      return this.datos.flores >= n;
+    tieneFlorDe(quien) {
+      return this.datos.floresDe.indexOf(quien) !== -1;
+    },
+
+    tieneTodasLasFlores() {
+      return FLORES.every((quien) => this.tieneFlorDe(quien));
     },
 
     recuerdo(id) {

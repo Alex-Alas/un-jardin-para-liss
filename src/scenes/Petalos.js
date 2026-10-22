@@ -60,7 +60,7 @@ AG.Petalos = class Petalos extends Phaser.Scene {
   fondo() {
     const { VIEW_W, VIEW_H, COLORES } = AG.CFG;
     const c = (v) => AG.UI.color(v);
-    const horizonte = Math.round(VIEW_H * 0.62);
+    const horizonte = this.horizonte();
     const parque = this.tipo === 'petalos2';
 
     // El fondo pintado (tools/fondos.py) ya trae cielo, árboles, pasto y la luz de la hora.
@@ -119,6 +119,11 @@ AG.Petalos = class Petalos extends Phaser.Scene {
     if (parque) this.veloAtardecer();
   }
 
+  /** Donde el pasto toca el cielo o la fila de árboles: el mismo 62 % de tools/fondos.py. */
+  horizonte() {
+    return Math.round(AG.CFG.VIEW_H * 0.62);
+  }
+
   /** Velo cálido encima de todo, también de Liss y los pétalos: es la ronda de las seis de la tarde. */
   veloAtardecer() {
     const { VIEW_W, VIEW_H, COLORES } = AG.CFG;
@@ -146,8 +151,11 @@ AG.Petalos = class Petalos extends Phaser.Scene {
 
     const dir = this.entrada.direccion();
     const paso = 98 * (delta / 1000) * (dir.x && dir.y ? Math.SQRT1_2 : 1);
-    this.jugador.x = Phaser.Math.Clamp(this.jugador.x + dir.x * paso, 12, AG.CFG.VIEW_W - 12);
-    this.jugador.y = Phaser.Math.Clamp(this.jugador.y + dir.y * paso, AG.CFG.VIEW_H * 0.45, AG.CFG.VIEW_H - 4);
+    // Los pies de Liss no salen del pasto: más arriba del horizonte parecía caminar por el cielo.
+    const { VIEW_W, VIEW_H } = AG.CFG;
+    const pasto = this.horizonte() + 12;
+    this.jugador.x = Phaser.Math.Clamp(this.jugador.x + dir.x * paso, 12, VIEW_W - 12);
+    this.jugador.y = Phaser.Math.Clamp(this.jugador.y + dir.y * paso, pasto, VIEW_H - 4);
     this.animarJugador(dir);
 
     this.acumulador += delta;
@@ -195,8 +203,8 @@ AG.Petalos = class Petalos extends Phaser.Scene {
    * El viento del parque no sopla parejo: sopla a ráfagas.
    *
    * Un viento constante solo desplaza todo un poco y se compensa caminando; una ráfaga avisada
-   * obliga a decidir a dónde correr, que es de lo que habla Sofi antes de empezar. Solo existe
-   * en las rondas con `viento`: la de Doña Flora se queda tranquila.
+   * obliga a decidir a dónde correr, que es de lo que habla Doña Flora antes de empezar. Solo
+   * existe en las rondas con `viento`: la de Sofi se queda tranquila.
    */
   actualizarRafaga(delta) {
     if (!this.reglas.viento) return;
