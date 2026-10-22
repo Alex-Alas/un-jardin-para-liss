@@ -15,7 +15,7 @@
 #! retoque copiar 528 285 538 304 a 515 285       // guardado: el motor ya pone el corazón
 #! retoque espejar 716 428 742 452 a 680 428      // la marca de agua sobre el pino de abajo
 #! retoque sombra 332 199 9 3                     // el cartel del camino a la colina, con su
-#! retoque dibujo cartel_colina 332 200           // sombra, al pie del camino de arriba
+#! retoque cartel 332 200 madera 412 178          // sombra: la madera es la del banco de la plaza
 
 // --- lo que se toca (x y = el punto donde el objeto toca el piso)
 #! objeto buzon buzon pueblo.buzon 254 126               // la casilla de madera con ranura

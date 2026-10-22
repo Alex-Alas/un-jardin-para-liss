@@ -202,6 +202,8 @@ def retocar(imagen: Image.Image, retoques: list[list[str]]) -> dict:
                                      tramo [sx0, sx1) de una de las filas limpias `a b …`, corrido
                                      un poco en cada fila para que la veta no se vea calcada
     - `sombra cx cy rx ry`           oscurece una elipse del piso: la sombra de algo que se dibuja
+    - `cartel x y madera bx by`      el cartel de la colina parado en (x, y), hecho con la madera
+                                     de la propia pintura: (bx, by) es la tabla que la presta
     - `dibujo <nombre> x y`          uno de los dibujitos de DIBUJOS (abajo)
     """
     exactos: dict = {}
@@ -244,6 +246,10 @@ def retocar(imagen: Image.Image, retoques: list[list[str]]) -> dict:
                     if ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 <= 1:
                         r, g, b = datos[x, y][:3]
                         datos[x, y] = (round(r * 0.62), round(g * 0.66), round(b * 0.66))
+        elif orden == "cartel":
+            x, y = _numeros(partes[1:3])
+            bx, by = _numeros(partes[4:6])
+            cartel_colina(imagen, x, y, (bx, by))
         elif orden == "dibujo":
             x, y = _numeros(partes[2:4])
             capa = Image.new("RGBA", imagen.size, (0, 0, 0, 0))
@@ -339,47 +345,154 @@ def _flor_cartel(dib: ImageDraw.ImageDraw, x: int, y: int) -> None:
         "g": (78, 104, 58), "G": (116, 146, 80)})
 
 
-def _cartel_colina(dib: ImageDraw.ImageDraw, x: int, y: int) -> None:
-    """El cartel de madera con la flecha hacia la colina, al pie del camino de arriba.
+# --- el cartel de la colina -----------------------------------------------------------------
+#
+# La forma (la tabla astillada, el poste y la base) y la veta salen de la referencia que pasó
+# Alex, con la flecha vuelta hacia arriba. Los colores no son inventados: cada fila de la tabla
+# toma los tonos de una tabla de verdad de la pintura (el asiento del banco de la plaza), así el
+# cartel tiene la misma luz, las mismas bandas y el mismo marrón que el resto del pueblo. Hecho
+# con colores planos se veía de otro juego.
+#
+#   o contorno · T tabla · P poste · B base · . afuera
 
-    (x, y) es el punto donde la base toca el piso. Mide 26 × 27: la forma (la tabla astillada,
-    el poste y la base) sale de la referencia que pasó Alex, con la flecha vuelta hacia arriba y
-    los marrones de la madera del pueblo, para que no parezca de otro juego.
+CARTEL_FORMA = [
+    "............ooo...........",
+    "...........oPPPo..........",
+    "...........oPPPo..........",
+    "...........oPPPo..........",
+    "...........oPPPo..........",
+    "...........oPPPo..........",
+    ".....oooooooooooooooooo...",
+    "....oTTTTTTTTTTTTTTTTTTo..",
+    ".....oTTTTTTTTTTTTTTTTTo..",
+    "...ooTTTTTTTTTTTTTTTTTTTo.",
+    "..oTTTTTTTTTTTTTTTTTTTTo..",
+    "...oTTTTTTTTTTTTTTTTTTo...",
+    "..oTTTTTTTTTTTTTTTTTTo....",
+    "...oTTTTTTTTTTTTTTTTTTo...",
+    "...ooTTTTTTTTTTTTTTTTTTo..",
+    "..oTTTTTTTTTTTTTTTTTToo...",
+    ".oTTTTTTTTTTTTTTTTTTo.....",
+    "..oTTTTTTTTTTTTTTTTTTooo..",
+    "...ooTTTTTTTTTTTTTTTTTTTo.",
+    ".....ooooooooooooooooooo..",
+    "...........oPPPo..........",
+    "...........oPPPo..........",
+    "...........oPPPo..........",
+    "...........oPPPo..........",
+    "...........oPPPo..........",
+    "..........ooPPPoo.........",
+    "........oBBBBBBBBo........",
+]
+CARTEL_VETA = [   # una fila por fila de tabla (la 7 de la forma en adelante)
+    "..............dddddddddd..",
+    ".........dd..........dd...",
+    "......................dd..",
+    "....dddd....d.........d...",
+    "..........ddd..ddd...d....",
+    "....dd...ddddddd.....d....",
+    "........ddddddddddd.......",
+    "...........dddddddd.ddd...",
+    ".....ddddd..ddd.....dd....",
+    "....dddd...d.d.ddd..d.....",
+    "...................dddd...",
+    "......dddd..dddddddddddd..",
+]
+CARTEL_FLECHA = {8: (0, 0), 9: (-1, 1), 10: (-2, 2), 11: (-3, 3), 12: (-1, 1), 13: (-1, 1),
+                 14: (-1, 1), 15: (-1, 1), 16: (-1, 1)}   # fila: desde, hasta (respecto al poste)
+
+
+def cartel_colina(imagen: Image.Image, x: int, y: int, madera: tuple[int, int]) -> None:
+    """El cartel con la flecha hacia la colina; (x, y) es donde la base toca el piso.
+
+    `madera` es la esquina izquierda de la tabla que presta los colores: de ahí hacia abajo,
+    la fila de luz, la de la veta, las dos del cuerpo y la de la sombra (en el banco de la plaza,
+    las filas 1 a 5 del asiento).
     """
-    _patron(dib, x - 13, y - 26, [
-        "............ooo...........",
-        "...........odddo..........",
-        "...........ommdo..........",
-        "...........ommdo..........",
-        "...........ommdo..........",
-        "...........ommdo..........",
-        ".....oooooooooooooooooo...",
-        "....ohmmmmmmmmdddddddddo..",
-        ".....ohmmmmmmxmmmmmmmddo..",
-        "...oohddmmmmxxxmmmmmmmddo.",
-        "..ohdddmmmmxxxxxmmmmmmdo..",
-        "...ohmmmmmxxxxxxxmmmmdo...",
-        "..ohddmmmmmmxxxmmddddo....",
-        "...ohmmmmmmmxxxmmmmmmmo...",
-        "...oohmmmmmmxxxmmmmmdddo..",
-        "..ohdddmmmmmxxxmmmmmdoo...",
-        ".ohmmddmmmmmxxxmdddmo.....",
-        "..ohhmmmmmmmmmmmmmmmdooo..",
-        "...oohmmmmmmmmmmmmmmddddo.",
-        ".....ooooooooooooooooooo..",
-        "...........ommdo..........",
-        "...........ommdo..........",
-        "...........ommdo..........",
-        "...........ommdo..........",
-        "...........omddo..........",
-        "..........ooddoo..........",
-        "........oooooooooo........",
-    ], {"o": (52, 32, 24), "h": (204, 152, 104), "m": (170, 114, 76), "d": (136, 90, 62),
-        "x": (98, 60, 42)})
+    datos = imagen.load()
+    x0, y0 = x - 13, y - 26
+    alto, ancho = len(CARTEL_FORMA), len(CARTEL_FORMA[0])
+    largo = 38
+    fila = lambda dy: [datos[madera[0] + i, madera[1] + dy][:3] for i in range(largo)]
+    luz, veta, cuerpo, cuerpo2, sombra = fila(1), fila(2), fila(3), fila(4), fila(5)
+    contorno = (52, 30, 20)
+    poste = [(150, 104, 70), (118, 78, 50), (84, 54, 36)]     # de la cara con luz a la de sombra
+
+    def por(color, k):
+        return tuple(max(0, min(255, round(c * k))) for c in color)
+
+    def hacia(a, b, t):
+        return tuple(round(p + (q - p) * t) for p, q in zip(a, b))
+
+    def ruido(i, j):          # fijo, para que el cartel salga igual cada vez
+        return ((i * 73 + j * 151 + i * j * 7) % 17) / 16
+
+    def tabla(i, j):
+        return 0 <= j < alto and 0 <= i < ancho and CARTEL_FORMA[j][i] == "T"
+
+    flecha = {(i, j) for j, (a, b) in CARTEL_FLECHA.items() for i in range(13 + a, 14 + b)}
+    for j, renglon in enumerate(CARTEL_FORMA):
+        for i, letra in enumerate(renglon):
+            punto = (x0 + i, y0 + j)
+            if letra == "T":
+                col = (i * 3 + j) % largo
+                if not tabla(i, j - 1):
+                    color = luz[col]
+                elif not tabla(i, j + 1):
+                    color = sombra[col]
+                else:
+                    color = (cuerpo if (j + i // 6) % 2 else cuerpo2)[col]
+                    if CARTEL_VETA[j - 7][i] == "d" and (i, j) not in flecha and tabla(i, j + 1):
+                        color = hacia(color, veta[col], 0.75)
+                color = por(color, 1.06 - 0.14 * i / ancho)    # la luz viene de la izquierda
+                if not tabla(i - 1, j):
+                    color = por(color, 1.18)                   # la astilla que agarra la luz
+                if not tabla(i + 1, j):
+                    color = por(color, 0.84)
+                if tabla(i, j + 1) and not tabla(i, j + 2):
+                    color = por(color, 0.9)
+                datos[punto] = color
+            elif letra == "P":
+                color = por(poste[i - 12], 0.94 + 0.1 * ruido(i, j))
+                if j in (20, 21):
+                    color = por(color, 0.62 if j == 20 else 0.8)   # la sombra de la tabla
+                if j == 1:
+                    color = por(color, 1.15)                       # la punta del poste
+                datos[punto] = color
+            elif letra == "B":
+                datos[punto] = por((92, 62, 42), 0.9 + 0.15 * ruido(i, j))
+            elif letra == "o":
+                datos[punto] = por(contorno, 0.9 + 0.2 * ruido(i, j))
+
+    # La flecha, tallada: el surco oscuro y su borde de abajo y de la derecha, que agarran luz.
+    for i, j in flecha:
+        datos[x0 + i, y0 + j] = por(datos[x0 + i, y0 + j], 0.42)
+    for i, j in flecha:
+        if (i, j + 1) not in flecha:
+            datos[x0 + i, y0 + j + 1] = por(datos[x0 + i, y0 + j + 1], 1.25)
+        if (i + 1, j) not in flecha:
+            datos[x0 + i + 1, y0 + j] = por(datos[x0 + i + 1, y0 + j], 1.12)
+
+    # El borde se funde un poco con el pasto, como el contorno pintado de las cosas del pueblo.
+    for j in range(-1, alto + 1):
+        for i in range(-1, ancho + 1):
+            if 0 <= j < alto and 0 <= i < ancho and CARTEL_FORMA[j][i] != ".":
+                continue
+            vecinos = sum(1 for di, dj in ((1, 0), (-1, 0), (0, 1), (0, -1))
+                          if 0 <= j + dj < alto and 0 <= i + di < ancho
+                          and CARTEL_FORMA[j + dj][i + di] == "o")
+            if vecinos:
+                punto = (x0 + i, y0 + j)
+                datos[punto] = hacia(datos[punto][:3], contorno, 0.22 * vecinos)
+
+    # Unas briznas de pasto por delante de la base, para que el cartel esté clavado y no apoyado.
+    for i, brizna in ((7, 2), (8, 1), (9, 2), (17, 1), (18, 2), (19, 1)):
+        for h in range(brizna):
+            datos[x0 + i, y0 + 26 - h] = por(datos[x0 + i, y0 + 29][:3], 1.05)
 
 
 DIBUJOS = {"nota": _nota, "marca_calendario": _marca_calendario, "espejo_ropero": _espejo_ropero,
-           "flor_cartel": _flor_cartel, "cartel_colina": _cartel_colina}
+           "flor_cartel": _flor_cartel}
 
 
 def pintura(mapa: dict) -> Image.Image:
