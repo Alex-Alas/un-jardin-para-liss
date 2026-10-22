@@ -133,10 +133,16 @@ window.AG = window.AG || {};
       });
     },
 
+    /**
+     * Pétalos que caen sobre la escena. Viven en el mundo, no pegados a la pantalla: fijos a la
+     * pantalla, al subir la cámara el pueblo bajaba y parecía que caían más lento (y al bajar,
+     * más rápido). Nacen justo arriba de lo que muestra la cámara en ese momento.
+     */
     petalosAmbientales(scene, cantidad = 1) {
+      const vista = () => scene.cameras.main.worldView;
       const emisor = this.particulas(scene, 0, 0, 'petalo', {
-        x: { min: 0, max: AG.CFG.VIEW_W },
-        y: -8,
+        x: { onEmit: () => vista().x + Math.random() * AG.CFG.VIEW_W },
+        y: { onEmit: () => vista().y - 8 },
         lifespan: 9000,
         speedY: { min: 14, max: 26 },
         speedX: { min: -8, max: 8 },
@@ -148,7 +154,7 @@ window.AG = window.AG || {};
         blendMode: 'NORMAL'
       });
       if (!emisor) return null;
-      emisor.setDepth(500).setScrollFactor(0);
+      emisor.setDepth(500);
       return emisor;
     },
 

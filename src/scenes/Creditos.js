@@ -60,6 +60,13 @@ AG.Creditos = class Creditos extends Phaser.Scene {
 
     this.velocidad = 16;
     this.terminado = false;
+    this.saliendo = false;
+    // En los créditos cualquier toque sirve para salir, no solo el botón A. Los primeros ms se
+    // ignoran: el toque que cerró el último diálogo no tiene que saltarse los créditos.
+    const listoEn = performance.now() + 400;
+    this.input.on('pointerdown', () => {
+      if (performance.now() > listoEn) this.salir();
+    });
   }
 
   update(tiempo, delta) {
@@ -94,12 +101,14 @@ AG.Creditos = class Creditos extends Phaser.Scene {
     AG.UI.texto(this, VIEW_W / 2, VIEW_H / 2 - 6, 'Gracias por jugar, te amo <333', { color: COLORES.amarillo })
       .setOrigin(0.5)
       .setDepth(51);
-    AG.UI.texto(this, VIEW_W / 2, VIEW_H / 2 + 14, 'A o ESC para volver', { color: COLORES.gris })
+    AG.UI.texto(this, VIEW_W / 2, VIEW_H / 2 + 14, this.entrada.hayTactil() ? 'toca para volver' : 'A o ESC para volver', { color: COLORES.gris })
       .setOrigin(0.5)
       .setDepth(51);
   }
 
   salir() {
+    if (this.saliendo) return;
+    this.saliendo = true;
     AG.FX.fundir(this, () => this.scene.start('Title'));
   }
 };
