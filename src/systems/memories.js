@@ -46,6 +46,7 @@ window.AG = window.AG || {};
       this.esAlbum = false;
       this.modo = 'polaroid';
       this.silenciarToques();
+      this.ocultarControles();
 
       const { VIEW_W, VIEW_H, COLORES } = AG.CFG;
       const velo = this.scene.add
@@ -140,7 +141,9 @@ window.AG = window.AG || {};
           .setScrollFactor(0)
       );
       this.objetos.push(
-        AG.UI.texto(this.scene, 260, 232, 'A o toca para cerrar', { color: COLORES.gris })
+        AG.UI.texto(this.scene, 260, 232, this.hayTactil() ? 'toca para cerrar' : 'A o toca para cerrar', {
+          color: COLORES.gris
+        })
           .setDepth(802)
           .setScrollFactor(0)
       );
@@ -159,6 +162,25 @@ window.AG = window.AG || {};
     silenciarToques() {
       const entrada = this.scene.entrada;
       if (entrada && entrada.silenciarToques) entrada.silenciarToques();
+    }
+
+    hayTactil() {
+      const entrada = this.scene.entrada;
+      return Boolean(entrada && entrada.hayTactil && entrada.hayTactil());
+    }
+
+    /** En el celular la foto se ve sin el D-pad ni el botón A encima; al cerrar vuelven como estaban. */
+    ocultarControles() {
+      const entrada = this.scene.entrada;
+      if (!entrada || !entrada.mostrarControles) return;
+      if (this.controlesAntes === undefined) this.controlesAntes = entrada.controlesVisibles();
+      entrada.mostrarControles(false);
+    }
+
+    restaurarControles() {
+      const entrada = this.scene.entrada;
+      if (entrada && entrada.mostrarControles && this.controlesAntes) entrada.mostrarControles(true);
+      this.controlesAntes = undefined;
     }
 
     /** Cerrar el polaroid tocando en cualquier lado (celular). */
@@ -304,6 +326,7 @@ window.AG = window.AG || {};
       this.silenciarToques();
       this.abierto = false;
       this.limpiar();
+      this.restaurarControles();
       const cb = this.alCerrar;
       this.alCerrar = null;
       if (cb) cb();

@@ -130,6 +130,10 @@ window.AG = window.AG || {};
       if (visible === false) this.soltarTodo();
     }
 
+    controlesVisibles() {
+      return Boolean(this.zonaDpad && this.zonaDpad.visible);
+    }
+
     soltarTodo() {
       this.ejeTactil = { x: 0, y: 0 };
       this.botonA = false;
