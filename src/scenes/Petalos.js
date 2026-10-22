@@ -11,8 +11,8 @@ AG.Petalos = class Petalos extends Phaser.Scene {
     this.volverA = datos_.volver || 'Floreria';
     this.inicioVolver = datos_.inicio || { px: 248, py: 178 };
     this.reglas = {
-      petalos1: { meta: 10, segundos: 45, viento: 0, hojas: 0, motor: 26, intervalo: 300 },
-      petalos2: { meta: 14, segundos: 50, viento: 30, hojas: 22, motor: 34, intervalo: 240 }
+      petalos1: { meta: 20, segundos: 45, viento: 0, hojas: 0, motor: 26, intervalo: 300 },
+      petalos2: { meta: 30, segundos: 50, viento: 30, hojas: 22, motor: 34, intervalo: 240 }
     }[this.tipo];
     this.atrapados = 0;
     this.restante = this.reglas.segundos;

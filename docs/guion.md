@@ -242,7 +242,7 @@ FLORA: El camino sale del cruce, donde está el cartel.
 ## Acto 3 — Escena de pétalos 1: «El patio de Doña Flora», con Sofi
 
 Contexto: el viento se llevó los pétalos del patio de la florería y Sofi quiere llevárselos a su
-mamá. Es la ronda **tranquila**: atrapar **10 pétalos** en 45 segundos, sin viento ni hojas secas;
+mamá. Es la ronda **tranquila**: atrapar **20 pétalos** en 45 segundos, sin viento ni hojas secas;
 nunca se pierde (si el tiempo se acaba, se vuelve a intentar sin castigo). Al terminar, Liss vuelve
 al pueblo junto a Sofi.
 
@@ -267,7 +267,7 @@ SOFI: Y antes de subir a la colina, pasa por la tienda de mi mamá. Creo que te 
 ## Acto 4 — Escena de pétalos 2: «El viento del parque», con Doña Flora
 
 Contexto: el viento se llevó al parque los pétalos del ramo más bonito de Doña Flora. Es la ronda
-**movida**: atrapar **14 pétalos** en 50 segundos, con ráfagas que empujan todo hacia un lado y
+**movida**: atrapar **30 pétalos** en 50 segundos, con ráfagas que empujan todo hacia un lado y
 hojas secas que restan. Al terminar, Liss vuelve a la florería con las tres flores y se abre la
 colina.
 
@@ -387,7 +387,7 @@ Una aventura hecha a mano por Alex
 (Y con ayuda de Claudio, jeje)
 
 Historia, arte y fotos: Alex y Liss
-Música: Alex, con Gemini
+Música: Alex
 
 Gracias a Doña Flora, a Don Beto, a Sofi y a Michi,
 que son inventados, pero ayudaron muchísimo.
